@@ -8,9 +8,15 @@ Pokepic:: ; 244e3
 	and a
 	jr nz, .partymon
 	farcall LoadPokemonPalette
+	ld a, 1
+	ld [MonVariant], a
 	jr .got_palette
 .partymon
 	farcall LoadPartyMonPalette
+	ld hl, PartyMon1Form
+	ld a, [CurPartyMon]
+	farcall GetPartyLocation
+	farcall GetVariant
 .got_palette
 	call UpdateTimePals
 	xor a
@@ -70,8 +76,7 @@ ClosePokepic:: ; 24528
 	call OverworldTextModeSwitch
 	call ApplyTilemap
 	call UpdateSprites
-	call LoadStandardFont
-	ret
+	jp LoadStandardFont
 
 PokepicMenuDataHeader: ; 0x24547
 	db $40 ; flags
@@ -82,12 +87,16 @@ PokepicMenuDataHeader: ; 0x24547
 
 LoadGrayscalePalette:
 	ld a, $5
-	ld de, UnknBGPals + 7 palettes + 2
+	ld de, UnknBGPals palette 7 + 2
 	ld hl, GrayscalePalette
 	ld bc, 4
 	jp FarCopyWRAM
 ; 49418
 
 GrayscalePalette:
+if !DEF(MONOCHROME)
 	RGB 20, 20, 20
 	RGB 10, 10, 10
+else
+	MONOCHROME_RGB_TWO
+endc

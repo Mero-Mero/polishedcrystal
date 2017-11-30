@@ -66,7 +66,6 @@
 	dw AccuracyDown2
 	dw EvasionDown2
 	dw ResetStats
-	dw Mist
 	dw Safeguard
 	dw Reflect
 	dw LightScreen
@@ -81,7 +80,6 @@
 	dw TriAttack
 	dw SuperFang
 	dw Transform
-	dw SkyAttack
 	dw Substitute
 	dw HyperBeam
 	dw Rage
@@ -92,7 +90,6 @@
 	dw Counter
 	dw Encore
 	dw PainSplit
-	dw LockOn
 	dw Sketch
 	dw SleepTalk
 	dw DestinyBond
@@ -102,7 +99,6 @@
 	dw TripleKick
 	dw Thief
 	dw MeanLook
-	dw Facade
 	dw FlameWheel
 	dw Curse
 	dw Protect
@@ -122,14 +118,12 @@
 	dw BatonPass
 	dw Pursuit
 	dw RapidSpin
-	dw MorningSun
-	dw Moonlight
+	dw HealingLight
 	dw HiddenPower
 	dw RainDance
 	dw SunnyDay
 	dw BellyDrum
 	dw MirrorCoat
-	dw Twister
 	dw Earthquake
 	dw FutureSight
 	dw Gust
@@ -142,20 +136,14 @@
 	dw FlareBlitz
 	dw NormalHit
 	dw NormalHit
-	dw NormalHit
-	dw OHKOHit
-	dw NormalHit
-	dw Bide
-	dw RazorWind
-	dw Mimic
-	dw Psywave
-	dw Snore
-	dw DefrostOpponent
-	dw Spite
-	dw Present
-	dw Frustration
-	dw PsychUp
-	dw Conversion2
-	dw MirrorMove
-	dw SkullBash
 	dw SwitchHit
+	dw SuckerPunch
+	dw ToxicSpikes
+	dw Roost
+	dw CloseCombat
+	dw SkillSwap
+	dw Trick
+	dw KnockOff
+	dw FuryStrikes
+	dw BugBite
+	dw GyroBall

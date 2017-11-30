@@ -1,12 +1,30 @@
-const_value set 2
-	const GOLDENRODBIKESHOP_CLERK
-
 GoldenrodBikeShop_MapScriptHeader:
-.MapTriggers:
-	db 0
 
-.MapCallbacks:
-	db 0
+.MapTriggers: db 0
+
+.MapCallbacks: db 0
+
+GoldenrodBikeShop_MapEventHeader:
+
+.Warps: db 2
+	warp_def 7, 2, 2, GOLDENROD_CITY
+	warp_def 7, 3, 2, GOLDENROD_CITY
+
+.XYTriggers: db 0
+
+.Signposts: db 9
+	signpost 2, 1, SIGNPOST_JUMPTEXT, UnknownText_0x548ed
+	signpost 3, 0, SIGNPOST_JUMPTEXT, UnknownText_0x548ed
+	signpost 3, 1, SIGNPOST_JUMPTEXT, UnknownText_0x548ed
+	signpost 5, 0, SIGNPOST_JUMPTEXT, UnknownText_0x548ed
+	signpost 5, 1, SIGNPOST_JUMPTEXT, UnknownText_0x548ed
+	signpost 6, 0, SIGNPOST_JUMPTEXT, UnknownText_0x548ed
+	signpost 6, 1, SIGNPOST_JUMPTEXT, UnknownText_0x548ed
+	signpost 6, 6, SIGNPOST_JUMPTEXT, UnknownText_0x548ed
+	signpost 6, 7, SIGNPOST_JUMPTEXT, UnknownText_0x548ed
+
+.PersonEvents: db 1
+	person_event SPRITE_CLERK, 2, 7, SPRITEMOVEDATA_STANDING_LEFT, 0, 0, -1, -1, (1 << 3) | PAL_OW_RED, PERSONTYPE_SCRIPT, 0, ClerkScript_0x54750, -1
 
 ClerkScript_0x54750:
 	faceplayer
@@ -27,19 +45,10 @@ ClerkScript_0x54750:
 	setflag ENGINE_BIKE_SHOP_CALL_ENABLED
 	setevent EVENT_GOT_BICYCLE
 UnknownScript_0x54775:
-	writetext UnknownText_0x5485f
-	waitbutton
-	closetext
-	end
+	jumpopenedtext UnknownText_0x5485f
 
 UnknownScript_0x5477b:
-	writetext UnknownText_0x54898
-	waitbutton
-	closetext
-	end
-
-MapGoldenrodBikeShopSignpost8Script:
-	jumptext UnknownText_0x548ed
+	jumpopenedtext UnknownText_0x54898
 
 UnknownText_0x54787:
 	text "…sigh… I opened"
@@ -87,28 +96,3 @@ UnknownText_0x548ed:
 	text "It's a shiny new"
 	line "Bicycle!"
 	done
-
-GoldenrodBikeShop_MapEventHeader:
-.Warps:
-	db 2
-	warp_def $7, $2, 2, GOLDENROD_CITY
-	warp_def $7, $3, 2, GOLDENROD_CITY
-
-.XYTriggers:
-	db 0
-
-.Signposts:
-	db 9
-	signpost 2, 1, SIGNPOST_READ, MapGoldenrodBikeShopSignpost8Script
-	signpost 3, 0, SIGNPOST_READ, MapGoldenrodBikeShopSignpost8Script
-	signpost 3, 1, SIGNPOST_READ, MapGoldenrodBikeShopSignpost8Script
-	signpost 5, 0, SIGNPOST_READ, MapGoldenrodBikeShopSignpost8Script
-	signpost 5, 1, SIGNPOST_READ, MapGoldenrodBikeShopSignpost8Script
-	signpost 6, 0, SIGNPOST_READ, MapGoldenrodBikeShopSignpost8Script
-	signpost 6, 1, SIGNPOST_READ, MapGoldenrodBikeShopSignpost8Script
-	signpost 6, 6, SIGNPOST_READ, MapGoldenrodBikeShopSignpost8Script
-	signpost 6, 7, SIGNPOST_READ, MapGoldenrodBikeShopSignpost8Script
-
-.PersonEvents:
-	db 1
-	person_event SPRITE_CLERK, 2, 7, SPRITEMOVEDATA_STANDING_LEFT, 0, 0, -1, -1, (1 << 3) | PAL_OW_RED, PERSONTYPE_SCRIPT, 0, ClerkScript_0x54750, -1

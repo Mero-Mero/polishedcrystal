@@ -1,47 +1,49 @@
-const_value set 2
-	const ROUTE38_YOUNGSTER1
-	const ROUTE38_LASS
-	const ROUTE38_YOUNGSTER2
-	const ROUTE38_BEAUTY1
-	const ROUTE38_SAILOR
-	const ROUTE38_FRUIT_TREE
-	const ROUTE38_BEAUTY2
-
 Route38_MapScriptHeader:
-.MapTriggers:
-	db 0
 
-.MapCallbacks:
-	db 0
+.MapTriggers: db 0
+
+.MapCallbacks: db 0
+
+Route38_MapEventHeader:
+
+.Warps: db 2
+	warp_def 8, 35, 1, ROUTE_38_ECRUTEAK_GATE
+	warp_def 9, 35, 2, ROUTE_38_ECRUTEAK_GATE
+
+.XYTriggers: db 0
+
+.Signposts: db 2
+	signpost 7, 33, SIGNPOST_JUMPTEXT, Route38SignText
+	signpost 13, 5, SIGNPOST_JUMPTEXT, Route38TrainerTipsText
+
+.PersonEvents: db 7
+	person_event SPRITE_YOUNGSTER, 1, 4, SPRITEMOVEDATA_STANDING_RIGHT, 0, 0, -1, -1, (1 << 3) | PAL_OW_BLUE, PERSONTYPE_TRAINER, 1, TrainerSchoolboyChad1, -1
+	person_event SPRITE_LASS, 3, 15, SPRITEMOVEDATA_SPINRANDOM_FAST, 0, 0, -1, -1, (1 << 3) | PAL_OW_BLUE, PERSONTYPE_TRAINER, 2, TrainerLassDana1, -1
+	person_event SPRITE_YOUNGSTER, 15, 12, SPRITEMOVEDATA_SPINRANDOM_FAST, 0, 0, -1, -1, (1 << 3) | PAL_OW_BLUE, PERSONTYPE_TRAINER, 1, TrainerBird_keeperToby, -1
+	person_event SPRITE_BEAUTY, 9, 19, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, -1, (1 << 3) | PAL_OW_BLUE, PERSONTYPE_TRAINER, 1, TrainerBeautyValencia, -1
+	person_event SPRITE_SAILOR, 5, 24, SPRITEMOVEDATA_SPINCOUNTERCLOCKWISE, 0, 0, -1, -1, (1 << 3) | PAL_OW_BLUE, PERSONTYPE_TRAINER, 2, TrainerSailorHarry, -1
+	fruittree_event 10, 12, FRUITTREE_ROUTE_38, SITRUS_BERRY
+	person_event SPRITE_BEAUTY, 8, 5, SPRITEMOVEDATA_SPINRANDOM_FAST, 0, 0, -1, -1, (1 << 3) | PAL_OW_BLUE, PERSONTYPE_TRAINER, 1, TrainerBeautyOlivia, -1
 
 TrainerBird_keeperToby:
 	trainer EVENT_BEAT_BIRD_KEEPER_TOBY, BIRD_KEEPER, TOBY, Bird_keeperTobySeenText, Bird_keeperTobyBeatenText, 0, .script
 
 .script
 	end_if_just_battled
-	opentext
-	writetext UnknownText_0x1a1f86
-	waitbutton
-	closetext
-	end
+	jumptextfaceplayer UnknownText_0x1a1f86
 
 TrainerSailorHarry:
 	trainer EVENT_BEAT_SAILOR_HARRY, SAILOR, HARRY, SailorHarrySeenText, SailorHarryBeatenText, 0, .script
 
 .script
 	end_if_just_battled
-	opentext
-	writetext UnknownText_0x1a220c
-	waitbutton
-	closetext
-	end
+	jumptextfaceplayer UnknownText_0x1a220c
 
 TrainerLassDana1:
 	trainer EVENT_BEAT_LASS_DANA, LASS, DANA1, LassDana1SeenText, LassDana1BeatenText, 0, .script
 
 .script
 	writecode VAR_CALLERID, PHONE_LASS_DANA
-	end_if_just_battled
 	opentext
 	checkflag ENGINE_DANA
 	iftrue .DanaRematch
@@ -179,7 +181,6 @@ TrainerSchoolboyChad1:
 
 .script
 	writecode VAR_CALLERID, PHONE_SCHOOLBOY_CHAD
-	end_if_just_battled
 	opentext
 	checkflag ENGINE_CHAD
 	iftrue .ChadRematch
@@ -296,31 +297,14 @@ TrainerBeautyValencia:
 
 .script
 	end_if_just_battled
-	opentext
-	writetext UnknownText_0x1a2185
-	waitbutton
-	closetext
-	end
+	jumptextfaceplayer UnknownText_0x1a2185
 
 TrainerBeautyOlivia:
 	trainer EVENT_BEAT_BEAUTY_OLIVIA, BEAUTY, OLIVIA, BeautyOliviaSeenText, BeautyOliviaBeatenText, 0, .script
 
 .script
 	end_if_just_battled
-	opentext
-	writetext UnknownText_0x1a229a
-	waitbutton
-	closetext
-	end
-
-Route38Sign:
-	jumptext Route38SignText
-
-Route38TrainerTips:
-	jumptext Route38TrainerTipsText
-
-FruitTreeScript_0x1a1f33:
-	fruittree FRUITTREE_ROUTE_38
+	jumptextfaceplayer UnknownText_0x1a229a
 
 Bird_keeperTobySeenText:
 	text "Fly high into the"
@@ -441,12 +425,11 @@ BeautyOliviaBeatenText:
 UnknownText_0x1a229a:
 	text "Moomoo Milk is"
 	line "good for beauty"
+	cont "and health."
 
-	para "and health, but"
-	line "inconveniently,"
-
-	para "they only sell a"
-	line "bottle at a time."
+	para "I like to buy a"
+	line "dozen bottles at"
+	cont "a time!"
 	done
 
 Route38SignText:
@@ -471,27 +454,3 @@ Route38TrainerTipsText:
 	line "#mon and stops"
 	cont "its evolution."
 	done
-
-Route38_MapEventHeader:
-.Warps:
-	db 2
-	warp_def $8, $23, 1, ROUTE_38_ECRUTEAK_GATE
-	warp_def $9, $23, 2, ROUTE_38_ECRUTEAK_GATE
-
-.XYTriggers:
-	db 0
-
-.Signposts:
-	db 2
-	signpost 7, 33, SIGNPOST_READ, Route38Sign
-	signpost 13, 5, SIGNPOST_READ, Route38TrainerTips
-
-.PersonEvents:
-	db 7
-	person_event SPRITE_YOUNGSTER, 1, 4, SPRITEMOVEDATA_STANDING_RIGHT, 0, 0, -1, -1, (1 << 3) | PAL_OW_BLUE, PERSONTYPE_TRAINER, 1, TrainerSchoolboyChad1, -1
-	person_event SPRITE_LASS, 3, 15, SPRITEMOVEDATA_SPINRANDOM_FAST, 0, 0, -1, -1, (1 << 3) | PAL_OW_BLUE, PERSONTYPE_TRAINER, 2, TrainerLassDana1, -1
-	person_event SPRITE_YOUNGSTER, 15, 12, SPRITEMOVEDATA_SPINRANDOM_FAST, 0, 0, -1, -1, (1 << 3) | PAL_OW_BLUE, PERSONTYPE_TRAINER, 1, TrainerBird_keeperToby, -1
-	person_event SPRITE_BEAUTY, 9, 19, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, -1, (1 << 3) | PAL_OW_BLUE, PERSONTYPE_TRAINER, 1, TrainerBeautyValencia, -1
-	person_event SPRITE_SAILOR, 5, 24, SPRITEMOVEDATA_SPINCOUNTERCLOCKWISE, 0, 0, -1, -1, (1 << 3) | PAL_OW_BLUE, PERSONTYPE_TRAINER, 2, TrainerSailorHarry, -1
-	person_event SPRITE_BALL_CUT_FRUIT, 10, 12, SPRITEMOVEDATA_STANDING_LEFT, 0, 0, -1, -1, 0, PERSONTYPE_SCRIPT, 0, FruitTreeScript_0x1a1f33, -1
-	person_event SPRITE_BEAUTY, 8, 5, SPRITEMOVEDATA_SPINRANDOM_FAST, 0, 0, -1, -1, (1 << 3) | PAL_OW_BLUE, PERSONTYPE_TRAINER, 1, TrainerBeautyOlivia, -1

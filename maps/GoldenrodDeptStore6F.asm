@@ -1,25 +1,24 @@
-const_value set 2
-	const GOLDENRODDEPTSTORE6F_LASS
-	const GOLDENRODDEPTSTORE6F_SUPER_NERD
-
 GoldenrodDeptStore6F_MapScriptHeader:
-.MapTriggers:
-	db 0
 
-.MapCallbacks:
-	db 0
+.MapTriggers: db 0
 
-LassScript_0x564bf:
-	jumptextfaceplayer UnknownText_0x5654b
+.MapCallbacks: db 0
 
-SuperNerdScript_0x564c2:
-	jumptextfaceplayer UnknownText_0x565ca
+GoldenrodDeptStore6F_MapEventHeader:
 
-GoldenrodDeptStore6FDirectory:
-	jumptext GoldenrodDeptStore6FDirectoryText
+.Warps: db 3
+	warp_def 0, 15, 2, GOLDENROD_DEPT_STORE_5F
+	warp_def 0, 2, 1, GOLDENROD_DEPT_STORE_ELEVATOR
+	warp_def 0, 13, 1, GOLDENROD_DEPT_STORE_ROOF
 
-GoldenrodDeptStore6FElevatorButton:
-	jumpstd elevatorbutton
+.XYTriggers: db 0
+
+.Signposts: db 1
+	signpost 0, 14, SIGNPOST_JUMPTEXT, GoldenrodDeptStore6FDirectoryText
+
+.PersonEvents: db 2
+	person_event SPRITE_LASS, 2, 10, SPRITEMOVEDATA_WALK_LEFT_RIGHT, 0, 1, -1, -1, (1 << 3) | PAL_OW_GREEN, PERSONTYPE_COMMAND, jumptextfaceplayer, UnknownText_0x5654b, -1
+	person_event SPRITE_SUPER_NERD, 2, 8, SPRITEMOVEDATA_STANDING_UP, 0, 0, -1, -1, (1 << 3) | PAL_OW_RED, PERSONTYPE_COMMAND, jumptextfaceplayer, UnknownText_0x565ca, -1
 
 UnknownText_0x5654b:
 	text "Do you listen to"
@@ -50,23 +49,3 @@ GoldenrodDeptStore6FDirectoryText:
 
 	para "6F Tranquil Square"
 	done
-
-GoldenrodDeptStore6F_MapEventHeader:
-.Warps:
-	db 3
-	warp_def $0, $f, 2, GOLDENROD_DEPT_STORE_5F
-	warp_def $0, $2, 1, GOLDENROD_DEPT_STORE_ELEVATOR
-	warp_def $0, $d, 1, GOLDENROD_DEPT_STORE_ROOF
-
-.XYTriggers:
-	db 0
-
-.Signposts:
-	db 2
-	signpost 0, 14, SIGNPOST_READ, GoldenrodDeptStore6FDirectory
-	signpost 0, 3, SIGNPOST_READ, GoldenrodDeptStore6FElevatorButton
-
-.PersonEvents:
-	db 2
-	person_event SPRITE_LASS, 2, 10, SPRITEMOVEDATA_WALK_LEFT_RIGHT, 0, 1, -1, -1, (1 << 3) | PAL_OW_GREEN, PERSONTYPE_SCRIPT, 0, LassScript_0x564bf, -1
-	person_event SPRITE_SUPER_NERD, 2, 8, SPRITEMOVEDATA_STANDING_UP, 0, 0, -1, -1, (1 << 3) | PAL_OW_RED, PERSONTYPE_SCRIPT, 0, SuperNerdScript_0x564c2, -1

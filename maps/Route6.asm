@@ -1,30 +1,36 @@
-const_value set 2
-	const ROUTE6_POKEFAN_M1
-	const ROUTE6_POKEFAN_M2
-	const ROUTE6_POKEFAN_M3
-	const ROUTE6_TWIN1
-	const ROUTE6_TWIN2
-	const ROUTE6_YOUNGSTER
-	const ROUTE6_COOLTRAINER_F
-	const ROUTE6_OFFICER_F
-
 Route6_MapScriptHeader:
-.MapTriggers:
-	db 0
 
-.MapCallbacks:
-	db 0
+.MapTriggers: db 0
+
+.MapCallbacks: db 0
+
+Route6_MapEventHeader:
+
+.Warps: db 2
+	warp_def 9, 21, 1, ROUTE_6_UNDERGROUND_ENTRANCE
+	warp_def 1, 10, 3, ROUTE_6_SAFFRON_GATE
+
+.XYTriggers: db 0
+
+.Signposts: db 1
+	signpost 11, 23, SIGNPOST_JUMPTEXT, Route6UndergroundPathSignText
+
+.PersonEvents: db 8
+	person_event SPRITE_POKEFAN_M, 10, 21, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, -1, (1 << 3) | PAL_OW_BROWN, PERSONTYPE_COMMAND, jumptextfaceplayer, UnknownText_0x1ad957, EVENT_ROUTE_5_6_POKEFAN_M_BLOCKS_UNDERGROUND_PATH
+	person_event SPRITE_POKEFAN_M, 24, 13, SPRITEMOVEDATA_STANDING_RIGHT, 0, 0, -1, -1, (1 << 3) | PAL_OW_RED, PERSONTYPE_TRAINER, 0, TrainerPokefanmRex, -1
+	person_event SPRITE_POKEFAN_M, 24, 14, SPRITEMOVEDATA_STANDING_LEFT, 0, 0, -1, -1, (1 << 3) | PAL_OW_RED, PERSONTYPE_TRAINER, 0, TrainerPokefanmAllan, -1
+	person_event SPRITE_TWIN, 17, 16, SPRITEMOVEDATA_STANDING_UP, 0, 0, -1, -1, (1 << 3) | PAL_OW_RED, PERSONTYPE_TRAINER, 1, TrainerTwinsDayanddani1, -1
+	person_event SPRITE_TWIN, 17, 17, SPRITEMOVEDATA_STANDING_UP, 0, 0, -1, -1, (1 << 3) | PAL_OW_RED, PERSONTYPE_TRAINER, 1, TrainerTwinsDayanddani2, -1
+	person_event SPRITE_YOUNGSTER, 27, 20, SPRITEMOVEDATA_STANDING_UP, 0, 0, -1, -1, (1 << 3) | PAL_OW_BLUE, PERSONTYPE_TRAINER, 3, TrainerYoungsterChaz, -1
+	person_event SPRITE_COOLTRAINER_F, 13, 12, SPRITEMOVEDATA_STANDING_LEFT, 0, 0, -1, -1, (1 << 3) | PAL_OW_RED, PERSONTYPE_TRAINER, 4, TrainerGuitaristfWanda, -1
+	person_event SPRITE_OFFICER_F, 19, 21, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, -1, (1 << 3) | PAL_OW_BLUE, PERSONTYPE_SCRIPT, 1, OfficerfJennyScript, -1
 
 TrainerPokefanmRex:
 	trainer EVENT_BEAT_POKEFANM_REX, POKEFANM, REX, PokefanmRexSeenText, PokefanmRexBeatenText, 0, PokefanmRexScript
 
 PokefanmRexScript:
 	end_if_just_battled
-	opentext
-	writetext UnknownText_0x1ad9ff
-	waitbutton
-	closetext
-	end
+	jumptextfaceplayer UnknownText_0x1ad9ff
 
 PokefanmRexSeenText:
 	text "My Phanpy is the"
@@ -50,11 +56,7 @@ TrainerPokefanmAllan:
 
 PokefanmAllanScript:
 	end_if_just_battled
-	opentext
-	writetext UnknownText_0x1ada88
-	waitbutton
-	closetext
-	end
+	jumptextfaceplayer UnknownText_0x1ada88
 
 PokefanmAllanSeenText:
 	text "My Teddiursa is"
@@ -80,11 +82,7 @@ TrainerTwinsDayanddani1:
 
 TrainerTwinsDayanddani1Script:
 	end_if_just_battled
-	opentext
-	writetext TwinsDayanddani1AfterText
-	waitbutton
-	closetext
-	end
+	jumptextfaceplayer TwinsDayanddani1AfterText
 
 TwinsDayanddani1SeenText:
 	text "Day: Are you going"
@@ -104,11 +102,7 @@ TrainerTwinsDayanddani2:
 
 TrainerTwinsDayanddani2Script:
 	end_if_just_battled
-	opentext
-	writetext TwinsDayanddani2AfterText
-	waitbutton
-	closetext
-	end
+	jumptextfaceplayer TwinsDayanddani2AfterText
 
 TwinsDayanddani2SeenText:
 	text "Dani: We'll knock"
@@ -129,11 +123,7 @@ TrainerYoungsterChaz:
 
 .Script:
 	end_if_just_battled
-	opentext
-	writetext .AfterText
-	waitbutton
-	closetext
-	end
+	jumptextfaceplayer .AfterText
 
 .SeenText:
 	text "Do I see a strong"
@@ -157,11 +147,7 @@ TrainerGuitaristfWanda:
 
 .Script:
 	end_if_just_battled
-	opentext
-	writetext .AfterText
-	waitbutton
-	closetext
-	end
+	jumptextfaceplayer .AfterText
 
 .SeenText:
 	text "You'd better"
@@ -178,12 +164,12 @@ TrainerGuitaristfWanda:
 	done
 
 OfficerfJennyScript:
-	faceplayer
-	opentext
 	checknite
-	iffalse .NoFight
+	iffalse_jumptextfaceplayer .DaytimeText
 	checkevent EVENT_BEAT_OFFICERF_JENNY
 	iftrue .AfterScript
+	faceplayer
+	opentext
 	special SaveMusic
 	playmusic MUSIC_OFFICER_ENCOUNTER
 	writetext .SeenText
@@ -194,28 +180,12 @@ OfficerfJennyScript:
 	startbattle
 	reloadmapafterbattle
 	setevent EVENT_BEAT_OFFICERF_JENNY
-	closetext
-	end
+	endtext
 
 .AfterScript:
 	checkflag ENGINE_PLAYER_IS_FEMALE
-	iftrue .Kris
-	writetext .AfterTextMale
-	waitbutton
-	closetext
-	end
-
-.Kris:
-	writetext .AfterTextFemale
-	waitbutton
-	closetext
-	end
-
-.NoFight:
-	writetext .DaytimeText
-	waitbutton
-	closetext
-	end
+	iftrue_jumptextfaceplayer .AfterTextFemale
+	jumptextfaceplayer .AfterTextMale
 
 .DaytimeText:
 	text "Us Officers are"
@@ -252,9 +222,6 @@ OfficerfJennyScript:
 	line "night."
 	done
 
-PokefanMScript_0x1ad951:
-	jumptextfaceplayer UnknownText_0x1ad957
-
 UnknownText_0x1ad957:
 	text "The road is closed"
 	line "until the problem"
@@ -263,36 +230,9 @@ UnknownText_0x1ad957:
 	line "is solved."
 	done
 
-Route6UndergroundPathSign:
-	jumptext Route6UndergroundPathSignText
-
 Route6UndergroundPathSignText:
 	text "Underground Path"
 
 	para "Cerulean City -"
 	line "Vermilion City"
 	done
-
-Route6_MapEventHeader:
-.Warps:
-	db 2
-	warp_def $9, $11, 1, ROUTE_6_UNDERGROUND_ENTRANCE
-	warp_def $1, $6, 3, ROUTE_6_SAFFRON_GATE
-
-.XYTriggers:
-	db 0
-
-.Signposts:
-	db 1
-	signpost 11, 19, SIGNPOST_READ, Route6UndergroundPathSign
-
-.PersonEvents:
-	db 8
-	person_event SPRITE_POKEFAN_M, 10, 17, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, -1, (1 << 3) | PAL_OW_BROWN, PERSONTYPE_SCRIPT, 2, PokefanMScript_0x1ad951, EVENT_ROUTE_5_6_POKEFAN_M_BLOCKS_UNDERGROUND_PATH
-	person_event SPRITE_POKEFAN_M, 24, 9, SPRITEMOVEDATA_STANDING_RIGHT, 0, 0, -1, -1, (1 << 3) | PAL_OW_RED, PERSONTYPE_TRAINER, 0, TrainerPokefanmRex, -1
-	person_event SPRITE_POKEFAN_M, 24, 10, SPRITEMOVEDATA_STANDING_LEFT, 0, 0, -1, -1, (1 << 3) | PAL_OW_RED, PERSONTYPE_TRAINER, 0, TrainerPokefanmAllan, -1
-	person_event SPRITE_TWIN, 17, 12, SPRITEMOVEDATA_STANDING_UP, 0, 0, -1, -1, (1 << 3) | PAL_OW_RED, PERSONTYPE_TRAINER, 1, TrainerTwinsDayanddani1, -1
-	person_event SPRITE_TWIN, 17, 13, SPRITEMOVEDATA_STANDING_UP, 0, 0, -1, -1, (1 << 3) | PAL_OW_RED, PERSONTYPE_TRAINER, 1, TrainerTwinsDayanddani2, -1
-	person_event SPRITE_YOUNGSTER, 27, 16, SPRITEMOVEDATA_STANDING_UP, 0, 0, -1, -1, (1 << 3) | PAL_OW_BLUE, PERSONTYPE_TRAINER, 3, TrainerYoungsterChaz, -1
-	person_event SPRITE_COOLTRAINER_F, 13, 8, SPRITEMOVEDATA_STANDING_LEFT, 0, 0, -1, -1, (1 << 3) | PAL_OW_RED, PERSONTYPE_TRAINER, 4, TrainerGuitaristfWanda, -1
-	person_event SPRITE_OFFICER_F, 19, 17, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, -1, (1 << 3) | PAL_OW_BLUE, PERSONTYPE_SCRIPT, 1, OfficerfJennyScript, -1

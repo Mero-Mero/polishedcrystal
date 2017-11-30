@@ -216,12 +216,10 @@ BugContest_GetPlayersResult: ; 13807
 .loop
 	ld a, [hl]
 	cp 1 ; Player
-	jr z, .done
+	ret z
 	add hl, de
 	dec b
 	jr nz, .loop
-
-.done
 	ret
 ; 13819
 
@@ -266,8 +264,7 @@ DetermineContestWinners: ; 1383e
 	ld bc, 4
 	call CopyBytes
 	ld hl, wBugContestFirstPlacePersonID
-	call CopyTempContestant
-	jr .done
+	jr CopyTempContestant
 
 .not_first_place
 	ld de, wBugContestTempScore
@@ -280,34 +277,21 @@ DetermineContestWinners: ; 1383e
 	ld bc, 4
 	call CopyBytes
 	ld hl, wBugContestSecondPlacePersonID
-	call CopyTempContestant
-	jr .done
+	jr CopyTempContestant
 
 .not_second_place
 	ld de, wBugContestTempScore
 	ld hl, wBugContestThirdPlaceScore
 	ld c, 2
 	call StringCmp
-	jr c, .done
+	ret c
 	ld hl, wBugContestThirdPlacePersonID
-	call CopyTempContestant
-
-.done
-	ret
-; 138a0
+	; fallthrough
 
 CopyTempContestant: ; 138a0
-; Could've just called CopyBytes.
 	ld de, wBugContestTempPersonID
-rept 3
-	ld a, [de]
-	inc de
-	ld [hli], a
-endr
-	ld a, [de]
-	inc de
-	ld [hl], a
-	ret
+	ld bc, 4
+	jp CopyBytes
 ; 138b0
 
 ComputeAIContestantScores: ; 138b0
@@ -380,7 +364,7 @@ ContestScore: ; 13900
 
 	ld a, [wContestMonSpecies] ; Species
 	and a
-	jp z, .done
+	ret z
 
 	; Tally the following:
 
@@ -407,8 +391,7 @@ ContestScore: ; 13900
 	call .AddContestStat
 
 	; DVs (6 points per DV that's at least 8)
-	ld b, 0
-	ld c, 6
+	lb bc, 0, 6
 
 	ld a, [wContestMonDVs + 0]
 	and $f
@@ -480,14 +463,10 @@ ContestScore: ; 13900
 	; Whether it's holding an item
 	ld a, [wContestMonItem]
 	and a
-	jr z, .done
+	ret z
 
 	ld a, 1
-	call .AddContestStat
-
-.done
-	ret
-; 1397f
+	; fallthrough
 
 .AddContestStat: ; 1397f
 	ld hl, hMultiplicand

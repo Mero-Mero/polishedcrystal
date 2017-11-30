@@ -1,17 +1,35 @@
-const_value set 2
-	const RUINSOFALPHKABUTOCHAMBER_RECEPTIONIST
-	const RUINSOFALPHKABUTOCHAMBER_SCIENTIST
-
 RuinsofAlphKabutoChamber_MapScriptHeader:
-.MapTriggers:
-	db 1
-	dw .Trigger0
 
-.MapCallbacks:
-	db 1
+.MapTriggers: db 1
+	dw RuinsofAlphKabutoChamberTrigger0
+
+.MapCallbacks: db 1
 	dbw MAPCALLBACK_TILES, UnknownScript_0x58737
 
-.Trigger0:
+RuinsofAlphKabutoChamber_MapEventHeader:
+
+.Warps: db 5
+	warp_def 9, 3, 2, RUINS_OF_ALPH_OUTSIDE
+	warp_def 9, 4, 2, RUINS_OF_ALPH_OUTSIDE
+	warp_def 3, 3, 4, RUINS_OF_ALPH_INNER_CHAMBER
+	warp_def 3, 4, 5, RUINS_OF_ALPH_INNER_CHAMBER
+	warp_def 0, 4, 1, RUINS_OF_ALPH_KABUTO_ITEM_ROOM
+
+.XYTriggers: db 0
+
+.Signposts: db 6
+	signpost 3, 2, SIGNPOST_JUMPTEXT, UnknownText_0x58b1a
+	signpost 3, 5, SIGNPOST_JUMPTEXT, UnknownText_0x58b1a
+	signpost 2, 3, SIGNPOST_UP, MapRuinsofAlphKabutoChamberSignpost2Script
+	signpost 2, 4, SIGNPOST_UP, MapRuinsofAlphKabutoChamberSignpost3Script
+	signpost 0, 3, SIGNPOST_UP, MapRuinsofAlphKabutoChamberSignpost4Script
+	signpost 0, 4, SIGNPOST_UP, MapRuinsofAlphKabutoChamberSignpost5Script
+
+.PersonEvents: db 2
+	person_event SPRITE_RECEPTIONIST, 5, 5, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, -1, 0, PERSONTYPE_COMMAND, jumptextfaceplayer, UnknownText_0x58800, EVENT_RUINS_OF_ALPH_KABUTO_CHAMBER_RECEPTIONIST
+	person_event SPRITE_SCIENTIST, 1, 3, SPRITEMOVEDATA_STANDING_UP, 0, 0, -1, -1, (1 << 3) | PAL_OW_BLUE, PERSONTYPE_SCRIPT, 0, ScientistScript_0x587a8, -1
+
+RuinsofAlphKabutoChamberTrigger0:
 	checkevent EVENT_WALL_OPENED_IN_KABUTO_CHAMBER
 	iffalse .End
 	priorityjump UnknownScript_0x58751
@@ -21,15 +39,15 @@ RuinsofAlphKabutoChamber_MapScriptHeader:
 UnknownScript_0x58737:
 	checkevent EVENT_WALL_OPENED_IN_KABUTO_CHAMBER
 	iftrue UnknownScript_0x58741
-	changeblock $4, $0, $24
+	changeblock 4, 0, $24
 UnknownScript_0x58741:
 	checkevent EVENT_SOLVED_KABUTO_PUZZLE
 	iffalse UnknownScript_0x58748
 	return
 
 UnknownScript_0x58748:
-	changeblock $2, $2, $1
-	changeblock $4, $2, $2
+	changeblock 2, 2, $1
+	changeblock 4, 2, $2
 	return
 
 UnknownScript_0x58751:
@@ -38,18 +56,14 @@ UnknownScript_0x58751:
 	showemote EMOTE_SHOCK, PLAYER, 20
 	pause 30
 	playsound SFX_STRENGTH
-	changeblock $4, $0, $25
+	changeblock 4, 0, $25
 	reloadmappart
 	earthquake 50
 	dotrigger $1
-	closetext
-	end
-
-ReceptionistScript_0x58769:
-	jumptextfaceplayer UnknownText_0x58800
+	endtext
 
 MapRuinsofAlphKabutoChamberSignpost2Script:
-	refreshscreen $0
+	refreshscreen
 	writebyte $0
 	special Special_UnownPuzzle
 	closetext
@@ -64,12 +78,12 @@ UnknownScript_0x58778:
 	domaptrigger RUINS_OF_ALPH_INNER_CHAMBER, $1
 	earthquake 30
 	showemote EMOTE_SHOCK, PLAYER, 15
-	changeblock $2, $2, $14
-	changeblock $4, $2, $15
+	changeblock 2, 2, $14
+	changeblock 4, 2, $15
 	reloadmappart
 	playsound SFX_STRENGTH
 	earthquake 80
-	applymovement PLAYER, MovementData_0x587fe
+	applyonemovement PLAYER, skyfall_top
 	playsound SFX_KINESIS
 	waitsfx
 	pause 20
@@ -77,12 +91,12 @@ UnknownScript_0x58778:
 	end
 
 ScientistScript_0x587a8:
-	faceplayer
-	opentext
 	checkcode VAR_UNOWNCOUNT
 	if_equal NUM_UNOWN, UnknownScript_0x587cf
 	checkevent EVENT_WALL_OPENED_IN_KABUTO_CHAMBER
-	iftrue UnknownScript_0x587c9
+	iftrue_jumptextfaceplayer UnknownText_0x5897c
+	faceplayer
+	opentext
 	checkevent EVENT_SOLVED_KABUTO_PUZZLE
 	iffalse UnknownScript_0x587c0
 	writetext UnknownText_0x589b8
@@ -91,61 +105,27 @@ UnknownScript_0x587c0:
 	writetext UnknownText_0x588f5
 	waitbutton
 	closetext
-	spriteface RUINSOFALPHKABUTOCHAMBER_SCIENTIST, UP
-	end
-
-UnknownScript_0x587c9:
-	writetext UnknownText_0x5897c
-	waitbutton
-	closetext
+	spriteface LAST_TALKED, UP
 	end
 
 UnknownScript_0x587cf:
-	writetext UnknownText_0x594cb
-	waitbutton
-	closetext
-	end
-
-MapRuinsofAlphKabutoChamberSignpost1Script:
-	jumptext UnknownText_0x58b1a
+	jumptextfaceplayer UnknownText_0x594cb
 
 MapRuinsofAlphKabutoChamberSignpost3Script:
 	unowntypeface
-	opentext
-	writetext UnknownText_0x58b3f
-	waitbutton
-	closetext
+	showtext UnknownText_0x58b3f
 	restoretypeface
 	end
 
+MapRuinsofAlphKabutoChamberSignpost5Script:
+	checkevent EVENT_WALL_OPENED_IN_KABUTO_CHAMBER
+	iftrue_jumptext UnknownText_0x58afa
 MapRuinsofAlphKabutoChamberSignpost4Script:
 	opentext
 	writetext UnknownText_0x58aa7
 	writebyte $0
 	special Special_DisplayUnownWords
-	closetext
-	end
-
-MapRuinsofAlphKabutoChamberSignpost5Script:
-	checkevent EVENT_WALL_OPENED_IN_KABUTO_CHAMBER
-	iftrue UnknownScript_0x587f7
-	opentext
-	writetext UnknownText_0x58aa7
-	writebyte $0
-	special Special_DisplayUnownWords
-	closetext
-	end
-
-UnknownScript_0x587f7:
-	opentext
-	writetext UnknownText_0x58afa
-	waitbutton
-	closetext
-	end
-
-MovementData_0x587fe:
-	db $59 ; movement
-	step_end
+	endtext
 
 UnknownText_0x58800:
 	text "Welcome to this"
@@ -225,29 +205,3 @@ UnknownText_0x58b3f:
 	para "Eyes on its back"
 	line "scanned the area."
 	done
-
-RuinsofAlphKabutoChamber_MapEventHeader:
-.Warps:
-	db 5
-	warp_def $9, $3, 2, RUINS_OF_ALPH_OUTSIDE
-	warp_def $9, $4, 2, RUINS_OF_ALPH_OUTSIDE
-	warp_def $3, $3, 4, RUINS_OF_ALPH_INNER_CHAMBER
-	warp_def $3, $4, 5, RUINS_OF_ALPH_INNER_CHAMBER
-	warp_def $0, $4, 1, RUINS_OF_ALPH_KABUTO_ITEM_ROOM
-
-.XYTriggers:
-	db 0
-
-.Signposts:
-	db 6
-	signpost 3, 2, SIGNPOST_READ, MapRuinsofAlphKabutoChamberSignpost1Script
-	signpost 3, 5, SIGNPOST_READ, MapRuinsofAlphKabutoChamberSignpost1Script
-	signpost 2, 3, SIGNPOST_UP, MapRuinsofAlphKabutoChamberSignpost2Script
-	signpost 2, 4, SIGNPOST_UP, MapRuinsofAlphKabutoChamberSignpost3Script
-	signpost 0, 3, SIGNPOST_UP, MapRuinsofAlphKabutoChamberSignpost4Script
-	signpost 0, 4, SIGNPOST_UP, MapRuinsofAlphKabutoChamberSignpost5Script
-
-.PersonEvents:
-	db 2
-	person_event SPRITE_RECEPTIONIST, 5, 5, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, -1, 0, PERSONTYPE_SCRIPT, 0, ReceptionistScript_0x58769, EVENT_RUINS_OF_ALPH_KABUTO_CHAMBER_RECEPTIONIST
-	person_event SPRITE_SCIENTIST, 1, 3, SPRITEMOVEDATA_STANDING_UP, 0, 0, -1, -1, (1 << 3) | PAL_OW_BLUE, PERSONTYPE_SCRIPT, 0, ScientistScript_0x587a8, -1

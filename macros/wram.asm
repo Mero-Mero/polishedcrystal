@@ -26,7 +26,7 @@ box_struct: MACRO
 \1Nature::         db
 \1Gender::
 \1IsEgg::
-\1HyperTrained::
+\1IsDead::
 \1Form::           db
 \1PP::             ds NUM_MOVES
 \1Happiness::      db
@@ -60,7 +60,7 @@ battle_struct: MACRO
 \1Species::        db
 \1Item::           db
 \1Moves::          ds NUM_MOVES
-\1MovesEnd::
+; Mon capture assumes personality comes after DVs
 \1DVs::
 \1HPAtkDV::        db
 \1DefSpdDV::       db
@@ -71,7 +71,7 @@ battle_struct: MACRO
 \1Nature::         db
 \1Gender::
 \1IsEgg::
-\1HyperTrained::
+\1IsDead::
 \1Form::           db
 \1PP::             ds NUM_MOVES
 \1Happiness::      db
@@ -198,6 +198,7 @@ roam_struct: MACRO
 \1HP::          ds 1
 \1DVs::         ds 3
 \1Personality:: ds 2
+\1End::
 ENDM
 
 bugcontestwinner: macro
@@ -234,7 +235,7 @@ trademon: MACRO
 \1Nature:: ds 1
 \1Gender::
 \1IsEgg::
-\1HyperTrained::
+\1IsDead::
 \1Form:: ds 1
 \1ID:: ds 2 ; wc6ff | wc731
 \1CaughtData:: ds 1 ; wc701 | wc733
@@ -303,7 +304,6 @@ object_struct: MACRO
 \1Object30:: ds 1
 \1Object31:: ds 1
 \1Range:: ds 1
-	ds 7
 \1StructEnd::
 ENDM
 
@@ -321,7 +321,6 @@ map_object: MACRO
 \1ObjectRange::     ds 1
 \1ObjectScript::    ds 2
 \1ObjectEventFlag:: ds 2
-	ds 2
 endm
 
 sprite_anim_struct: MACRO

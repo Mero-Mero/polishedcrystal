@@ -11,9 +11,7 @@ hRTCMinutes        EQU $ff90
 hRTCSeconds        EQU $ff91
 
 hHours             EQU $ff94
-
 hMinutes           EQU $ff96
-
 hSeconds           EQU $ff98
 
 hVBlankCounter     EQU $ff9b
@@ -33,18 +31,22 @@ hJoyDown           EQU $ffa8
 hJoyLast           EQU $ffa9
 hInMenu            EQU $ffaa
 
-hGraphicStartTile  EQU $ffad
-hMoveMon           EQU $ffae
-hMapObjectIndexBuffer EQU $ffaf
+hGraphicStartTile        EQU $ffad
+hMoveMon                 EQU $ffae
+hMapObjectIndexBuffer    EQU $ffaf
 hObjectStructIndexBuffer EQU $ffb0
 
 hConnectionStripLength EQU $ffaf
 hConnectedMapWidth EQU $ffb0
 
-hPastLeadingZeroes EQU $ffb3
+hPredefTemp        EQU $ffb1
 
-hStringCmpString1  EQU $ffb1
-hStringCmpString2  EQU $ffb5
+; can only use the bytes reserved for hPredefTemp in contained functions, unless you know what you're doing
+
+hBuffer2           EQU $ffb1
+hBuffer3           EQU $ffb2
+
+hPastLeadingZeroes EQU $ffb3
 
 ; Arithmetic addresses aren't seperate, to simplify
 ; chain usage. The exact format is (all big endian):
@@ -77,21 +79,26 @@ hPrintNum10        EQU $ffbc
 
 hUsedSpriteIndex   EQU $ffbd
 hUsedSpriteTile    EQU $ffbe
-hFFBF              EQU $ffbf
-hFFC0              EQU $ffc0
-hFFC1              EQU $ffc1
-hFFC2              EQU $ffc2
+
+hCurSpriteXCoord   EQU $ffbd
+hCurSpriteYCoord   EQU $ffbe
+
+hCurSpriteXPixel   EQU $ffbf
+hCurSpriteYPixel   EQU $ffc0
+hCurSpriteTile     EQU $ffc1
+hCurSpriteOAMFlags EQU $ffc2
+
 hMoneyTemp         EQU $ffc3
 
 hLCDCPointer       EQU $ffc6
 hLYOverrideStart   EQU $ffc7
 hLYOverrideEnd     EQU $ffc8
 
-hFFCA              EQU $ffca
-hLinkPlayerNumber  EQU $ffcb
-hFFCC              EQU $ffcc
-hSerialSend        EQU $ffcd
-hSerialReceive     EQU $ffce
+hSerialReceivedNewData     EQU $ffca
+hSerialConnectionStatus    EQU $ffcb
+hSerialIgnoringInitialData EQU $ffcc
+hSerialSend                EQU $ffcd
+hSerialReceive             EQU $ffce
 
 hSCX               EQU $ffcf
 hSCY               EQU $ffd0
@@ -131,9 +138,12 @@ hCGB               EQU $ffe6
 hSGB               EQU $ffe7
 hDMATransfer       EQU $ffe8
 
-hFFEA              EQU $ffea
+hFarCallSavedA     EQU $ffe9
+
 hClockResetTrigger EQU $ffeb
 
+hMPState           EQU $ffed
+hMPBuffer          EQU $ffee
 hTmpd              EQU $fff7
 hTmpe              EQU $fff8
 

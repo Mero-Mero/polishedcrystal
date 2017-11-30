@@ -1,27 +1,41 @@
-const_value set 2
+FuchsiaGym_MapScriptHeader:
+
+.MapTriggers: db 0
+
+.MapCallbacks: db 0
+
+FuchsiaGym_MapEventHeader:
+
+.Warps: db 2
+	warp_def 17, 4, 2, FUCHSIA_CITY
+	warp_def 17, 5, 2, FUCHSIA_CITY
+
+.XYTriggers: db 0
+
+.Signposts: db 2
+	signpost 15, 3, SIGNPOST_READ, FuchsiaGymStatue
+	signpost 15, 6, SIGNPOST_READ, FuchsiaGymStatue
+
+.PersonEvents: db 6
+	person_event SPRITE_JANINE, 7, 5, SPRITEMOVEDATA_SPINRANDOM_SLOW, 0, 0, -1, -1, (1 << 3) | PAL_OW_PURPLE, PERSONTYPE_SCRIPT, 0, JanineScript_0x195db9, -1
+	person_event SPRITE_FUCHSIA_GYM_1, 10, 1, SPRITEMOVEDATA_SPINRANDOM_FAST, 0, 0, -1, -1, (1 << 3) | PAL_OW_PURPLE, PERSONTYPE_SCRIPT, 0, FuschiaGym1Script_0x195e1b, -1
+	person_event SPRITE_FUCHSIA_GYM_2, 11, 5, SPRITEMOVEDATA_SPINRANDOM_FAST, 0, 0, -1, -1, (1 << 3) | PAL_OW_PURPLE, PERSONTYPE_SCRIPT, 0, FuschiaGym2Script_0x195e55, -1
+	person_event SPRITE_FUCHSIA_GYM_3, 4, 9, SPRITEMOVEDATA_SPINRANDOM_FAST, 0, 0, -1, -1, (1 << 3) | PAL_OW_PURPLE, PERSONTYPE_SCRIPT, 0, FuschiaGym3Script_0x195e8f, -1
+	person_event SPRITE_FUCHSIA_GYM_4, 2, 4, SPRITEMOVEDATA_SPINRANDOM_FAST, 0, 0, -1, -1, (1 << 3) | PAL_OW_PURPLE, PERSONTYPE_SCRIPT, 0, FuschiaGym4Script_0x195ec9, -1
+	person_event SPRITE_GYM_GUY, 15, 7, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, -1, (1 << 3) | PAL_OW_BLUE, PERSONTYPE_SCRIPT, 0, FuchsiaGymGuyScript, -1
+
+const_value set 1
 	const FUCHSIAGYM_JANINE
 	const FUCHSIAGYM_FUCHSIA_GYM_1
 	const FUCHSIAGYM_FUCHSIA_GYM_2
 	const FUCHSIAGYM_FUCHSIA_GYM_3
 	const FUCHSIAGYM_FUCHSIA_GYM_4
-	const FUCHSIAGYM_GYM_GUY
-
-FuchsiaGym_MapScriptHeader:
-.MapTriggers:
-	db 0
-
-.MapCallbacks:
-	db 0
 
 JanineScript_0x195db9:
 	checkflag ENGINE_MARSHBADGE
 	iftrue .FightDone
 	applymovement FUCHSIAGYM_JANINE, MovementData_0x195f27
-	faceplayer
-	opentext
-	writetext UnknownText_0x195f35
-	waitbutton
-	closetext
+	showtextfaceplayer UnknownText_0x195f35
 	winlosstext UnknownText_0x195fa1, 0
 	loadtrainer JANINE, 1
 	startbattle
@@ -35,7 +49,7 @@ JanineScript_0x195db9:
 	variablesprite SPRITE_FUCHSIA_GYM_2, SPRITE_LASS
 	variablesprite SPRITE_FUCHSIA_GYM_3, SPRITE_LASS
 	variablesprite SPRITE_FUCHSIA_GYM_4, SPRITE_YOUNGSTER
-	special RunCallback_04
+	special MapCallbackSprites_LoadUsedSpritesGFX
 	opentext
 	writetext UnknownText_0x195feb
 	playsound SFX_GET_BADGE
@@ -67,16 +81,10 @@ UnknownScript_0x195e02:
 	buttonsound
 	verbosegivetmhm TM_POISON_JAB
 	setevent EVENT_GOT_TM66_POISON_JAB
-	writetext JanineOutroText
-	waitbutton
-	closetext
-	end
+	jumpopenedtext JanineOutroText
 
 UnknownScript_0x195e15:
-	writetext UnknownText_0x196074
-	waitbutton
-	closetext
-	end
+	jumpopenedtext UnknownText_0x196074
 
 FuschiaGym1Script_0x195e1b:
 	checkevent EVENT_BEAT_LASS_AMANDA
@@ -84,7 +92,7 @@ FuschiaGym1Script_0x195e1b:
 	applymovement FUCHSIAGYM_FUCHSIA_GYM_1, MovementData_0x195f27
 	faceplayer
 	variablesprite SPRITE_FUCHSIA_GYM_1, SPRITE_LASS
-	special RunCallback_04
+	special MapCallbackSprites_LoadUsedSpritesGFX
 UnknownScript_0x195e2c:
 	faceplayer
 	opentext
@@ -107,10 +115,7 @@ UnknownScript_0x195e4a:
 	end
 
 UnknownScript_0x195e4f:
-	writetext UnknownText_0x196139
-	waitbutton
-	closetext
-	end
+	jumpopenedtext UnknownText_0x196139
 
 FuschiaGym2Script_0x195e55:
 	checkevent EVENT_BEAT_LASS_LINDA
@@ -118,7 +123,7 @@ FuschiaGym2Script_0x195e55:
 	applymovement FUCHSIAGYM_FUCHSIA_GYM_2, MovementData_0x195f27
 	faceplayer
 	variablesprite SPRITE_FUCHSIA_GYM_2, SPRITE_LASS
-	special RunCallback_04
+	special MapCallbackSprites_LoadUsedSpritesGFX
 UnknownScript_0x195e66:
 	faceplayer
 	opentext
@@ -141,10 +146,7 @@ UnknownScript_0x195e84:
 	end
 
 UnknownScript_0x195e89:
-	writetext UnknownText_0x196199
-	waitbutton
-	closetext
-	end
+	jumpopenedtext UnknownText_0x196199
 
 FuschiaGym3Script_0x195e8f:
 	checkevent EVENT_BEAT_PICNICKER_CINDY
@@ -152,7 +154,7 @@ FuschiaGym3Script_0x195e8f:
 	applymovement FUCHSIAGYM_FUCHSIA_GYM_3, MovementData_0x195f27
 	faceplayer
 	variablesprite SPRITE_FUCHSIA_GYM_3, SPRITE_LASS
-	special RunCallback_04
+	special MapCallbackSprites_LoadUsedSpritesGFX
 UnknownScript_0x195ea0:
 	faceplayer
 	opentext
@@ -175,10 +177,7 @@ UnknownScript_0x195ebe:
 	end
 
 UnknownScript_0x195ec3:
-	writetext UnknownText_0x19620c
-	waitbutton
-	closetext
-	end
+	jumpopenedtext UnknownText_0x19620c
 
 FuschiaGym4Script_0x195ec9:
 	checkevent EVENT_BEAT_CAMPER_BARRY
@@ -186,7 +185,7 @@ FuschiaGym4Script_0x195ec9:
 	applymovement FUCHSIAGYM_FUCHSIA_GYM_4, MovementData_0x195f27
 	faceplayer
 	variablesprite SPRITE_FUCHSIA_GYM_4, SPRITE_YOUNGSTER
-	special RunCallback_04
+	special MapCallbackSprites_LoadUsedSpritesGFX
 UnknownScript_0x195eda:
 	faceplayer
 	opentext
@@ -209,26 +208,12 @@ UnknownScript_0x195ef8:
 	end
 
 UnknownScript_0x195efd:
-	writetext UnknownText_0x19626b
-	waitbutton
-	closetext
-	end
+	jumpopenedtext UnknownText_0x19626b
 
 FuchsiaGymGuyScript:
-	faceplayer
-	opentext
 	checkevent EVENT_BEAT_JANINE
-	iftrue .FuchsiaGymGuyWinScript
-	writetext FuchsiaGymGuyText
-	waitbutton
-	closetext
-	end
-
-.FuchsiaGymGuyWinScript:
-	writetext FuchsiaGymGuyWinText
-	waitbutton
-	closetext
-	end
+	iftrue_jumptextfaceplayer FuchsiaGymGuyWinText
+	jumptextfaceplayer FuchsiaGymGuyText
 
 FuchsiaGymStatue:
 	trainertotext JANINE, 1, $1
@@ -273,13 +258,21 @@ UnknownText_0x195fa1:
 	line "tough one. You"
 	cont "definitely won…"
 
+if DEF(FAITHFUL)
+	para "Here's the Soul"
+else
 	para "Here's the Marsh"
+endc
 	line "Badge. Take it."
 	done
 
 UnknownText_0x195feb:
 	text "<PLAYER> received"
+if DEF(FAITHFUL)
+	line "the Soul Badge."
+else
 	line "the Marsh Badge."
+endc
 	done
 
 UnknownText_0x196002:
@@ -401,26 +394,3 @@ FuchsiaGymGuyWinText:
 	line "battle, trainer"
 	cont "from Johto!"
 	done
-
-FuchsiaGym_MapEventHeader:
-.Warps:
-	db 2
-	warp_def $11, $4, 2, FUCHSIA_CITY
-	warp_def $11, $5, 2, FUCHSIA_CITY
-
-.XYTriggers:
-	db 0
-
-.Signposts:
-	db 2
-	signpost 15, 3, SIGNPOST_READ, FuchsiaGymStatue
-	signpost 15, 6, SIGNPOST_READ, FuchsiaGymStatue
-
-.PersonEvents:
-	db 6
-	person_event SPRITE_JANINE, 7, 5, SPRITEMOVEDATA_SPINRANDOM_SLOW, 0, 0, -1, -1, (1 << 3) | PAL_OW_PURPLE, PERSONTYPE_SCRIPT, 0, JanineScript_0x195db9, -1
-	person_event SPRITE_FUCHSIA_GYM_1, 10, 1, SPRITEMOVEDATA_SPINRANDOM_FAST, 0, 0, -1, -1, (1 << 3) | PAL_OW_PURPLE, PERSONTYPE_SCRIPT, 0, FuschiaGym1Script_0x195e1b, -1
-	person_event SPRITE_FUCHSIA_GYM_2, 11, 5, SPRITEMOVEDATA_SPINRANDOM_FAST, 0, 0, -1, -1, (1 << 3) | PAL_OW_PURPLE, PERSONTYPE_SCRIPT, 0, FuschiaGym2Script_0x195e55, -1
-	person_event SPRITE_FUCHSIA_GYM_3, 4, 9, SPRITEMOVEDATA_SPINRANDOM_FAST, 0, 0, -1, -1, (1 << 3) | PAL_OW_PURPLE, PERSONTYPE_SCRIPT, 0, FuschiaGym3Script_0x195e8f, -1
-	person_event SPRITE_FUCHSIA_GYM_4, 2, 4, SPRITEMOVEDATA_SPINRANDOM_FAST, 0, 0, -1, -1, (1 << 3) | PAL_OW_PURPLE, PERSONTYPE_SCRIPT, 0, FuschiaGym4Script_0x195ec9, -1
-	person_event SPRITE_GYM_GUY, 15, 7, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, -1, (1 << 3) | PAL_OW_BLUE, PERSONTYPE_SCRIPT, 0, FuchsiaGymGuyScript, -1

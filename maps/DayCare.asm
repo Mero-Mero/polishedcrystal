@@ -1,22 +1,38 @@
-const_value set 2
-	const DAYCARE_GRAMPS
+DayCare_MapScriptHeader:
+
+.MapTriggers: db 1
+	dw DayCareTrigger0
+
+.MapCallbacks: db 1
+	dbw MAPCALLBACK_OBJECTS, DayCareEggCheckCallback
+
+DayCare_MapEventHeader:
+
+.Warps: db 4
+	warp_def 4, 0, 3, ROUTE_34
+	warp_def 5, 0, 4, ROUTE_34
+	warp_def 7, 2, 5, ROUTE_34
+	warp_def 7, 3, 5, ROUTE_34
+
+.XYTriggers: db 0
+
+.Signposts: db 1
+	signpost 1, 5, SIGNPOST_JUMPSTD, difficultbookshelf
+
+.PersonEvents: db 3
+	person_event SPRITE_GRANNY, 3, 5, SPRITEMOVEDATA_STANDING_LEFT, 0, 0, -1, -1, (1 << 3) | PAL_OW_RED, PERSONTYPE_SCRIPT, 0, DayCareLadyScript, -1
+	person_event SPRITE_LYRA, 5, 0, SPRITEMOVEDATA_STANDING_RIGHT, 0, 0, -1, -1, (1 << 3) | PAL_OW_RED, PERSONTYPE_SCRIPT, 0, ObjectEvent, EVENT_LYRA_DAYCARE
+	person_event SPRITE_GRAMPS, 3, 2, SPRITEMOVEDATA_STANDING_RIGHT, 0, 0, -1, -1, 0, PERSONTYPE_SCRIPT, 0, DayCareManScript_Inside, EVENT_DAYCARE_MAN_IN_DAYCARE
+
+const_value set 1
 	const DAYCARE_GRANNY
 	const DAYCARE_LYRA
 
-DayCare_MapScriptHeader:
-.MapTriggers:
-	db 1
-	dw .Trigger0
-
-.MapCallbacks:
-	db 1
-	dbw MAPCALLBACK_OBJECTS, .EggCheckCallback
-
-.Trigger0:
+DayCareTrigger0:
 	priorityjump DayCare_MeetGrandma
 	end
 
-.EggCheckCallback:
+DayCareEggCheckCallback:
 	checkflag ENGINE_DAYCARE_MAN_HAS_EGG
 	iftrue .PutDaycareManOutside
 	clearevent EVENT_DAYCARE_MAN_IN_DAYCARE
@@ -56,18 +72,12 @@ DayCare_MeetGrandma:
 	waitbutton
 	closetext
 	spriteface DAYCARE_LYRA, DOWN
-	opentext
-	writetext DayCareLyraGoodbyeText
-	waitbutton
-	closetext
+	showtext DayCareLyraGoodbyeText
 	applymovement DAYCARE_LYRA, DayCareMovementData_LyraStartsToLeave
 	showemote EMOTE_SHOCK, DAYCARE_LYRA, 15
 	spriteface DAYCARE_LYRA, LEFT
 	spriteface PLAYER, RIGHT
-	opentext
-	writetext DayCareLyraForgotText
-	waitbutton
-	closetext
+	showtext DayCareLyraForgotText
 	addcellnum PHONE_LYRA
 	opentext
 	writetext GotLyrasNumberText
@@ -76,10 +86,7 @@ DayCare_MeetGrandma:
 	waitbutton
 	closetext
 	spriteface DAYCARE_LYRA, UP
-	opentext
-	writetext DayCareLyraEmbarassedText
-	waitbutton
-	closetext
+	showtext DayCareLyraEmbarassedText
 	applymovement DAYCARE_LYRA, DayCareMovementData_LyraLeaves
 	disappear DAYCARE_LYRA
 	dotrigger $1
@@ -99,22 +106,15 @@ DayCareManScript_Inside:
 	playsound SFX_GET_EGG_FROM_DAYCARE_LADY
 	waitsfx
 	writetext DayCareText_DescribeOddEgg
-	waitbutton
-	closetext
 	setevent EVENT_GOT_ODD_EGG
-	end
+	waitendtext
 
 .PartyFull:
-	writetext DayCareText_PartyFull
-	waitbutton
-	closetext
-	end
+	jumpopenedtext DayCareText_PartyFull
 
 .AlreadyHaveOddEgg:
 	special Special_DayCareMan
-	waitbutton
-	closetext
-	end
+	waitendtext
 
 DayCareLadyScript:
 	faceplayer
@@ -147,31 +147,18 @@ DayCareLadyScript:
 	playsound SFX_GET_EGG_FROM_DAYCARE_LADY
 	waitsfx
 	writetext DayCareLadyText_DescribeLyrasEgg
-	waitbutton
-	closetext
 	setevent EVENT_GOT_LYRAS_EGG
-	end
+	waitendtext
 
 .PartyFull:
-	writetext DayCareText_PartyFull
-	waitbutton
-	closetext
-	end
+	jumpopenedtext DayCareText_PartyFull
 
 .NoLyrasEgg:
 	special Special_DayCareLady
-	waitbutton
-	closetext
-	end
+	waitendtext
 
 .HusbandWasLookingForYou:
-	writetext Text_GrampsLookingForYou
-	waitbutton
-	closetext
-	end
-
-DayCareBookshelf:
-	jumpstd difficultbookshelf
+	jumpopenedtext Text_GrampsLookingForYou
 
 DayCareMovementData_LyraApproachesGrandma:
 	step_right
@@ -373,25 +360,3 @@ DayCareText_PartyFull:
 	text "You've no room for"
 	line "this."
 	done
-
-DayCare_MapEventHeader:
-.Warps:
-	db 4
-	warp_def $4, $0, 3, ROUTE_34
-	warp_def $5, $0, 4, ROUTE_34
-	warp_def $7, $2, 5, ROUTE_34
-	warp_def $7, $3, 5, ROUTE_34
-
-.XYTriggers:
-	db 0
-
-.Signposts:
-	db 2
-	signpost 1, 0, SIGNPOST_READ, DayCareBookshelf
-	signpost 1, 1, SIGNPOST_READ, DayCareBookshelf
-
-.PersonEvents:
-	db 3
-	person_event SPRITE_GRAMPS, 3, 2, SPRITEMOVEDATA_STANDING_RIGHT, 0, 0, -1, -1, 0, PERSONTYPE_SCRIPT, 0, DayCareManScript_Inside, EVENT_DAYCARE_MAN_IN_DAYCARE
-	person_event SPRITE_GRANNY, 3, 5, SPRITEMOVEDATA_STANDING_LEFT, 0, 0, -1, -1, (1 << 3) | PAL_OW_RED, PERSONTYPE_SCRIPT, 0, DayCareLadyScript, -1
-	person_event SPRITE_LYRA, 5, 0, SPRITEMOVEDATA_STANDING_RIGHT, 0, 0, -1, -1, (1 << 3) | PAL_OW_RED, PERSONTYPE_SCRIPT, 0, ObjectEvent, EVENT_LYRA_DAYCARE

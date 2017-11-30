@@ -10,7 +10,7 @@ BASE_STAT_LEVEL EQU 7
 ; matchups, baseline is $10 for better doubling/halving
 SUPER_EFFECTIVE    EQU $20
 NOT_VERY_EFFECTIVE EQU $08
-NO_EFFECT          EQU 00
+NO_EFFECT          EQU $00
 
 	const_def
 	const ATTACK
@@ -55,22 +55,27 @@ PERFECT_DVS      EQUS "$ff, $ff, $ff"
 FAKE_PERFECT_DVS EQUS "$00, $00, $00"
 
 ; hidden power dvs
-DVS_HP_FIGHTING EQUS "$fc, $cf, $00"
-DVS_HP_FLYING   EQUS "$fc, $df, $00"
-DVS_HP_POISON   EQUS "$fc, $ef, $00"
-DVS_HP_GROUND   EQUS "$fc, $00, $00"
-DVS_HP_ROCK     EQUS "$fd, $cf, $00"
-DVS_HP_BUG      EQUS "$fd, $df, $00"
-DVS_HP_GHOST    EQUS "$fd, $ef, $00"
-DVS_HP_STEEL    EQUS "$fd, $00, $00"
-DVS_HP_FIRE     EQUS "$fe, $cf, $00"
-DVS_HP_WATER    EQUS "$fe, $df, $00"
-DVS_HP_GRASS    EQUS "$fe, $ef, $00"
-DVS_HP_ELECTRIC EQUS "$fe, $00, $00"
-DVS_HP_PSYCHIC  EQUS "$00, $cf, $00"
-DVS_HP_ICE      EQUS "$00, $df, $00"
+DVS_HP_FIGHTING EQUS "$00, $ee, $ee"
+DVS_HP_FLYING   EQUS "$00, $fe, $ee"
+DVS_HP_POISON   EQUS "$00, $ef, $ee"
+DVS_HP_GROUND   EQUS "$00, $00, $ee"
+DVS_HP_ROCK     EQUS "$00, $ee, $fe"
+DVS_HP_BUG      EQUS "$00, $fe, $fe"
+DVS_HP_GHOST    EQUS "$00, $ef, $fe"
+DVS_HP_STEEL    EQUS "$00, $00, $fe"
+DVS_HP_FIRE     EQUS "$00, $ee, $ef"
+DVS_HP_WATER    EQUS "$00, $fe, $ef"
+DVS_HP_GRASS    EQUS "$00, $ef, $ef"
+DVS_HP_ELECTRIC EQUS "$00, $00, $ef"
+DVS_HP_PSYCHIC  EQUS "$00, $ee, $00"
+DVS_HP_ICE      EQUS "$00, $fe, $00"
 DVS_HP_DRAGON   EQUS "$00, $ef, $00"
+if DEF(FAITHFUL)
 DVS_HP_DARK     EQUS "$00, $00, $00"
+else
+DVS_HP_DARK     EQUS "$fe, $00, $00"
+endc
+DVS_HP_FAIRY    EQUS "$00, $00, $00" ; no Fairy-type Hidden Power in Faithful
 
 ; nature constants
 	const_def
@@ -176,6 +181,7 @@ NO_NATURE   EQU const_value
 	const RIVALRY
 	const STEADFAST
 	const SNOW_CLOAK
+	const GLUTTONY
 	const ANGER_POINT
 	const UNBURDEN
 	const DRY_SKIN
@@ -255,7 +261,9 @@ const_value SET 1
 	const BATTLETYPE_TREE
 	const BATTLETYPE_ROAMING
 	const BATTLETYPE_CONTEST
+	const BATTLETYPE_SAFARI
 	const BATTLETYPE_GHOST
+	const BATTLETYPE_GROTTO
 	const BATTLETYPE_INVERSE
 	const BATTLETYPE_SHINY
 	const BATTLETYPE_FORCEITEM
@@ -289,14 +297,15 @@ const_value SET 1
 	const BATTLE_VARS_LAST_MOVE_OPP
 
 ; status
+SLP EQU 7 ; 7 turns
 const_value SET 3
 	const PSN
 	const BRN
 	const FRZ
 	const PAR
-	const SLP ; 7 turns
+	const TOX
 
-ALL_STATUS EQU (1 << PSN) + (1 << BRN) + (1 << FRZ) + (1 << PAR) + SLP
+ALL_STATUS EQU (1 << PSN) + (1 << BRN) + (1 << FRZ) + (1 << PAR) + (1 << TOX) + SLP
 
 ; substatus
 	enum_start 7, -1
@@ -316,8 +325,6 @@ ALL_STATUS EQU (1 << PSN) + (1 << BRN) + (1 << FRZ) + (1 << PAR) + SLP
 	enum SUBSTATUS_ENCORED
 	enum SUBSTATUS_TRANSFORMED
 	enum SUBSTATUS_MAGIC_BOUNCE
-	enum SUBSTATUS_UNKNOWN_3
-	enum SUBSTATUS_TOXIC
 
 	enum_start 7, -1
 	enum SUBSTATUS_CONFUSED
@@ -334,17 +341,18 @@ ALL_STATUS EQU (1 << PSN) + (1 << BRN) + (1 << FRZ) + (1 << PAR) + SLP
 	enum SUBSTATUS_RAGE
 	enum SUBSTATUS_RECHARGE
 	enum SUBSTATUS_SUBSTITUTE
-	enum SUBSTATUS_UNKNOWN_1
+	enum SUBSTATUS_ROOST
 	enum SUBSTATUS_FOCUS_ENERGY
 	enum SUBSTATUS_MIST
 	enum SUBSTATUS_CURLED ; formely in its own substatus
 
-; environmental
-	enum_start 4, -1
-	enum SCREENS_REFLECT
-	enum SCREENS_LIGHT_SCREEN
-	enum SCREENS_SAFEGUARD
-	enum SCREENS_SPIKES
+; environmental, things that stack are bitmasks
+SCREENS_REFLECT      EQU 0 ; %00000001
+SCREENS_LIGHT_SCREEN EQU 1 ; %00000010
+SCREENS_SAFEGUARD    EQU 2 ; %00000100
+;SCREENS_MIST         EQU 3   %00001000 TODO
+SCREENS_SPIKES       EQU     %00110000
+SCREENS_TOXIC_SPIKES EQU     %11000000
 
 ; weather
 	const_def
@@ -360,6 +368,7 @@ ALL_STATUS EQU (1 << PSN) + (1 << BRN) + (1 << FRZ) + (1 << PAR) + SLP
 
 
 ; move effects
+; TODO: remove unused effects
 	const_def
 	const EFFECT_NORMAL_HIT
 	const EFFECT_PRIORITY_HIT
@@ -429,7 +438,6 @@ ALL_STATUS EQU (1 << PSN) + (1 << BRN) + (1 << FRZ) + (1 << PAR) + SLP
 	const EFFECT_ACCURACY_DOWN_2
 	const EFFECT_EVASION_DOWN_2
 	const EFFECT_HAZE
-	const EFFECT_MIST
 	const EFFECT_SAFEGUARD
 	const EFFECT_REFLECT
 	const EFFECT_LIGHT_SCREEN
@@ -444,7 +452,6 @@ ALL_STATUS EQU (1 << PSN) + (1 << BRN) + (1 << FRZ) + (1 << PAR) + SLP
 	const EFFECT_TRI_ATTACK
 	const EFFECT_SUPER_FANG
 	const EFFECT_TRANSFORM
-	const EFFECT_SKY_ATTACK
 	const EFFECT_SUBSTITUTE
 	const EFFECT_HYPER_BEAM
 	const EFFECT_RAGE
@@ -455,7 +462,6 @@ ALL_STATUS EQU (1 << PSN) + (1 << BRN) + (1 << FRZ) + (1 << PAR) + SLP
 	const EFFECT_COUNTER
 	const EFFECT_ENCORE
 	const EFFECT_PAIN_SPLIT
-	const EFFECT_LOCK_ON
 	const EFFECT_SKETCH
 	const EFFECT_SLEEP_TALK
 	const EFFECT_DESTINY_BOND
@@ -465,7 +471,6 @@ ALL_STATUS EQU (1 << PSN) + (1 << BRN) + (1 << FRZ) + (1 << PAR) + SLP
 	const EFFECT_TRIPLE_KICK
 	const EFFECT_THIEF
 	const EFFECT_MEAN_LOOK
-	const EFFECT_UNUSED
 	const EFFECT_FLAME_WHEEL
 	const EFFECT_CURSE
 	const EFFECT_PROTECT
@@ -485,14 +490,12 @@ ALL_STATUS EQU (1 << PSN) + (1 << BRN) + (1 << FRZ) + (1 << PAR) + SLP
 	const EFFECT_BATON_PASS
 	const EFFECT_PURSUIT
 	const EFFECT_RAPID_SPIN
-	const EFFECT_MORNING_SUN
-	const EFFECT_MOONLIGHT
+	const EFFECT_HEALING_LIGHT
 	const EFFECT_HIDDEN_POWER
 	const EFFECT_RAIN_DANCE
 	const EFFECT_SUNNY_DAY
 	const EFFECT_BELLY_DRUM
 	const EFFECT_MIRROR_COAT
-	const EFFECT_TWISTER
 	const EFFECT_EARTHQUAKE
 	const EFFECT_FUTURE_SIGHT
 	const EFFECT_GUST
@@ -503,25 +506,19 @@ ALL_STATUS EQU (1 << PSN) + (1 << BRN) + (1 << FRZ) + (1 << PAR) + SLP
 	const EFFECT_FLY
 	const EFFECT_DEFENSE_CURL
 	const EFFECT_FLARE_BLITZ
-	const EFFECT_UNUSED2
-	const EFFECT_UNUSED3
 	const EFFECT_PSYSTRIKE
-	const EFFECT_OHKO
 	const EFFECT_JUMP_KICK
-	const EFFECT_BIDE
-	const EFFECT_RAZOR_WIND
-	const EFFECT_MIMIC
-	const EFFECT_PSYWAVE
-	const EFFECT_SNORE
-	const EFFECT_DEFROST_OPPONENT
-	const EFFECT_SPITE
-	const EFFECT_PRESENT
-	const EFFECT_FRUSTRATION
-	const EFFECT_PSYCH_UP
-	const EFFECT_CONVERSION2
-	const EFFECT_MIRROR_MOVE
-	const EFFECT_SKULL_BASH
 	const EFFECT_SWITCH_HIT
+	const EFFECT_SUCKER_PUNCH
+	const EFFECT_TOXIC_SPIKES
+	const EFFECT_ROOST
+	const EFFECT_CLOSE_COMBAT
+	const EFFECT_SKILL_SWAP
+	const EFFECT_TRICK
+	const EFFECT_KNOCK_OFF
+	const EFFECT_FURY_STRIKES
+	const EFFECT_BUG_BITE
+	const EFFECT_GYRO_BALL
 
 ; Battle vars used in home/battle.asm
 	const_def

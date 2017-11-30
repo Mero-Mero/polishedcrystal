@@ -1,4 +1,4 @@
-	db "<PK><MN> Trainer@" ; KAY
+	db "<PK><MN> Trainer@" ; CARRIE
 	db "<PK><MN> Trainer@" ; CAL
 	db "Leader@"           ; FALKNER
 	db "Leader@"           ; BUGSY
@@ -42,6 +42,7 @@
 	db "#fan@"             ; POKEFANF
 	db "Officer@"          ; OFFICERM
 	db "Officer@"          ; OFFICERF
+	db "Nurse@"            ; NURSE
 	db "#Maniac@"          ; POKEMANIAC
 	db "Cosplayer@"        ; COSPLAYER
 	db "Super Nerd@"       ; SUPER_NERD
@@ -88,6 +89,7 @@
 	db "Tamer@"            ; TAMER
 	db "Artist@"           ; ARTIST
 	db "Aroma Lady@"       ; AROMA_LADY
+	db "Waitress@"         ; WAITRESS
 	db "Sightseer@"        ; SIGHTSEERM
 	db "Sightseer@"        ; SIGHTSEERF
 	db "Sightseers@"       ; SIGHTSEERS
@@ -128,6 +130,7 @@
 	db "Fighter@"          ; MAYLENE
 	db "Pilot@"            ; SKYLA
 	db "Designer@"         ; VALERIE
+	db "<PK><MN> Trainer@" ; KUKUI
 	db "Surfer@"           ; VICTOR
 	db "#Maniac@"          ; BILL_T
 	db "<PK><MN> Trainer@" ; YELLOW

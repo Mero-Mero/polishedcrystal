@@ -1,33 +1,30 @@
 _2DMenu_:: ; 2400e
 	ld hl, CopyMenuData2
 	ld a, [wMenuData2_2DMenuItemStringsBank]
-	rst FarCall
+	call FarCall_hl
 
 	call Draw2DMenu
 	call UpdateSprites
 	call ApplyTilemap
-	call Get2DMenuSelection
-	ret
+	jp Get2DMenuSelection
 ; 24022
 
 _InterpretBattleMenu:: ; 24022
 	ld hl, CopyMenuData2
 	ld a, [wMenuData2_2DMenuItemStringsBank]
-	rst FarCall
+	call FarCall_hl
 
 	call Draw2DMenu
 	call UpdateSprites
 	call ApplyTilemap
-	call Get2DMenuSelection
-	ret
+	jp Get2DMenuSelection
 ; 2403c
 
 Draw2DMenu: ; 24085
 	xor a
 	ld [hBGMapMode], a
 	call MenuBox
-	call Place2DMenuItemStrings
-	ret
+	jp Place2DMenuItemStrings
 ; 2408f
 
 Get2DMenuSelection: ; 2408f
@@ -84,7 +81,7 @@ GetMenuNumberOfRows: ; 240d3
 	ret
 ; 240db
 
-Place2DMenuItemStrings: ; 240db
+Place2DMenuItemStrings:
 	ld hl, wMenuData2_2DMenuItemStringsAddr
 	ld e, [hl]
 	inc hl
@@ -123,9 +120,7 @@ Place2DMenuItemStrings: ; 240db
 	or h
 	ret z
 	ld a, [wMenuData2_2DMenuFunctionBank]
-	rst FarCall
-	ret
-; 2411a
+	jp FarCall_hl
 
 
 Init2DMenuCursorPosition: ; 2411a (9:411a)
@@ -239,19 +234,17 @@ MenuJoypadLoop: ; 24216
 	call Move2DMenuCursor
 	call .BGMap_OAM
 	call Do2DMenuRTCJoypad
-	jr nc, .done
+	ret nc
 	call _2DMenuInterpretJoypad
-	jr c, .done
+	ret c
 	ld a, [w2DMenuFlags1]
 	bit 7, a
-	jr nz, .done
+	ret nz
 	call GetMenuJoypad
 	ld b, a
 	ld a, [wMenuJoypadFilter]
 	and b
 	jr z, .loop
-
-.done
 	ret
 ; 24238
 
@@ -537,7 +530,6 @@ _PushWindow:: ; 24374
 
 .done
 	pop hl
-	call .ret ; empty function
 	ld a, h
 	ld [de], a
 	dec de
@@ -560,7 +552,6 @@ _PushWindow:: ; 24374
 	call GetMenuBoxDims
 	inc b
 	inc c
-	call .ret ; empty function
 
 .row
 	push bc
@@ -579,13 +570,8 @@ _PushWindow:: ; 24374
 	pop bc
 	dec b
 	jr nz, .row
-
 	ret
 ; 243e7
-
-.ret ; 243e7
-	ret
-; 243e8
 
 _ExitMenu:: ; 243e8
 	xor a

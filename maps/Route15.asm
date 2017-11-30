@@ -1,138 +1,103 @@
-const_value set 2
-	const ROUTE15_YOUNGSTER1
-	const ROUTE15_YOUNGSTER2
-	const ROUTE15_YOUNGSTER3
-	const ROUTE15_SCHOOLGIRL
-	const ROUTE15_TEACHER1
-	const ROUTE15_TEACHER2
-	const ROUTE15_POKEFAN_F1
-	const ROUTE15_POKEFAN_F2
-	const ROUTE15_TWIN1
-	const ROUTE15_TWIN2
-	const ROUTE15_POKE_BALL
-
 Route15_MapScriptHeader:
-.MapTriggers:
-	db 0
 
-.MapCallbacks:
-	db 0
+.MapTriggers: db 0
+
+.MapCallbacks: db 0
+
+Route15_MapEventHeader:
+
+.Warps: db 2
+	warp_def 4, 2, 3, ROUTE_15_FUCHSIA_GATE
+	warp_def 5, 2, 4, ROUTE_15_FUCHSIA_GATE
+
+.XYTriggers: db 0
+
+.Signposts: db 1
+	signpost 9, 19, SIGNPOST_JUMPTEXT, Route15SignText
+
+.PersonEvents: db 12
+	person_event SPRITE_YOUNGSTER, 10, 10, SPRITEMOVEDATA_STANDING_RIGHT, 0, 0, -1, -1, (1 << 3) | PAL_OW_BLUE, PERSONTYPE_TRAINER, 4, TrainerSchoolboyKipp, -1
+	person_event SPRITE_YOUNGSTER, 13, 15, SPRITEMOVEDATA_STANDING_UP, 0, 0, -1, -1, (1 << 3) | PAL_OW_BLUE, PERSONTYPE_TRAINER, 3, TrainerSchoolboyTommy, -1
+	person_event SPRITE_YOUNGSTER, 10, 27, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, -1, (1 << 3) | PAL_OW_BLUE, PERSONTYPE_TRAINER, 3, TrainerSchoolboyBilly, -1
+	person_event SPRITE_TWIN, 10, 33, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, -1, (1 << 3) | PAL_OW_RED, PERSONTYPE_TRAINER, 3, TrainerSchoolgirlFaith, -1
+	person_event SPRITE_TEACHER, 12, 30, SPRITEMOVEDATA_STANDING_UP, 0, 0, -1, -1, (1 << 3) | PAL_OW_GREEN, PERSONTYPE_TRAINER, 4, TrainerTeacherColette, -1
+	person_event SPRITE_TEACHER, 10, 20, SPRITEMOVEDATA_SPINRANDOM_FAST, 0, 0, -1, -1, (1 << 3) | PAL_OW_GREEN, PERSONTYPE_TRAINER, 3, TrainerTeacherHillary, -1
+	person_event SPRITE_POKEFAN_F, 4, 30, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, -1, (1 << 3) | PAL_OW_RED, PERSONTYPE_TRAINER, 2, TrainerPokefanfBoone, -1
+	person_event SPRITE_POKEFAN_F, 4, 14, SPRITEMOVEDATA_STANDING_RIGHT, 0, 0, -1, -1, (1 << 3) | PAL_OW_RED, PERSONTYPE_TRAINER, 4, TrainerPokefanfEleanor, -1
+	person_event SPRITE_TWIN, 5, 19, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, -1, (1 << 3) | PAL_OW_RED, PERSONTYPE_TRAINER, 1, TrainerTwinsKayandtia1, -1
+	person_event SPRITE_TWIN, 5, 20, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, -1, (1 << 3) | PAL_OW_RED, PERSONTYPE_TRAINER, 1, TrainerTwinsKayandtia2, -1
+	itemball_event 5, 12, PP_UP, 1, EVENT_ROUTE_15_PP_UP
+	person_event SPRITE_BALL_CUT_FRUIT, 6, 43, SPRITEMOVEDATA_CUTTABLE_TREE, 0, 0, -1, -1, 0, PERSONTYPE_SCRIPT, 0, ObjectEvent, EVENT_ROUTE_14_CUT_TREE_3
 
 TrainerTeacherColette:
 	trainer EVENT_BEAT_TEACHER_COLETTE, TEACHER, COLETTE, TeacherColetteSeenText, TeacherColetteBeatenText, 0, TeacherColetteScript
 
 TeacherColetteScript:
 	end_if_just_battled
-	opentext
-	writetext UnknownText_0x1aa60d
-	waitbutton
-	closetext
-	end
+	jumptextfaceplayer UnknownText_0x1aa60d
 
 TrainerTeacherHillary:
 	trainer EVENT_BEAT_TEACHER_HILLARY, TEACHER, HILLARY, TeacherHillarySeenText, TeacherHillaryBeatenText, 0, TeacherHillaryScript
 
 TeacherHillaryScript:
 	end_if_just_battled
-	opentext
-	writetext UnknownText_0x1aa6ca
-	waitbutton
-	closetext
-	end
+	jumptextfaceplayer UnknownText_0x1aa6ca
 
 TrainerSchoolboyKipp:
 	trainer EVENT_BEAT_SCHOOLBOY_KIP, SCHOOLBOY, KIPP, SchoolboyKippSeenText, SchoolboyKippBeatenText, 0, SchoolboyKippScript
 
 SchoolboyKippScript:
 	end_if_just_battled
-	opentext
-	writetext UnknownText_0x1aa740
-	waitbutton
-	closetext
-	end
+	jumptextfaceplayer UnknownText_0x1aa740
 
 TrainerSchoolboyTommy:
 	trainer EVENT_BEAT_SCHOOLBOY_TOMMY, SCHOOLBOY, TOMMY, SchoolboyTommySeenText, SchoolboyTommyBeatenText, 0, SchoolboyTommyScript
 
 SchoolboyTommyScript:
 	end_if_just_battled
-	opentext
-	writetext UnknownText_0x1aa7bc
-	waitbutton
-	closetext
-	end
+	jumptextfaceplayer UnknownText_0x1aa7bc
 
 TrainerSchoolboyBilly:
 	trainer EVENT_BEAT_SCHOOLBOY_BILLY, SCHOOLBOY, BILLY, SchoolboyBillySeenText, SchoolboyBillyBeatenText, 0, SchoolboyBillyScript
 
 SchoolboyBillyScript:
 	end_if_just_battled
-	opentext
-	writetext UnknownText_0x1aa8b0
-	waitbutton
-	closetext
-	end
+	jumptextfaceplayer UnknownText_0x1aa8b0
 
 TrainerSchoolgirlFaith:
 	trainer EVENT_BEAT_SCHOOLGIRL_FAITH, SCHOOLGIRL, FAITH, SchoolgirlFaithSeenText, SchoolgirlFaithBeatenText, 0, SchoolgirlFaithScript
 
 SchoolgirlFaithScript:
 	end_if_just_battled
-	opentext
-	writetext SchoolgirlFaithAfterText
-	waitbutton
-	closetext
-	end
+	jumptextfaceplayer SchoolgirlFaithAfterText
 
 TrainerPokefanfBoone:
 	trainer EVENT_BEAT_POKEFANF_BOONE, POKEFANF, BOONE, PokefanfBooneSeenText, PokefanfBooneBeatenText, 0, PokefanfBooneScript
 
 PokefanfBooneScript:
 	end_if_just_battled
-	opentext
-	writetext PokefanfBooneAfterText
-	waitbutton
-	closetext
-	end
+	jumptextfaceplayer PokefanfBooneAfterText
 
 TrainerPokefanfEleanor:
 	trainer EVENT_BEAT_POKEFANF_ELEANOR, POKEFANF, ELEANOR, PokefanfEleanorSeenText, PokefanfEleanorBeatenText, 0, PokefanfEleanorScript
 
 PokefanfEleanorScript:
 	end_if_just_battled
-	opentext
-	writetext PokefanfEleanorAfterText
-	waitbutton
-	closetext
-	end
+	jumptextfaceplayer PokefanfEleanorAfterText
 
 TrainerTwinsKayandtia1:
 	trainer EVENT_BEAT_TWINS_KAY_AND_TIA, TWINS, KAYANDTIA1, TwinsKayandtia1SeenText, TwinsKayandtia1BeatenText, 0, TwinsKayandtia1Script
 
 TwinsKayandtia1Script:
 	end_if_just_battled
-	opentext
-	writetext TwinsKayandtia1AfterText
-	waitbutton
-	closetext
-	end
+	jumptextfaceplayer TwinsKayandtia1AfterText
 
 TrainerTwinsKayandtia2:
 	trainer EVENT_BEAT_TWINS_KAY_AND_TIA, TWINS, KAYANDTIA2, TwinsKayandtia2SeenText, TwinsKayandtia2BeatenText, 0, TwinsKayandtia2Script
 
 TwinsKayandtia2Script:
 	end_if_just_battled
-	opentext
-	writetext TwinsKayandtia2AfterText
-	waitbutton
-	closetext
-	end
-
-Route15Sign:
-	jumptext Route15SignText
-
-Route15PPUp:
-	itemball PP_UP
+	jumptextfaceplayer TwinsKayandtia2AfterText
 
 TeacherColetteSeenText:
 	text "Have you forgotten"
@@ -322,30 +287,3 @@ Route15SignText:
 	para "Fuchsia City -"
 	line "Lavender Town"
 	done
-
-Route15_MapEventHeader:
-.Warps:
-	db 2
-	warp_def $4, $2, 3, ROUTE_15_FUCHSIA_GATE
-	warp_def $5, $2, 4, ROUTE_15_FUCHSIA_GATE
-
-.XYTriggers:
-	db 0
-
-.Signposts:
-	db 1
-	signpost 9, 19, SIGNPOST_READ, Route15Sign
-
-.PersonEvents:
-	db 11
-	person_event SPRITE_YOUNGSTER, 10, 10, SPRITEMOVEDATA_STANDING_RIGHT, 0, 0, -1, -1, (1 << 3) | PAL_OW_BLUE, PERSONTYPE_TRAINER, 4, TrainerSchoolboyKipp, -1
-	person_event SPRITE_YOUNGSTER, 13, 15, SPRITEMOVEDATA_STANDING_UP, 0, 0, -1, -1, (1 << 3) | PAL_OW_BLUE, PERSONTYPE_TRAINER, 3, TrainerSchoolboyTommy, -1
-	person_event SPRITE_YOUNGSTER, 10, 27, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, -1, (1 << 3) | PAL_OW_BLUE, PERSONTYPE_TRAINER, 3, TrainerSchoolboyBilly, -1
-	person_event SPRITE_TWIN, 10, 33, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, -1, (1 << 3) | PAL_OW_RED, PERSONTYPE_TRAINER, 3, TrainerSchoolgirlFaith, -1
-	person_event SPRITE_TEACHER, 12, 30, SPRITEMOVEDATA_STANDING_UP, 0, 0, -1, -1, (1 << 3) | PAL_OW_GREEN, PERSONTYPE_TRAINER, 4, TrainerTeacherColette, -1
-	person_event SPRITE_TEACHER, 10, 20, SPRITEMOVEDATA_SPINRANDOM_FAST, 0, 0, -1, -1, (1 << 3) | PAL_OW_GREEN, PERSONTYPE_TRAINER, 3, TrainerTeacherHillary, -1
-	person_event SPRITE_POKEFAN_F, 4, 30, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, -1, (1 << 3) | PAL_OW_RED, PERSONTYPE_TRAINER, 2, TrainerPokefanfBoone, -1
-	person_event SPRITE_POKEFAN_F, 4, 14, SPRITEMOVEDATA_STANDING_RIGHT, 0, 0, -1, -1, (1 << 3) | PAL_OW_RED, PERSONTYPE_TRAINER, 4, TrainerPokefanfEleanor, -1
-	person_event SPRITE_TWIN, 5, 19, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, -1, (1 << 3) | PAL_OW_RED, PERSONTYPE_TRAINER, 1, TrainerTwinsKayandtia1, -1
-	person_event SPRITE_TWIN, 5, 20, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, -1, (1 << 3) | PAL_OW_RED, PERSONTYPE_TRAINER, 1, TrainerTwinsKayandtia2, -1
-	person_event SPRITE_BALL_CUT_FRUIT, 5, 12, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, -1, (1 << 3) | PAL_OW_RED, PERSONTYPE_ITEMBALL, 0, Route15PPUp, EVENT_ROUTE_15_PP_UP

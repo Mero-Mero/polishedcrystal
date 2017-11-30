@@ -1,18 +1,36 @@
-const_value set 2
+EcruteakHouse_MapScriptHeader:
+
+.MapTriggers: db 0
+
+.MapCallbacks: db 1
+	dbw MAPCALLBACK_OBJECTS, EcruteakHouseInitializeSages
+
+EcruteakHouse_MapEventHeader:
+
+.Warps: db 5
+	warp_def 17, 4, 3, ECRUTEAK_CITY
+	warp_def 17, 5, 3, ECRUTEAK_CITY
+	warp_def 3, 5, 4, ECRUTEAK_HOUSE
+	warp_def 15, 17, 3, ECRUTEAK_HOUSE
+	warp_def 3, 17, 3, WISE_TRIOS_ROOM
+
+.XYTriggers: db 2
+	xy_trigger 0, 7, 4, EcruteakHouse_XYTrigger1
+	xy_trigger 0, 7, 5, EcruteakHouse_XYTrigger2
+
+.Signposts: db 0
+
+.PersonEvents: db 4
+	person_event SPRITE_SAGE, 6, 4, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, -1, 0, PERSONTYPE_SCRIPT, 0, SageScript_0x98062, EVENT_RANG_CLEAR_BELL_1
+	person_event SPRITE_SAGE, 6, 5, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, -1, 0, PERSONTYPE_SCRIPT, 0, SageScript_0x98062, EVENT_RANG_CLEAR_BELL_2
+	person_event SPRITE_SAGE, 9, 6, SPRITEMOVEDATA_WANDER, 1, 1, -1, -1, 0, PERSONTYPE_SCRIPT, 0, SageScript_0x980b0, EVENT_ECRUTEAK_HOUSE_WANDERING_SAGE
+	person_event SPRITE_GRAMPS, 11, 3, SPRITEMOVEDATA_WANDER, 1, 1, -1, -1, 0, PERSONTYPE_COMMAND, jumptextfaceplayer, UnknownText_0x984ab, EVENT_ECRUTEAK_HOUSE_WANDERING_SAGE
+
+const_value set 1
 	const ECRUTEAKHOUSE_SAGE1
 	const ECRUTEAKHOUSE_SAGE2
-	const ECRUTEAKHOUSE_SAGE3
-	const ECRUTEAKHOUSE_GRAMPS
 
-EcruteakHouse_MapScriptHeader:
-.MapTriggers:
-	db 0
-
-.MapCallbacks:
-	db 1
-	dbw MAPCALLBACK_OBJECTS, .InitializeSages
-
-.InitializeSages:
+EcruteakHouseInitializeSages:
 	checkevent EVENT_FOUGHT_SUICUNE
 	iftrue .DontBlockTower
 	checkevent EVENT_KOJI_ALLOWS_YOU_PASSAGE_TO_TIN_TOWER
@@ -39,7 +57,7 @@ EcruteakHouse_XYTrigger1:
 	checkevent EVENT_RANG_CLEAR_BELL_2
 	iftrue EcruteakHouse_XYTrigger_DontMove
 	applymovement ECRUTEAKHOUSE_SAGE2, MovementData_0x980c7
-	moveperson ECRUTEAKHOUSE_SAGE1, $4, $6
+	moveperson ECRUTEAKHOUSE_SAGE1, 4, 6
 	appear ECRUTEAKHOUSE_SAGE1
 	pause 5
 	disappear ECRUTEAKHOUSE_SAGE2
@@ -49,7 +67,7 @@ EcruteakHouse_XYTrigger2:
 	checkevent EVENT_RANG_CLEAR_BELL_1
 	iftrue EcruteakHouse_XYTrigger_DontMove
 	applymovement ECRUTEAKHOUSE_SAGE1, MovementData_0x980cc
-	moveperson ECRUTEAKHOUSE_SAGE2, $5, $6
+	moveperson ECRUTEAKHOUSE_SAGE2, 5, 6
 	appear ECRUTEAKHOUSE_SAGE2
 	pause 5
 	disappear ECRUTEAKHOUSE_SAGE1
@@ -65,16 +83,10 @@ SageScript_0x98062:
 	iftrue .CheckForClearBell
 	checkflag ENGINE_FOGBADGE
 	iftrue .BlockPassage_GotFogBadge
-	writetext UnknownText_0x980d1
-	waitbutton
-	closetext
-	end
+	jumpopenedtext UnknownText_0x980d1
 
 .BlockPassage_GotFogBadge:
-	writetext UnknownText_0x98131
-	waitbutton
-	closetext
-	end
+	jumpopenedtext UnknownText_0x98131
 
 .CheckForClearBell:
 	checkevent EVENT_KOJI_ALLOWS_YOU_PASSAGE_TO_TIN_TOWER
@@ -83,10 +95,7 @@ SageScript_0x98062:
 	iftrue .Event000
 	checkitem CLEAR_BELL
 	iftrue .RingClearBell
-	writetext UnknownText_0x981a4
-	waitbutton
-	closetext
-	end
+	jumpopenedtext UnknownText_0x981a4
 
 .RingClearBell:
 	writetext UnknownText_0x98250
@@ -99,35 +108,15 @@ SageScript_0x98062:
 	end
 
 .AllowedThrough:
-	writetext UnknownText_0x9837e
-	waitbutton
-	closetext
-	end
+	jumpopenedtext UnknownText_0x9837e
 
 .Event000:
-	writetext UnknownText_0x98391
-	waitbutton
-	closetext
-	end
+	jumpopenedtext UnknownText_0x98391
 
 SageScript_0x980b0:
-	faceplayer
-	opentext
 	checkevent EVENT_GOT_CLEAR_BELL
-	iftrue .GotClearBell
-	writetext UnknownText_0x9840b
-	waitbutton
-	closetext
-	end
-
-.GotClearBell:
-	writetext UnknownText_0x9846f
-	waitbutton
-	closetext
-	end
-
-GrampsScript_0x980c4:
-	jumptextfaceplayer UnknownText_0x984ab
+	iftrue_jumptextfaceplayer UnknownText_0x9846f
+	jumptextfaceplayer UnknownText_0x9840b
 
 MovementData_0x980c7:
 	fix_facing
@@ -268,27 +257,3 @@ UnknownText_0x984ab:
 	para "#mon flew away,"
 	line "never to return."
 	done
-
-EcruteakHouse_MapEventHeader:
-.Warps:
-	db 5
-	warp_def $11, $4, 3, ECRUTEAK_CITY
-	warp_def $11, $5, 3, ECRUTEAK_CITY
-	warp_def $3, $5, 4, ECRUTEAK_HOUSE
-	warp_def $f, $11, 3, ECRUTEAK_HOUSE
-	warp_def $3, $11, 3, WISE_TRIOS_ROOM
-
-.XYTriggers:
-	db 2
-	xy_trigger 0, $7, $4, EcruteakHouse_XYTrigger1
-	xy_trigger 0, $7, $5, EcruteakHouse_XYTrigger2
-
-.Signposts:
-	db 0
-
-.PersonEvents:
-	db 4
-	person_event SPRITE_SAGE, 6, 4, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, -1, 0, PERSONTYPE_SCRIPT, 0, SageScript_0x98062, EVENT_RANG_CLEAR_BELL_1
-	person_event SPRITE_SAGE, 6, 5, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, -1, 0, PERSONTYPE_SCRIPT, 0, SageScript_0x98062, EVENT_RANG_CLEAR_BELL_2
-	person_event SPRITE_SAGE, 9, 6, SPRITEMOVEDATA_WANDER, 1, 1, -1, -1, 0, PERSONTYPE_SCRIPT, 0, SageScript_0x980b0, EVENT_ECRUTEAK_HOUSE_WANDERING_SAGE
-	person_event SPRITE_GRAMPS, 11, 3, SPRITEMOVEDATA_WANDER, 1, 1, -1, -1, 0, PERSONTYPE_SCRIPT, 0, GrampsScript_0x980c4, EVENT_ECRUTEAK_HOUSE_WANDERING_SAGE

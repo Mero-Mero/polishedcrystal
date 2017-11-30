@@ -1,5 +1,5 @@
 
-	dba KayPic
+	dba CarriePic
 	dba CalPic
 	dba FalknerPic
 	dba BugsyPic
@@ -43,6 +43,7 @@
 	dba PokefanfPic
 	dba OfficermPic
 	dba OfficerfPic
+	dba NursePic
 	dba PokemaniacPic
 	dba CosplayerPic
 	dba SuperNerdPic
@@ -89,6 +90,7 @@
 	dba TamerPic
 	dba ArtistPic
 	dba AromaLadyPic
+	dba WaitressPic
 	dba SightseermPic
 	dba SightseerfPic
 	dba SightseersPic
@@ -129,6 +131,7 @@
 	dba MaylenePic
 	dba SkylaPic
 	dba ValeriePic
+	dba KukuiPic
 	dba VictorPic
 	dba BillPic
 	dba YellowPic

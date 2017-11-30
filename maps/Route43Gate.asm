@@ -1,18 +1,33 @@
-const_value set 2
-	const ROUTE43GATE_OFFICER
+Route43Gate_MapScriptHeader:
+
+.MapTriggers: db 1
+	dw Route43GateTrigger0
+
+.MapCallbacks: db 1
+	dbw MAPCALLBACK_NEWMAP, UnknownScript_0x19abca
+
+Route43Gate_MapEventHeader:
+
+.Warps: db 4
+	warp_def 0, 4, 4, ROUTE_43
+	warp_def 0, 5, 5, ROUTE_43
+	warp_def 7, 4, 3, ROUTE_43
+	warp_def 7, 5, 3, ROUTE_43
+
+.XYTriggers: db 0
+
+.Signposts: db 0
+
+.PersonEvents: db 3
+	person_event SPRITE_ROCKET, 4, 2, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, -1, 0, PERSONTYPE_COMMAND, jumptextfaceplayer, UnknownText_0x19ad41, EVENT_ROUTE_43_GATE_ROCKETS
+	person_event SPRITE_ROCKET, 4, 7, SPRITEMOVEDATA_STANDING_UP, 0, 0, -1, -1, 0, PERSONTYPE_COMMAND, jumptextfaceplayer, UnknownText_0x19ad41, EVENT_ROUTE_43_GATE_ROCKETS
+	person_event SPRITE_OFFICER, 4, 0, SPRITEMOVEDATA_STANDING_RIGHT, 0, 0, -1, -1, (1 << 3) | PAL_OW_RED, PERSONTYPE_SCRIPT, 0, OfficerScript_0x19ac85, EVENT_LAKE_OF_RAGE_CIVILIANS
+
+const_value set 1
 	const ROUTE43GATE_ROCKET1
 	const ROUTE43GATE_ROCKET2
 
-Route43Gate_MapScriptHeader:
-.MapTriggers:
-	db 1
-	dw .Trigger0
-
-.MapCallbacks:
-	db 1
-	dbw MAPCALLBACK_NEWMAP, UnknownScript_0x19abca
-
-.Trigger0:
+Route43GateTrigger0:
 	priorityjump UnknownScript_0x19abda
 	end
 
@@ -35,7 +50,7 @@ UnknownScript_0x19abda:
 	end
 
 UnknownScript_0x19abea:
-	applymovement PLAYER, MovementData_0x19aca2
+	applyonemovement PLAYER, step_down
 	showemote EMOTE_SHOCK, ROUTE43GATE_ROCKET2, 15
 	applymovement ROUTE43GATE_ROCKET2, MovementData_0x19acbb
 	spriteface ROUTE43GATE_ROCKET1, UP
@@ -99,9 +114,6 @@ UnknownScript_0x19ac72:
 	special RestartMapMusic
 	end
 
-RocketScript_0x19ac82:
-	jumptextfaceplayer UnknownText_0x19ad41
-
 OfficerScript_0x19ac85:
 	faceplayer
 	opentext
@@ -111,18 +123,10 @@ OfficerScript_0x19ac85:
 	buttonsound
 	verbosegivetmhm TM_SLUDGE_BOMB
 	setevent EVENT_GOT_TM36_SLUDGE_BOMB
-	closetext
-	end
+	endtext
 
 UnknownScript_0x19ac9c:
-	writetext UnknownText_0x19ae2d
-	waitbutton
-	closetext
-	end
-
-MovementData_0x19aca2:
-	step_down
-	step_end
+	jumpopenedtext UnknownText_0x19ae2d
 
 MovementData_0x19aca4:
 	big_step_up
@@ -233,23 +237,3 @@ UnknownText_0x19ae2d:
 	line "avoid walking in"
 	cont "the grass."
 	done
-
-Route43Gate_MapEventHeader:
-.Warps:
-	db 4
-	warp_def $0, $4, 4, ROUTE_43
-	warp_def $0, $5, 5, ROUTE_43
-	warp_def $7, $4, 3, ROUTE_43
-	warp_def $7, $5, 3, ROUTE_43
-
-.XYTriggers:
-	db 0
-
-.Signposts:
-	db 0
-
-.PersonEvents:
-	db 3
-	person_event SPRITE_OFFICER, 4, 0, SPRITEMOVEDATA_STANDING_RIGHT, 0, 0, -1, -1, (1 << 3) | PAL_OW_RED, PERSONTYPE_SCRIPT, 0, OfficerScript_0x19ac85, EVENT_LAKE_OF_RAGE_CIVILIANS
-	person_event SPRITE_ROCKET, 4, 2, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, -1, 0, PERSONTYPE_SCRIPT, 0, RocketScript_0x19ac82, EVENT_ROUTE_43_GATE_ROCKETS
-	person_event SPRITE_ROCKET, 4, 7, SPRITEMOVEDATA_STANDING_UP, 0, 0, -1, -1, 0, PERSONTYPE_SCRIPT, 0, RocketScript_0x19ac82, EVENT_ROUTE_43_GATE_ROCKETS

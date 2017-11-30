@@ -1,26 +1,43 @@
-const_value set 2
-	const ROUTE3_YOUNGSTER1
-	const ROUTE3_YOUNGSTER2
-	const ROUTE3_YOUNGSTER3
-	const ROUTE3_FISHER1
-	const ROUTE3_FISHER2
-	const ROUTE3_BLACK_BELT1
-	const ROUTE3_BLACK_BELT2
-	const ROUTE3_POKEFAN_M1
-	const ROUTE3_POKEFAN_M2
-	const ROUTE3_COOLTRAINER_M
-	const ROUTE3_COOLTRAINER_F
-	const ROUTE3_POKE_BALL
-
 Route3_MapScriptHeader:
-.MapTriggers:
-	db 0
 
-.MapCallbacks:
-	db 1
-	dbw MAPCALLBACK_NEWMAP, .FlyPoint
+.MapTriggers: db 0
 
-.FlyPoint:
+.MapCallbacks: db 1
+	dbw MAPCALLBACK_NEWMAP, Route3FlyPoint
+
+Route3_MapEventHeader:
+
+.Warps: db 2
+	warp_def 1, 68, 1, MOUNT_MOON_1F
+	warp_def 3, 61, 1, ROUTE_3_POKECENTER_1F
+
+.XYTriggers: db 0
+
+.Signposts: db 8
+	signpost 15, 63, SIGNPOST_JUMPTEXT, UnknownText_0x1ae163
+	signpost 17, 11, SIGNPOST_ITEM + MOON_STONE, EVENT_ROUTE_3_HIDDEN_MOON_STONE
+	signpost 15, 8, SIGNPOST_JUMPTEXT, Route3MeteoriteText
+	signpost 17, 8, SIGNPOST_JUMPTEXT, Route3MeteoriteText
+	signpost 17, 9, SIGNPOST_JUMPTEXT, Route3MeteoriteText
+	signpost 15, 14, SIGNPOST_JUMPTEXT, Route3MeteoriteText
+	signpost 16, 15, SIGNPOST_JUMPTEXT, Route3MeteoriteText
+	signpost 17, 15, SIGNPOST_JUMPTEXT, Route3MeteoriteText
+
+.PersonEvents: db 12
+	person_event SPRITE_YOUNGSTER, 7, 12, SPRITEMOVEDATA_STANDING_LEFT, 0, 0, -1, -1, (1 << 3) | PAL_OW_BLUE, PERSONTYPE_TRAINER, 3, TrainerYoungsterRegis, -1
+	person_event SPRITE_YOUNGSTER, 3, 17, SPRITEMOVEDATA_SPINRANDOM_FAST, 0, 0, -1, -1, (1 << 3) | PAL_OW_BLUE, PERSONTYPE_TRAINER, 1, TrainerYoungsterJimmy, -1
+	person_event SPRITE_YOUNGSTER, 3, 25, SPRITEMOVEDATA_SPINRANDOM_FAST, 0, 0, -1, -1, (1 << 3) | PAL_OW_BLUE, PERSONTYPE_TRAINER, 1, TrainerYoungsterWarren, -1
+	person_event SPRITE_FISHER, 12, 30, SPRITEMOVEDATA_STANDING_UP, 0, 0, -1, -1, (1 << 3) | PAL_OW_RED, PERSONTYPE_TRAINER, 2, TrainerFirebreatherOtis, -1
+	person_event SPRITE_FISHER, 10, 60, SPRITEMOVEDATA_SPINRANDOM_FAST, 0, 0, -1, -1, (1 << 3) | PAL_OW_RED, PERSONTYPE_TRAINER, 2, TrainerFirebreatherBurt, -1
+	person_event SPRITE_BLACK_BELT, 8, 44, SPRITEMOVEDATA_STANDING_RIGHT, 0, 0, -1, -1, (1 << 3) | PAL_OW_BROWN, PERSONTYPE_TRAINER, 4, TrainerBlackbeltManford, -1
+	person_event SPRITE_BLACK_BELT, 18, 52, SPRITEMOVEDATA_STANDING_UP, 0, 0, -1, -1, (1 << 3) | PAL_OW_BROWN, PERSONTYPE_TRAINER, 2, TrainerBlackbeltAnder, -1
+	person_event SPRITE_POKEFAN_M, 6, 38, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, -1, (1 << 3) | PAL_OW_BROWN, PERSONTYPE_TRAINER, 1, TrainerHikerBruce, -1
+	person_event SPRITE_POKEFAN_M, 19, 61, SPRITEMOVEDATA_STANDING_LEFT, 0, 0, -1, -1, (1 << 3) | PAL_OW_BROWN, PERSONTYPE_TRAINER, 5, TrainerHikerDwight, -1
+	person_event SPRITE_COOLTRAINER_M, 12, 14, SPRITEMOVEDATA_STANDING_UP, 0, 0, -1, -1, (1 << 3) | PAL_OW_RED, PERSONTYPE_TRAINER, 1, TrainerAceDuoZacandjen1, -1
+	person_event SPRITE_COOLTRAINER_F, 12, 15, SPRITEMOVEDATA_STANDING_UP, 0, 0, -1, -1, (1 << 3) | PAL_OW_RED, PERSONTYPE_TRAINER, 1, TrainerAceDuoZacandjen2, -1
+	itemball_event 14, 36, BIG_ROOT, 1, EVENT_ROUTE_3_BIG_ROOT
+
+Route3FlyPoint:
 	setflag ENGINE_FLYPOINT_MT_MOON
 	return
 
@@ -29,11 +46,7 @@ TrainerYoungsterRegis:
 
 .Script:
 	end_if_just_battled
-	opentext
-	writetext .AfterText
-	waitbutton
-	closetext
-	end
+	jumptextfaceplayer .AfterText
 
 .SeenText:
 	text "Youngster? Good-"
@@ -58,11 +71,7 @@ TrainerYoungsterJimmy:
 
 .Script:
 	end_if_just_battled
-	opentext
-	writetext .AfterText
-	waitbutton
-	closetext
-	end
+	jumptextfaceplayer .AfterText
 
 .SeenText:
 	text "I can run like the"
@@ -86,11 +95,7 @@ TrainerYoungsterWarren:
 
 .Script:
 	end_if_just_battled
-	opentext
-	writetext .AfterText
-	waitbutton
-	closetext
-	end
+	jumptextfaceplayer .AfterText
 
 .SeenText:
 	text "Hmmm… I don't know"
@@ -113,11 +118,7 @@ TrainerFirebreatherOtis:
 
 .Script:
 	end_if_just_battled
-	opentext
-	writetext .AfterText
-	waitbutton
-	closetext
-	end
+	jumptextfaceplayer .AfterText
 
 .SeenText:
 	text "Ah! The weather's"
@@ -140,11 +141,7 @@ TrainerFirebreatherBurt:
 
 .Script:
 	end_if_just_battled
-	opentext
-	writetext .AfterText
-	waitbutton
-	closetext
-	end
+	jumptextfaceplayer .AfterText
 
 .SeenText:
 	text "Step right up and"
@@ -169,11 +166,7 @@ TrainerBlackbeltManford:
 
 .Script:
 	end_if_just_battled
-	opentext
-	writetext .AfterText
-	waitbutton
-	closetext
-	end
+	jumptextfaceplayer .AfterText
 
 .SeenText:
 	text "Slow down and give"
@@ -197,11 +190,7 @@ TrainerBlackbeltAnder:
 
 .Script:
 	end_if_just_battled
-	opentext
-	writetext .AfterText
-	waitbutton
-	closetext
-	end
+	jumptextfaceplayer .AfterText
 
 .SeenText:
 	text "Wait a moment!"
@@ -225,11 +214,7 @@ TrainerHikerBruce:
 
 .Script:
 	end_if_just_battled
-	opentext
-	writetext .AfterText
-	waitbutton
-	closetext
-	end
+	jumptextfaceplayer .AfterText
 
 .SeenText:
 	text "My Bag is digging"
@@ -254,11 +239,7 @@ TrainerHikerDwight:
 
 .Script:
 	end_if_just_battled
-	opentext
-	writetext .AfterText
-	waitbutton
-	closetext
-	end
+	jumptextfaceplayer .AfterText
 
 .SeenText:
 	text "Peace!"
@@ -290,11 +271,7 @@ TrainerAceDuoZacandjen1:
 
 .Script:
 	end_if_just_battled
-	opentext
-	writetext .AfterText
-	waitbutton
-	closetext
-	end
+	jumptextfaceplayer .AfterText
 
 .SeenText:
 	text "Zac: Really, you"
@@ -320,11 +297,7 @@ TrainerAceDuoZacandjen2:
 
 .Script:
 	end_if_just_battled
-	opentext
-	writetext .AfterText
-	waitbutton
-	closetext
-	end
+	jumptextfaceplayer .AfterText
 
 .SeenText:
 	text "Jen: Huh? You'd"
@@ -347,18 +320,6 @@ TrainerAceDuoZacandjen2:
 	cont "become."
 	done
 
-Route3BigRoot:
-	itemball BIG_ROOT
-
-MapRoute3Signpost0Script:
-	jumptext UnknownText_0x1ae163
-
-Route3Meteorite:
-	jumptext Route3MeteoriteText
-
-Route3HiddenMoonStone:
-	dwb EVENT_ROUTE_3_HIDDEN_MOON_STONE, MOON_STONE
-
 Route3MeteoriteText:
 	text "Never seen a stone"
 	line "like this before!"
@@ -369,43 +330,5 @@ Route3MeteoriteText:
 	done
 
 UnknownText_0x1ae163:
-	text "Mt.Moon Ahead"
-
-	para "Mt.Moon Square"
-	line "is en route!"
+	text "Mt.Moon Tunnel"
 	done
-
-Route3_MapEventHeader:
-.Warps:
-	db 2
-	warp_def $1, $44, 1, MOUNT_MOON_1F
-	warp_def $3, $3d, 1, ROUTE_3_POKECENTER_1F
-
-.XYTriggers:
-	db 0
-
-.Signposts:
-	db 8
-	signpost 15, 63, SIGNPOST_READ, MapRoute3Signpost0Script
-	signpost 17, 11, SIGNPOST_ITEM, Route3HiddenMoonStone
-	signpost 15, 8, SIGNPOST_READ, Route3Meteorite
-	signpost 17, 8, SIGNPOST_READ, Route3Meteorite
-	signpost 17, 9, SIGNPOST_READ, Route3Meteorite
-	signpost 15, 14, SIGNPOST_READ, Route3Meteorite
-	signpost 16, 15, SIGNPOST_READ, Route3Meteorite
-	signpost 17, 15, SIGNPOST_READ, Route3Meteorite
-
-.PersonEvents:
-	db 12
-	person_event SPRITE_YOUNGSTER, 7, 12, SPRITEMOVEDATA_STANDING_LEFT, 0, 0, -1, -1, (1 << 3) | PAL_OW_BLUE, PERSONTYPE_TRAINER, 3, TrainerYoungsterRegis, -1
-	person_event SPRITE_YOUNGSTER, 3, 17, SPRITEMOVEDATA_SPINRANDOM_FAST, 0, 0, -1, -1, (1 << 3) | PAL_OW_BLUE, PERSONTYPE_TRAINER, 1, TrainerYoungsterJimmy, -1
-	person_event SPRITE_YOUNGSTER, 3, 25, SPRITEMOVEDATA_SPINRANDOM_FAST, 0, 0, -1, -1, (1 << 3) | PAL_OW_BLUE, PERSONTYPE_TRAINER, 1, TrainerYoungsterWarren, -1
-	person_event SPRITE_FISHER, 12, 30, SPRITEMOVEDATA_STANDING_UP, 0, 0, -1, -1, (1 << 3) | PAL_OW_RED, PERSONTYPE_TRAINER, 2, TrainerFirebreatherOtis, -1
-	person_event SPRITE_FISHER, 10, 60, SPRITEMOVEDATA_SPINRANDOM_FAST, 0, 0, -1, -1, (1 << 3) | PAL_OW_RED, PERSONTYPE_TRAINER, 2, TrainerFirebreatherBurt, -1
-	person_event SPRITE_BLACK_BELT, 8, 44, SPRITEMOVEDATA_STANDING_RIGHT, 0, 0, -1, -1, (1 << 3) | PAL_OW_BROWN, PERSONTYPE_TRAINER, 4, TrainerBlackbeltManford, -1
-	person_event SPRITE_BLACK_BELT, 18, 52, SPRITEMOVEDATA_STANDING_UP, 0, 0, -1, -1, (1 << 3) | PAL_OW_BROWN, PERSONTYPE_TRAINER, 2, TrainerBlackbeltAnder, -1
-	person_event SPRITE_POKEFAN_M, 6, 38, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, -1, (1 << 3) | PAL_OW_BROWN, PERSONTYPE_TRAINER, 1, TrainerHikerBruce, -1
-	person_event SPRITE_POKEFAN_M, 19, 61, SPRITEMOVEDATA_STANDING_LEFT, 0, 0, -1, -1, (1 << 3) | PAL_OW_BROWN, PERSONTYPE_TRAINER, 5, TrainerHikerDwight, -1
-	person_event SPRITE_COOLTRAINER_M, 12, 14, SPRITEMOVEDATA_STANDING_UP, 0, 0, -1, -1, (1 << 3) | PAL_OW_RED, PERSONTYPE_TRAINER, 1, TrainerAceDuoZacandjen1, -1
-	person_event SPRITE_COOLTRAINER_F, 12, 15, SPRITEMOVEDATA_STANDING_UP, 0, 0, -1, -1, (1 << 3) | PAL_OW_RED, PERSONTYPE_TRAINER, 1, TrainerAceDuoZacandjen2, -1
-	person_event SPRITE_BALL_CUT_FRUIT, 14, 36, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, -1, (1 << 3) | PAL_OW_RED, PERSONTYPE_ITEMBALL, 0, Route3BigRoot, EVENT_ROUTE_3_BIG_ROOT

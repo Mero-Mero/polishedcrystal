@@ -1,60 +1,58 @@
-const_value set 2
-	const FASTSHIPCABINS_SW_SSW_NW_FISHER
-	const FASTSHIPCABINS_SW_SSW_NW_BUG_CATCHER
-	const FASTSHIPCABINS_SW_SSW_NW_RICH_BOY
-	const FASTSHIPCABINS_SW_SSW_NW_BEAUTY
-	const FASTSHIPCABINS_SW_SSW_NW_ROCKER
-
 FastShipCabins_SW_SSW_NW_MapScriptHeader:
-.MapTriggers:
-	db 0
 
-.MapCallbacks:
-	db 0
+.MapTriggers: db 0
+
+.MapCallbacks: db 0
+
+FastShipCabins_SW_SSW_NW_MapEventHeader:
+
+.Warps: db 5
+	warp_def 0, 2, 5, FAST_SHIP_1F
+	warp_def 19, 2, 6, FAST_SHIP_1F
+	warp_def 19, 3, 6, FAST_SHIP_1F
+	warp_def 31, 2, 7, FAST_SHIP_1F
+	warp_def 31, 3, 7, FAST_SHIP_1F
+
+.XYTriggers: db 0
+
+.Signposts: db 2
+	signpost 1, 7, SIGNPOST_READ, FastShipBed
+	signpost 2, 7, SIGNPOST_READ, FastShipBed
+
+.PersonEvents: db 5
+	person_event SPRITE_FISHER, 15, 1, SPRITEMOVEDATA_SPINCOUNTERCLOCKWISE, 0, 0, -1, -1, (1 << 3) | PAL_OW_RED, PERSONTYPE_TRAINER, 2, TrainerFirebreatherLyle, EVENT_FAST_SHIP_PASSENGERS_FIRST_TRIP
+	person_event SPRITE_BUG_CATCHER, 15, 6, SPRITEMOVEDATA_SPINRANDOM_FAST, 0, 0, -1, -1, (1 << 3) | PAL_OW_BROWN, PERSONTYPE_TRAINER, 2, TrainerBug_catcherKen, EVENT_FAST_SHIP_PASSENGERS_WESTBOUND
+	person_event SPRITE_RICH_BOY, 27, 5, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, -1, (1 << 3) | PAL_OW_BLUE, PERSONTYPE_TRAINER, 3, TrainerRichBoyWinston, EVENT_FAST_SHIP_PASSENGERS_FIRST_TRIP
+	person_event SPRITE_BEAUTY, 26, 1, SPRITEMOVEDATA_SPINRANDOM_FAST, 0, 0, -1, -1, (1 << 3) | PAL_OW_BLUE, PERSONTYPE_TRAINER, 3, TrainerBeautyCassie, EVENT_FAST_SHIP_PASSENGERS_EASTBOUND
+	person_event SPRITE_ROCKER, 28, 3, SPRITEMOVEDATA_SPINCOUNTERCLOCKWISE, 0, 0, -1, -1, (1 << 3) | PAL_OW_RED, PERSONTYPE_TRAINER, 2, TrainerGuitaristmClyde, EVENT_FAST_SHIP_PASSENGERS_WESTBOUND
 
 TrainerFirebreatherLyle:
 	trainer EVENT_BEAT_FIREBREATHER_LYLE, FIREBREATHER, LYLE, FirebreatherLyleSeenText, FirebreatherLyleBeatenText, 0, FirebreatherLyleScript
 
 FirebreatherLyleScript:
 	end_if_just_battled
-	opentext
-	writetext UnknownText_0x75b52
-	waitbutton
-	closetext
-	end
+	jumptextfaceplayer UnknownText_0x75b52
 
 TrainerBug_catcherKen:
 	trainer EVENT_BEAT_BUG_CATCHER_KEN, BUG_CATCHER, KEN, Bug_catcherKenSeenText, Bug_catcherKenBeatenText, 0, Bug_catcherKenScript
 
 Bug_catcherKenScript:
 	end_if_just_battled
-	opentext
-	writetext UnknownText_0x75bd5
-	waitbutton
-	closetext
-	end
+	jumptextfaceplayer UnknownText_0x75bd5
 
 TrainerRichBoyWinston:
 	trainer EVENT_BEAT_RICH_BOY_WINSTON, RICH_BOY, WINSTON, RichBoyWinstonSeenText, RichBoyWinstonBeatenText, 0, RichBoyWinstonScript
 
 RichBoyWinstonScript:
 	end_if_just_battled
-	opentext
-	writetext RichBoyWinstonAfterText
-	waitbutton
-	closetext
-	end
+	jumptextfaceplayer RichBoyWinstonAfterText
 
 TrainerBeautyCassie:
 	trainer EVENT_BEAT_BEAUTY_CASSIE, BEAUTY, CASSIE, BeautyCassieSeenText, BeautyCassieBeatenText, 0, BeautyCassieScript
 
 BeautyCassieScript:
 	end_if_just_battled
-	opentext
-	writetext UnknownText_0x75c43
-	waitbutton
-	closetext
-	end
+	jumptextfaceplayer UnknownText_0x75c43
 
 TrainerGuitaristmClyde:
 	trainer EVENT_BEAT_GUITARISTM_CLYDE, GUITARISTM, CLYDE, GuitaristmClydeSeenText, GuitaristmClydeBeatenText, 0, GuitaristmClydeScript
@@ -64,22 +62,13 @@ GuitaristmClydeScript:
 	opentext
 	checkcode VAR_BATTLEPOINTS
 	if_greater_than 0, .BattleTower
-	writetext UnknownText_0x75d65
-	waitbutton
-	closetext
-	end
+	jumpopenedtext UnknownText_0x75d65
 
 .BattleTower:
-	writetext UnknownText_0x75cfe
-	waitbutton
-	closetext
-	end
+	jumpopenedtext UnknownText_0x75cfe
 
 FastShipBed:
-	opentext
-	writetext FastShipBedText1
-	waitbutton
-	closetext
+	showtext FastShipBedText1
 	special Special_FadeBlackQuickly
 	special Special_ReloadSpritesNoPalettes
 	special HealParty
@@ -87,10 +76,7 @@ FastShipBed:
 	pause 60
 	special RestartMapMusic
 	special Special_FadeInQuickly
-	opentext
-	writetext FastShipBedText2
-	waitbutton
-	closetext
+	showtext FastShipBedText2
 	checkevent EVENT_FAST_SHIP_HAS_ARRIVED
 	iftrue UnknownScript_0x75ae1
 	checkevent EVENT_FAST_SHIP_FOUND_GIRL
@@ -105,18 +91,12 @@ UnknownScript_0x75ae2:
 	pause 30
 	checkevent EVENT_FAST_SHIP_DESTINATION_OLIVINE
 	iftrue UnknownScript_0x75af7
-	opentext
-	writetext FastShipArrivedVermilionText
-	waitbutton
-	closetext
+	showtext FastShipArrivedVermilionText
 	setevent EVENT_FAST_SHIP_HAS_ARRIVED
 	end
 
 UnknownScript_0x75af7:
-	opentext
-	writetext FastShipArrivedOlivineText
-	waitbutton
-	closetext
+	showtext FastShipArrivedOlivineText
 	setevent EVENT_FAST_SHIP_HAS_ARRIVED
 	end
 
@@ -247,28 +227,3 @@ FastShipArrivedVermilionText:
 	line "has arrived in"
 	cont "Vermilion City."
 	done
-
-FastShipCabins_SW_SSW_NW_MapEventHeader:
-.Warps:
-	db 5
-	warp_def $0, $2, 5, FAST_SHIP_1F
-	warp_def $13, $2, 6, FAST_SHIP_1F
-	warp_def $13, $3, 6, FAST_SHIP_1F
-	warp_def $1f, $2, 7, FAST_SHIP_1F
-	warp_def $1f, $3, 7, FAST_SHIP_1F
-
-.XYTriggers:
-	db 0
-
-.Signposts:
-	db 2
-	signpost 1, 7, SIGNPOST_READ, FastShipBed
-	signpost 2, 7, SIGNPOST_READ, FastShipBed
-
-.PersonEvents:
-	db 5
-	person_event SPRITE_FISHER, 15, 1, SPRITEMOVEDATA_SPINCOUNTERCLOCKWISE, 0, 0, -1, -1, (1 << 3) | PAL_OW_RED, PERSONTYPE_TRAINER, 2, TrainerFirebreatherLyle, EVENT_FAST_SHIP_PASSENGERS_FIRST_TRIP
-	person_event SPRITE_BUG_CATCHER, 15, 6, SPRITEMOVEDATA_SPINRANDOM_FAST, 0, 0, -1, -1, (1 << 3) | PAL_OW_BROWN, PERSONTYPE_TRAINER, 2, TrainerBug_catcherKen, EVENT_FAST_SHIP_PASSENGERS_WESTBOUND
-	person_event SPRITE_RICH_BOY, 27, 5, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, -1, (1 << 3) | PAL_OW_BLUE, PERSONTYPE_TRAINER, 3, TrainerRichBoyWinston, EVENT_FAST_SHIP_PASSENGERS_FIRST_TRIP
-	person_event SPRITE_BEAUTY, 26, 1, SPRITEMOVEDATA_SPINRANDOM_FAST, 0, 0, -1, -1, (1 << 3) | PAL_OW_BLUE, PERSONTYPE_TRAINER, 3, TrainerBeautyCassie, EVENT_FAST_SHIP_PASSENGERS_EASTBOUND
-	person_event SPRITE_ROCKER, 28, 3, SPRITEMOVEDATA_SPINCOUNTERCLOCKWISE, 0, 0, -1, -1, (1 << 3) | PAL_OW_RED, PERSONTYPE_TRAINER, 2, TrainerGuitaristmClyde, EVENT_FAST_SHIP_PASSENGERS_WESTBOUND

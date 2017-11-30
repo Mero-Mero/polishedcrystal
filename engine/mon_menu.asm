@@ -137,7 +137,7 @@ GetMonMenuString: ; 24db0
 	call IsInArray
 	dec hl
 	ld a, [hli]
-	cp 1
+	cp MONMENU_MENUOPTION
 	jr z, .NotMove
 	inc hl
 	ld a, [hl]
@@ -227,8 +227,7 @@ GetMonSubmenuItems: ; 24dd4
 	call AddMonMenuItem
 	ld a, MONMENU_CANCEL
 	call AddMonMenuItem
-	call TerminateMonSubmenu
-	ret
+	jp TerminateMonSubmenu
 ; 24e52
 
 IsFieldMove: ; 24e52
@@ -237,9 +236,9 @@ IsFieldMove: ; 24e52
 .next
 	ld a, [hli]
 	cp -1
-	jr z, .nope
+	ret z
 	cp MONMENU_MENUOPTION
-	jr z, .nope
+	ret z
 	ld d, [hl]
 	inc hl
 	ld a, [hli]
@@ -247,8 +246,6 @@ IsFieldMove: ; 24e52
 	jr nz, .next
 	ld a, d
 	scf
-
-.nope
 	ret
 ; 24e68
 

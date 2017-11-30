@@ -1,22 +1,23 @@
-const_value set 2
-	const ECRUTEAKLUGIASPEECHHOUSE_GRAMPS
-	const ECRUTEAKLUGIASPEECHHOUSE_YOUNGSTER
-
 EcruteakLugiaSpeechHouse_MapScriptHeader:
-.MapTriggers:
-	db 0
 
-.MapCallbacks:
-	db 0
+.MapTriggers: db 0
 
-GrampsScript_0x99334:
-	jumptextfaceplayer UnknownText_0x9933d
+.MapCallbacks: db 0
 
-YoungsterScript_0x99337:
-	jumptextfaceplayer UnknownText_0x993ec
+EcruteakLugiaSpeechHouse_MapEventHeader:
 
-LugiaSpeechHouseRadio:
-	jumpstd radio2
+.Warps: db 2
+	warp_def 7, 3, 7, ECRUTEAK_CITY
+	warp_def 7, 4, 7, ECRUTEAK_CITY
+
+.XYTriggers: db 0
+
+.Signposts: db 1
+	signpost 1, 2, SIGNPOST_JUMPSTD, radio2
+
+.PersonEvents: db 2
+	person_event SPRITE_GRAMPS, 3, 2, SPRITEMOVEDATA_SPINRANDOM_SLOW, 0, 0, -1, -1, 0, PERSONTYPE_COMMAND, jumptextfaceplayer, UnknownText_0x9933d, -1
+	person_event SPRITE_YOUNGSTER, 4, 5, SPRITEMOVEDATA_STANDING_LEFT, 0, 0, -1, -1, 0, PERSONTYPE_COMMAND, jumptextfaceplayer, UnknownText_0x993ec, -1
 
 UnknownText_0x9933d:
 	text "This happened when"
@@ -30,7 +31,7 @@ UnknownText_0x9933d:
 	cont "out the sun."
 
 	para "I wonder what that"
-	line "#mon was? "
+	line "#mon was?"
 
 	para "It was like a bird"
 	line "and a dragon."
@@ -43,21 +44,3 @@ UnknownText_0x993ec:
 	para "If it exists, it"
 	line "must be powerful."
 	done
-
-EcruteakLugiaSpeechHouse_MapEventHeader:
-.Warps:
-	db 2
-	warp_def $7, $3, 7, ECRUTEAK_CITY
-	warp_def $7, $4, 7, ECRUTEAK_CITY
-
-.XYTriggers:
-	db 0
-
-.Signposts:
-	db 1
-	signpost 1, 2, SIGNPOST_READ, LugiaSpeechHouseRadio
-
-.PersonEvents:
-	db 2
-	person_event SPRITE_GRAMPS, 3, 2, SPRITEMOVEDATA_SPINRANDOM_SLOW, 0, 0, -1, -1, 0, PERSONTYPE_SCRIPT, 0, GrampsScript_0x99334, -1
-	person_event SPRITE_YOUNGSTER, 4, 5, SPRITEMOVEDATA_STANDING_LEFT, 0, 0, -1, -1, 0, PERSONTYPE_SCRIPT, 0, YoungsterScript_0x99337, -1

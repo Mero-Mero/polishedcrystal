@@ -47,13 +47,15 @@ TryAddMonToParty: ; d88c
 	ld hl, PlayerName
 	ld bc, NAME_LENGTH
 	call CopyBytes
-	ld a, [MonType]
-	and $f
-	jr nz, .skipnickname
 	ld a, [CurPartySpecies]
 	ld [wd265], a
 	call GetPokemonName
+	ld a, [MonType]
+	and $f
+	ld hl, OTPartyMonNicknames
+	jr nz, .got_target_nick
 	ld hl, PartyMonNicknames
+.got_target_nick
 	ld a, [hMoveMon]
 	dec a
 	call SkipNames
@@ -82,7 +84,7 @@ GeneratePartyMonStats: ; d906
 	ld a, [CurPartySpecies]
 	ld [CurSpecies], a
 	call GetBaseData
-	ld a, [BaseDexNo]
+	ld a, [CurSpecies]
 	ld [de], a
 	inc de
 	ld a, [wBattleMode]
@@ -147,20 +149,24 @@ endr
 	ld a, [hProduct + 3]
 	ld [de], a
 	inc de
+
+	; EVs, DVs, personality
+	pop hl
+	push hl
+	ld a, [MonType]
+	and $f
+	jr z, .generateEVsDVsAndPersonality
+	farcall GetTrainerEVsDVsAndPersonality
+	pop hl
+	push hl
+	jp .initializetrainermonstats
+
+.generateEVsDVsAndPersonality
 	xor a
 rept 6 ; EVs
 	ld [de], a
 	inc de
 endr
-	pop hl
-	push hl
-	ld a, [MonType]
-	and $f
-	jr z, .generateDVsAndPersonality
-	farcall GetTrainerDVsAndPersonality
-	jp .initializetrainermonstats
-
-.generateDVsAndPersonality
 	ld a, [CurPartySpecies]
 	ld [wd265], a
 	dec a
@@ -237,6 +243,8 @@ endr
 	call Random
 	and a
 	jr nz, .not_shiny ; 255/256 not shiny
+	ld a, [CurItem]
+	push af
 	ld a, SHINY_CHARM
 	ld [CurItem], a
 	push hl
@@ -248,7 +256,8 @@ endr
 	pop bc
 	pop hl
 	jr c, .shiny_charm
-.no_shiny_charm
+	pop af
+	ld [CurItem], a
 	call Random
 	cp $10
 	jr nc, .not_shiny ; 240/256 still not shiny
@@ -256,6 +265,8 @@ endr
 	ld a, SHINY_MASK
 	jr .got_shininess
 .shiny_charm
+	pop af
+	ld [CurItem], a
 	call Random
 	cp $30
 	jr c, .shiny ; 208/256 still not shiny
@@ -265,11 +276,29 @@ endr
 	add b
 	ld [DVAndPersonalityBuffer + 3], a
 
+	; Gender. If lead has Cute Charm, force opposite gender 2/3
+	; of the time
+	call GetLeadAbility
+	cp CUTE_CHARM
+	jr nz, .not_cute_charm
+	ld a, 3
+	call BattleRandomRange
+	and a
+	jr z, .not_cute_charm
+	ld a, [PartyMon1Gender]
+	cp FEMALE
+	ld a, %111
+	jr z, .cute_charm_ok
+	ld a, %000
+	jr .cute_charm_ok
+
+.not_cute_charm
 ; Random gender
 ; Derived from base ratio
 ; Random gender selection value
 	call Random
 	and %111
+.cute_charm_ok
 	ld b, a
 ; We need the gender ratio to do anything with this.
 	push hl
@@ -281,6 +310,8 @@ endr
 	call AddNTimes
 	ld a, BANK(BaseData)
 	call GetFarByte
+	swap a
+	and $f
 	pop bc
 	pop hl
 	ld c, a
@@ -310,7 +341,7 @@ endr
 	push de
 	inc hl
 	inc hl
-	call FillPP
+	predef FillPP
 	pop de
 	pop hl
 rept NUM_MOVES
@@ -341,8 +372,7 @@ endr
 	push hl
 	ld bc, MON_EVS - 1
 	add hl, bc
-	ld c, STAT_HP
-	ld b, FALSE
+	lb bc, FALSE, STAT_HP
 	call CalcPkmnStatC
 	ld a, [hProduct + 2]
 	ld [de], a
@@ -415,8 +445,22 @@ endr
 	pop hl
 	ld bc, MON_EVS - 1
 	add hl, bc
-	ld b, FALSE
+	ld b, TRUE
+	push hl
+	push de
 	call CalcPkmnStats
+	pop hl
+	push bc
+	inc hl
+	ld c, [hl]
+	dec hl
+	ld b, [hl]
+	dec hl
+	ld [hl], c
+	dec hl
+	ld [hl], b
+	pop bc
+	pop hl
 
 .next3
 	ld a, [MonType]
@@ -880,7 +924,7 @@ RetrievePokemonFromDaycareMan: ; dd21
 	ld [CurPartyLevel], a
 	xor a
 	ld [wPokemonWithdrawDepositParameter], a
-	jp Functiondd64
+	jr Functiondd64
 ; dd42
 
 RetrievePokemonFromDaycareLady: ; dd42
@@ -896,7 +940,7 @@ RetrievePokemonFromDaycareLady: ; dd42
 	ld [CurPartyLevel], a
 	ld a, PC_DEPOSIT
 	ld [wPokemonWithdrawDepositParameter], a
-	jp Functiondd64
+	; fallthrough
 ; dd64
 
 Functiondd64: ; dd64
@@ -1108,7 +1152,7 @@ SentPkmnIntoBox: ; de6e
 	ld [de], a
 	inc de
 
-    ; Set all 6 EVs to 0
+	; Set all 6 EVs to 0
 	xor a
 	ld b, 6
 .loop2
@@ -1247,8 +1291,8 @@ GiveEgg:: ; df8c
 	ld bc, PartyCount
 	ld a, [bc]
 	dec a
-	ld bc, PARTYMON_STRUCT_LENGTH
 	ld hl, PartyMon1IsEgg
+	ld bc, PARTYMON_STRUCT_LENGTH
 	call AddNTimes
 	pop bc
 	ld a, [hl]
@@ -1319,6 +1363,12 @@ GiveEgg:: ; df8c
 	ld a, 1
 	jr nz, .got_init_happiness
 	ld a, [BaseEggSteps]
+	and $f
+	inc a
+	ld b, a
+	add a
+	add a
+	add b
 
 .got_init_happiness
 	ld [hl], a
@@ -2011,8 +2061,5 @@ InitNickname: ; e3de
 	pop hl
 	ld de, StringBuffer1
 	call InitName
-	ld a, $4 ; XXX could this be in bank 4 in pokered?
-	ld hl, ExitAllMenus
-	rst FarCall
-	ret
+	jp ExitAllMenus
 ; e3fd

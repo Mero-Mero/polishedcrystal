@@ -1,27 +1,39 @@
-const_value set 2
-	const GOLDENRODGYM_WHITNEY
-	const GOLDENRODGYM_LASS1
-	const GOLDENRODGYM_LASS2
-	const GOLDENRODGYM_LASS3
-	const GOLDENRODGYM_BEAUTY1
-	const GOLDENRODGYM_BEAUTY2
-	const GOLDENRODGYM_GYM_GUY
-
 GoldenrodGym_MapScriptHeader:
-.MapTriggers:
-	db 0
 
-.MapCallbacks:
-	db 0
+.MapTriggers: db 0
+
+.MapCallbacks: db 0
+
+GoldenrodGym_MapEventHeader:
+
+.Warps: db 2
+	warp_def 17, 2, 1, GOLDENROD_CITY
+	warp_def 17, 3, 1, GOLDENROD_CITY
+
+.XYTriggers: db 1
+	xy_trigger 1, 5, 8, WhitneyCriesScript
+
+.Signposts: db 2
+	signpost 15, 1, SIGNPOST_READ, GoldenrodGymStatue
+	signpost 15, 4, SIGNPOST_READ, GoldenrodGymStatue
+
+.PersonEvents: db 7
+	person_event SPRITE_LASS, 6, 9, SPRITEMOVEDATA_STANDING_LEFT, 0, 0, -1, -1, (1 << 3) | PAL_OW_RED, PERSONTYPE_TRAINER, 1, TrainerSrandjrJoandcath1, -1
+	person_event SPRITE_WHITNEY, 3, 8, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, -1, (1 << 3) | PAL_OW_RED, PERSONTYPE_SCRIPT, 0, WhitneyScript_0x5400c, -1
+	person_event SPRITE_LASS, 13, 9, SPRITEMOVEDATA_STANDING_RIGHT, 0, 0, -1, -1, (1 << 3) | PAL_OW_BLUE, PERSONTYPE_TRAINER, 4, TrainerLassCathy, -1
+	person_event SPRITE_LASS, 7, 9, SPRITEMOVEDATA_STANDING_LEFT, 0, 0, -1, -1, (1 << 3) | PAL_OW_RED, PERSONTYPE_TRAINER, 1, TrainerSrandjrJoandcath2, -1
+	person_event SPRITE_BEAUTY, 2, 0, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, -1, (1 << 3) | PAL_OW_BLUE, PERSONTYPE_TRAINER, 3, TrainerBeautyVictoria, -1
+	person_event SPRITE_BEAUTY, 5, 19, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, -1, (1 << 3) | PAL_OW_BLUE, PERSONTYPE_TRAINER, 2, TrainerBeautySamantha, -1
+	person_event SPRITE_GYM_GUY, 15, 5, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, -1, (1 << 3) | PAL_OW_RED, PERSONTYPE_SCRIPT, 0, GoldenrodGymGuyScript, -1
+
+const_value set 1
+	const GOLDENRODGYM_LASS2
 
 WhitneyScript_0x5400c:
 	faceplayer
 	checkevent EVENT_BEAT_WHITNEY
 	iftrue .FightDone
-	opentext
-	writetext UnknownText_0x54122
-	waitbutton
-	closetext
+	showtext UnknownText_0x54122
 	winlosstext UnknownText_0x541a5, 0
 	loadtrainer WHITNEY, 1
 	startbattle
@@ -31,16 +43,13 @@ WhitneyScript_0x5400c:
 	dotrigger $1
 	setevent EVENT_BEAT_BEAUTY_VICTORIA
 	setevent EVENT_BEAT_BEAUTY_SAMANTHA
-	setevent EVENT_BEAT_LASS_CARRIE
+	setevent EVENT_BEAT_LASS_CATHY
 	setevent EVENT_BEAT_SR_AND_JR_JO_AND_CATH
 .FightDone:
 	opentext
 	checkevent EVENT_MADE_WHITNEY_CRY
 	iffalse .StoppedCrying
-	writetext UnknownText_0x541f4
-	waitbutton
-	closetext
-	end
+	jumpopenedtext UnknownText_0x541f4
 
 .StoppedCrying:
 	checkevent EVENT_GOT_TM45_ATTRACT
@@ -59,36 +68,23 @@ UnknownScript_0x54064:
 	buttonsound
 	verbosegivetmhm TM_ATTRACT
 	setevent EVENT_GOT_TM45_ATTRACT
-	writetext UnknownText_0x54302
-	waitbutton
-	closetext
-	end
+	jumpopenedtext UnknownText_0x54302
 
 UnknownScript_0x54077:
-	writetext UnknownText_0x54360
-	waitbutton
-	closetext
-	end
+	jumpopenedtext UnknownText_0x54360
 
-TrainerLassCarrie:
-	trainer EVENT_BEAT_LASS_CARRIE, LASS, CARRIE, LassCarrieSeenText, LassCarrieBeatenText, 0, LassCarrieScript
+TrainerLassCathy:
+	trainer EVENT_BEAT_LASS_CATHY, LASS, CATHY, LassCathySeenText, LassCathyBeatenText, 0, LassCathyScript
 
-LassCarrieScript:
+LassCathyScript:
 	end_if_just_battled
-	opentext
-	writetext LassCarrieOWText
-	waitbutton
-	closetext
-	end
+	jumptextfaceplayer LassCathyOWText
 
 WhitneyCriesScript:
 	showemote EMOTE_SHOCK, GOLDENRODGYM_LASS2, 15
 	applymovement GOLDENRODGYM_LASS2, JoWalksUpMovement
 	spriteface PLAYER, DOWN
-	opentext
-	writetext JoWhitneyCriesText
-	waitbutton
-	closetext
+	showtext JoWhitneyCriesText
 	applymovement GOLDENRODGYM_LASS2, JoWalksAwayMovement
 	dotrigger $0
 	clearevent EVENT_MADE_WHITNEY_CRY
@@ -99,61 +95,37 @@ TrainerSrandjrJoandcath1:
 
 SrandjrJoandcath1Script:
 	end_if_just_battled
-	opentext
-	writetext SrandjrJoandcath1OWText
-	waitbutton
-	closetext
-	end
+	jumptextfaceplayer SrandjrJoandcath1OWText
 
 TrainerSrandjrJoandcath2:
 	trainer EVENT_BEAT_SR_AND_JR_JO_AND_CATH, SR_AND_JR, JOANDCATH2, SrandjrJoandcath2SeenText, SrandjrJoandcath2BeatenText, 0, SrandjrJoandcath2Script
 
 SrandjrJoandcath2Script:
 	end_if_just_battled
-	opentext
-	writetext SrandjrJoandcath2OWText
-	waitbutton
-	closetext
-	end
+	jumptextfaceplayer SrandjrJoandcath2OWText
 
 TrainerBeautyVictoria:
 	trainer EVENT_BEAT_BEAUTY_VICTORIA, BEAUTY, VICTORIA, BeautyVictoriaSeenText, BeautyVictoriaBeatenText, 0, BeautyVictoriaScript
 
 BeautyVictoriaScript:
 	end_if_just_battled
-	opentext
-	writetext BeautyVictoriaOWText
-	waitbutton
-	closetext
-	end
+	jumptextfaceplayer BeautyVictoriaOWText
 
 TrainerBeautySamantha:
 	trainer EVENT_BEAT_BEAUTY_SAMANTHA, BEAUTY, SAMANTHA, BeautySamanthaSeenText, BeautySamanthaBeatenText, 0, BeautySamanthaScript
 
 BeautySamanthaScript:
 	end_if_just_battled
-	opentext
-	writetext BeautySamanthaOWText
-	waitbutton
-	closetext
-	end
+	jumptextfaceplayer BeautySamanthaOWText
 
 GoldenrodGymGuyScript:
 	faceplayer
 	checkevent EVENT_BEAT_WHITNEY
 	iftrue .GoldenrodGymGuyWinScript
-	opentext
-	writetext GoldenrodGymGuyText
-	waitbutton
-	closetext
-	end
+	jumptext GoldenrodGymGuyText
 
 .GoldenrodGymGuyWinScript:
-	opentext
-	writetext GoldenrodGymGuyWinText
-	waitbutton
-	closetext
-	end
+	jumptext GoldenrodGymGuyWinText
 
 GoldenrodGymStatue:
 	trainertotext WHITNEY, 1, $1
@@ -259,7 +231,7 @@ UnknownText_0x54360:
 	line "again! Bye-bye!"
 	done
 
-LassCarrieSeenText:
+LassCathySeenText:
 	text "Don't let my"
 	line "#mon's cute"
 
@@ -267,12 +239,12 @@ LassCarrieSeenText:
 	line "They can whip you!"
 	done
 
-LassCarrieBeatenText:
+LassCathyBeatenText:
 	text "Darn… I thought"
 	line "you were weak…"
 	done
 
-LassCarrieOWText:
+LassCathyOWText:
 	text "Do my #mon"
 	line "think I'm cute?"
 	done
@@ -402,28 +374,3 @@ GoldenrodGymGuyWinText:
 	line "was busy admiring"
 	cont "the ladies here."
 	done
-
-GoldenrodGym_MapEventHeader:
-.Warps:
-	db 2
-	warp_def $11, $2, 1, GOLDENROD_CITY
-	warp_def $11, $3, 1, GOLDENROD_CITY
-
-.XYTriggers:
-	db 1
-	xy_trigger 1, $5, $8, WhitneyCriesScript
-
-.Signposts:
-	db 2
-	signpost 15, 1, SIGNPOST_READ, GoldenrodGymStatue
-	signpost 15, 4, SIGNPOST_READ, GoldenrodGymStatue
-
-.PersonEvents:
-	db 7
-	person_event SPRITE_WHITNEY, 3, 8, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, -1, (1 << 3) | PAL_OW_RED, PERSONTYPE_SCRIPT, 0, WhitneyScript_0x5400c, -1
-	person_event SPRITE_LASS, 13, 9, SPRITEMOVEDATA_STANDING_RIGHT, 0, 0, -1, -1, (1 << 3) | PAL_OW_BLUE, PERSONTYPE_TRAINER, 4, TrainerLassCarrie, -1
-	person_event SPRITE_LASS, 6, 9, SPRITEMOVEDATA_STANDING_LEFT, 0, 0, -1, -1, (1 << 3) | PAL_OW_RED, PERSONTYPE_TRAINER, 1, TrainerSrandjrJoandcath1, -1
-	person_event SPRITE_LASS, 7, 9, SPRITEMOVEDATA_STANDING_LEFT, 0, 0, -1, -1, (1 << 3) | PAL_OW_RED, PERSONTYPE_TRAINER, 1, TrainerSrandjrJoandcath2, -1
-	person_event SPRITE_BEAUTY, 2, 0, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, -1, (1 << 3) | PAL_OW_BLUE, PERSONTYPE_TRAINER, 3, TrainerBeautyVictoria, -1
-	person_event SPRITE_BEAUTY, 5, 19, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, -1, (1 << 3) | PAL_OW_BLUE, PERSONTYPE_TRAINER, 2, TrainerBeautySamantha, -1
-	person_event SPRITE_GYM_GUY, 15, 5, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, -1, (1 << 3) | PAL_OW_RED, PERSONTYPE_SCRIPT, 0, GoldenrodGymGuyScript, -1

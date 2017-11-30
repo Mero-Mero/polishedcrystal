@@ -13,8 +13,7 @@ ClearSpriteAnims: ; 8cf53
 
 PlaySpriteAnimationsAndDelayFrame: ; 8cf62
 	call PlaySpriteAnimations
-	call DelayFrame
-	ret
+	jp DelayFrame
 ; 8cf69
 
 PlaySpriteAnimations: ; 8cf69
@@ -50,7 +49,7 @@ DoNextFrameForAllSprites: ; 8cf7a
 	call UpdateAnimFrame
 	pop de
 	pop hl
-	jr c, .done
+	ret c
 
 .next
 	ld bc, $10
@@ -65,13 +64,10 @@ DoNextFrameForAllSprites: ; 8cf7a
 .loop2 ; Clear (Sprites + [wCurrSpriteOAMAddr] --> SpritesEnd)
 	ld a, l
 	cp SpritesEnd % $100
-	jr nc, .done
+	ret nc
 	xor a
 	ld [hli], a
 	jr .loop2
-
-.done
-	ret
 ; 8cfa8
 
 DoNextFrameForFirst16Sprites: ; 8cfa8 (23:4fa8)
@@ -90,7 +86,7 @@ DoNextFrameForFirst16Sprites: ; 8cfa8 (23:4fa8)
 	call UpdateAnimFrame
 	pop de
 	pop hl
-	jr c, .done
+	ret c
 
 .next
 	ld bc, $10
@@ -105,13 +101,10 @@ DoNextFrameForFirst16Sprites: ; 8cfa8 (23:4fa8)
 .loop2 ; Clear (Sprites + [wCurrSpriteOAMAddr] --> Sprites + $40)
 	ld a, l
 	cp (Sprites + 16 * 4) % $100
-	jr nc, .done
+	ret nc
 	xor a
 	ld [hli], a
 	jr .loop2
-
-.done
-	ret
 
 InitSpriteAnimStruct:: ; 8cfd6
 ; Initialize animation a at pixel x=e, y=d

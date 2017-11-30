@@ -1,21 +1,31 @@
-const_value set 2
-	const UNDERGROUNDWAREHOUSE_ROCKET1
-	const UNDERGROUNDWAREHOUSE_ROCKET2
-	const UNDERGROUNDWAREHOUSE_ROCKET3
-	const UNDERGROUNDWAREHOUSE_GENTLEMAN
-	const UNDERGROUNDWAREHOUSE_POKE_BALL1
-	const UNDERGROUNDWAREHOUSE_POKE_BALL2
-	const UNDERGROUNDWAREHOUSE_POKE_BALL3
-
 UndergroundWarehouse_MapScriptHeader:
-.MapTriggers:
-	db 0
 
-.MapCallbacks:
-	db 1
-	dbw MAPCALLBACK_NEWMAP, .ResetSwitches
+.MapTriggers: db 0
 
-.ResetSwitches:
+.MapCallbacks: db 1
+	dbw MAPCALLBACK_NEWMAP, UndergroundWarehouseResetSwitches
+
+UndergroundWarehouse_MapEventHeader:
+
+.Warps: db 3
+	warp_def 12, 2, 2, UNDERGROUND_PATH_SWITCH_ROOM_ENTRANCES
+	warp_def 12, 3, 3, UNDERGROUND_PATH_SWITCH_ROOM_ENTRANCES
+	warp_def 2, 17, 1, GOLDENROD_DEPT_STORE_B1F
+
+.XYTriggers: db 0
+
+.Signposts: db 0
+
+.PersonEvents: db 7
+	person_event SPRITE_ROCKET, 8, 9, SPRITEMOVEDATA_STANDING_UP, 0, 0, -1, -1, 0, PERSONTYPE_TRAINER, 3, TrainerGruntM24, EVENT_RADIO_TOWER_ROCKET_TAKEOVER
+	person_event SPRITE_ROCKET, 15, 8, SPRITEMOVEDATA_STANDING_UP, 0, 0, -1, -1, 0, PERSONTYPE_TRAINER, 3, TrainerGruntM14, EVENT_RADIO_TOWER_ROCKET_TAKEOVER
+	person_event SPRITE_ROCKET, 3, 14, SPRITEMOVEDATA_STANDING_RIGHT, 0, 0, -1, -1, 0, PERSONTYPE_TRAINER, 4, TrainerGruntM15, EVENT_RADIO_TOWER_ROCKET_TAKEOVER
+	person_event SPRITE_GENTLEMAN, 8, 12, SPRITEMOVEDATA_SPINRANDOM_SLOW, 0, 0, -1, -1, 0, PERSONTYPE_SCRIPT, 0, GentlemanScript_0x7d9bf, EVENT_RADIO_TOWER_ROCKET_TAKEOVER
+	itemball_event 15, 18, MAX_ETHER, 1, EVENT_UNDERGROUND_WAREHOUSE_MAX_ETHER
+	tmhmball_event 9, 13, TM_X_SCISSOR, EVENT_UNDERGROUND_WAREHOUSE_TM_X_SCISSOR
+	itemball_event 1, 2, ULTRA_BALL, 1, EVENT_UNDERGROUND_WAREHOUSE_ULTRA_BALL
+
+UndergroundWarehouseResetSwitches:
 	clearevent EVENT_SWITCH_1
 	clearevent EVENT_SWITCH_2
 	clearevent EVENT_SWITCH_3
@@ -40,39 +50,27 @@ TrainerGruntM24:
 
 GruntM24Script:
 	end_if_just_battled
-	opentext
-	writetext UnknownText_0x7da48
-	waitbutton
-	closetext
-	end
+	jumptextfaceplayer UnknownText_0x7da48
 
 TrainerGruntM14:
 	trainer EVENT_BEAT_ROCKET_GRUNTM_14, GRUNTM, 14, GruntM14SeenText, GruntM14BeatenText, 0, GruntM14Script
 
 GruntM14Script:
 	end_if_just_battled
-	opentext
-	writetext UnknownText_0x7db01
-	waitbutton
-	closetext
-	end
+	jumptextfaceplayer UnknownText_0x7db01
 
 TrainerGruntM15:
 	trainer EVENT_BEAT_ROCKET_GRUNTM_15, GRUNTM, 15, GruntM15SeenText, GruntM15BeatenText, 0, GruntM15Script
 
 GruntM15Script:
 	end_if_just_battled
-	opentext
-	writetext UnknownText_0x7db8e
-	waitbutton
-	closetext
-	end
+	jumptextfaceplayer UnknownText_0x7db8e
 
 GentlemanScript_0x7d9bf:
+	checkevent EVENT_RECEIVED_CARD_KEY
+	iftrue_jumptextfaceplayer UnknownText_0x7dc8d
 	faceplayer
 	opentext
-	checkevent EVENT_RECEIVED_CARD_KEY
-	iftrue UnknownScript_0x7d9de
 	writetext UnknownText_0x7dbc6
 	buttonsound
 	verbosegiveitem CARD_KEY
@@ -82,20 +80,7 @@ GentlemanScript_0x7d9bf:
 	clearevent EVENT_WAREHOUSE_LAYOUT_3
 	writetext UnknownText_0x7dc5b
 	buttonsound
-UnknownScript_0x7d9de:
-	writetext UnknownText_0x7dc8d
-	waitbutton
-	closetext
-	end
-
-UndergroundWarehouseMaxEther:
-	itemball MAX_ETHER
-
-UndergroundWarehouseTMXScissor:
-	tmhmball TM_X_SCISSOR
-
-UndergroundWarehouseUltraBall:
-	itemball ULTRA_BALL
+	jumpopenedtext UnknownText_0x7dc8d
 
 GruntM24SeenText:
 	text "How did you get"
@@ -209,26 +194,3 @@ UnknownText_0x7dc8d:
 	para "And all the #-"
 	line "mon nationwide!"
 	done
-
-UndergroundWarehouse_MapEventHeader:
-.Warps:
-	db 3
-	warp_def $c, $2, 2, UNDERGROUND_PATH_SWITCH_ROOM_ENTRANCES
-	warp_def $c, $3, 3, UNDERGROUND_PATH_SWITCH_ROOM_ENTRANCES
-	warp_def $2, $11, 1, GOLDENROD_DEPT_STORE_B1F
-
-.XYTriggers:
-	db 0
-
-.Signposts:
-	db 0
-
-.PersonEvents:
-	db 7
-	person_event SPRITE_ROCKET, 8, 9, SPRITEMOVEDATA_STANDING_UP, 0, 0, -1, -1, 0, PERSONTYPE_TRAINER, 3, TrainerGruntM24, EVENT_RADIO_TOWER_ROCKET_TAKEOVER
-	person_event SPRITE_ROCKET, 15, 8, SPRITEMOVEDATA_STANDING_UP, 0, 0, -1, -1, 0, PERSONTYPE_TRAINER, 3, TrainerGruntM14, EVENT_RADIO_TOWER_ROCKET_TAKEOVER
-	person_event SPRITE_ROCKET, 3, 14, SPRITEMOVEDATA_STANDING_RIGHT, 0, 0, -1, -1, 0, PERSONTYPE_TRAINER, 4, TrainerGruntM15, EVENT_RADIO_TOWER_ROCKET_TAKEOVER
-	person_event SPRITE_GENTLEMAN, 8, 12, SPRITEMOVEDATA_SPINRANDOM_SLOW, 0, 0, -1, -1, 0, PERSONTYPE_SCRIPT, 0, GentlemanScript_0x7d9bf, EVENT_RADIO_TOWER_ROCKET_TAKEOVER
-	person_event SPRITE_BALL_CUT_FRUIT, 15, 18, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, -1, (1 << 3) | PAL_OW_RED, PERSONTYPE_ITEMBALL, 0, UndergroundWarehouseMaxEther, EVENT_UNDERGROUND_WAREHOUSE_MAX_ETHER
-	person_event SPRITE_BALL_CUT_FRUIT, 9, 13, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, -1, (1 << 3) | PAL_OW_BLUE, PERSONTYPE_TMHMBALL, 0, UndergroundWarehouseTMXScissor, EVENT_UNDERGROUND_WAREHOUSE_TM_X_SCISSOR
-	person_event SPRITE_BALL_CUT_FRUIT, 1, 2, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, -1, (1 << 3) | PAL_OW_RED, PERSONTYPE_ITEMBALL, 0, UndergroundWarehouseUltraBall, EVENT_UNDERGROUND_WAREHOUSE_ULTRA_BALL

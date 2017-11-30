@@ -58,6 +58,43 @@ NurseAskHealText:
 	line "#mon?"
 	done
 
+NurseFourTrainerStarsText:
+	text "We can heal your"
+	line "#mon to perfect"
+	cont "health."
+
+	para "Shall we…"
+
+	para "Th-that Trainer"
+	line "Card!"
+
+	para "That wonderful"
+	line "shade! And all"
+	cont "those stars!"
+
+	para "I've seen several"
+	line "gold Trainer Cards"
+	cont "before…"
+
+	para "But you're the"
+	line "first to top them"
+
+	para "with that impress-"
+	line "ive Trainer Card."
+
+	para "Please, <PLAYER>,"
+	line "may I heal your"
+	cont "#mon?"
+	done
+
+NurseTheUsualText:
+	text "Great to see you"
+	line "again, <PLAYER>!"
+
+	para "You want the"
+	line "usual, right?"
+	done
+
 NurseTakePokemonText:
 	text "OK, may I see your"
 	line "#mon?"
@@ -165,6 +202,15 @@ TVText:
 	text "It's a TV."
 	done
 
+WrongSideText:
+	text "Oops, wrong side."
+	done
+
+RadioOffAirText:
+	text "The radio is just"
+	line "playing static…"
+	done
+
 RefrigeratorText:
 	text "It's a fridge."
 	done
@@ -233,8 +279,10 @@ ContestResults_JoinUsNextTimeText:
 
 ContestResults_ConsolationPrizeText:
 	text "Everyone else gets"
-	line "a Berry as a con-"
-	cont "solation prize!"
+	line "a @"
+	text_from_ram StringBuffer4
+	text " as a"
+	cont "consolation prize!"
 	done
 
 ContestResults_DidNotWinText:
@@ -412,4 +460,12 @@ VendingMachineNoMoneyText:
 VendingMachineNoSpaceText:
 	text "There's no more"
 	line "room for stuff…"
+	done
+
+HiddenGrottoText:
+	text "Look! You've found"
+	line "a narrow path!"
+
+	para "Will you follow"
+	line "it?"
 	done

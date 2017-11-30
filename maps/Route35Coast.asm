@@ -1,89 +1,84 @@
-const_value set 2
-	const ROUTE35COAST_SWIMMER_GUY
-	const ROUTE35COAST_SWIMMER_GIRL
-	const ROUTE35COAST_YOUNGSTER
-	const ROUTE35COAST_LASS1
-	const ROUTE35COAST_LASS2
-	const ROUTE35COAST_POKE_BALL
-
 Route35Coast_MapScriptHeader:
-.MapTriggers:
-	db 0
 
-.MapCallbacks:
-	db 0
+.MapTriggers: db 0
+
+.MapCallbacks: db 0
+
+Route35Coast_MapEventHeader:
+
+.Warps: db 0
+
+.XYTriggers: db 0
+
+.Signposts: db 1
+	signpost 14, 35, SIGNPOST_ITEM + STAR_PIECE, EVENT_ROUTE_35_COAST_HIDDEN_STAR_PIECE
+
+.PersonEvents: db 8
+	person_event SPRITE_SWIMMER_GUY, 7, 26, SPRITEMOVEDATA_STANDING_LEFT, 0, 0, -1, -1, (1 << 3) | PAL_OW_RED, PERSONTYPE_TRAINER, 5, TrainerSwimmermWalter, -1
+	person_event SPRITE_SWIMMER_GIRL, 20, 25, SPRITEMOVEDATA_SPINCOUNTERCLOCKWISE, 0, 0, -1, -1, (1 << 3) | PAL_OW_GREEN, PERSONTYPE_TRAINER, 3, TrainerSwimmerfLisa, -1
+	person_event SPRITE_SWIMMER_GIRL, 6, 14, SPRITEMOVEDATA_SPINCLOCKWISE, 0, 0, -1, -1, (1 << 3) | PAL_OW_GREEN, PERSONTYPE_TRAINER, 3, TrainerSwimmerfJill, -1
+	person_event SPRITE_YOUNGSTER, 12, 35, SPRITEMOVEDATA_SPINRANDOM_FAST, 0, 0, -1, -1, (1 << 3) | PAL_OW_BLUE, PERSONTYPE_TRAINER, 1, TrainerBird_keeperBryan, -1
+	person_event SPRITE_LASS, 16, 39, SPRITEMOVEDATA_STANDING_LEFT, 0, 0, -1, -1, (1 << 3) | PAL_OW_RED, PERSONTYPE_TRAINER, 1, TrainerSrandjrBeaandmay1, -1
+	person_event SPRITE_LASS, 17, 39, SPRITEMOVEDATA_STANDING_LEFT, 0, 0, -1, -1, (1 << 3) | PAL_OW_RED, PERSONTYPE_TRAINER, 1, TrainerSrandjrBeaandmay2, -1
+	person_event SPRITE_SAILOR, 11, 17, SPRITEMOVEDATA_SPINRANDOM_SLOW, 0, 0, -1, -1, 0, PERSONTYPE_TRAINER, 2, TrainerSailorHarvey, -1
+	person_event SPRITE_LASS, 6, 38, SPRITEMOVEDATA_SPINRANDOM_SLOW, 0, 0, -1, -1, (1 << 3) | PAL_OW_BLUE, PERSONTYPE_TRAINER, 3, TrainerLassRose, -1
+	itemball_event 5, 37, BIG_PEARL, 1, EVENT_ROUTE_35_COAST_BIG_PEARL
 
 TrainerSwimmermWalter:
 	trainer EVENT_BEAT_SWIMMERM_WALTER, SWIMMERM, WALTER, SwimmermWalterSeenText, SwimmermWalterBeatenText, 0, TrainerSwimmermWalterScript
 
 TrainerSwimmermWalterScript:
 	end_if_just_battled
-	opentext
-	writetext SwimmermWalterAfterText
-	waitbutton
-	closetext
-	end
+	jumptextfaceplayer SwimmermWalterAfterText
 
 TrainerSwimmerfLisa:
 	trainer EVENT_BEAT_SWIMMERF_LISA, SWIMMERF, LISA, SwimmerfLisaSeenText, SwimmerfLisaBeatenText, 0, TrainerSwimmerfLisaScript
 
 TrainerSwimmerfLisaScript:
 	end_if_just_battled
-	opentext
-	writetext SwimmerfLisaAfterText
-	waitbutton
-	closetext
-	end
+	jumptextfaceplayer SwimmerfLisaAfterText
 
 TrainerSwimmerfJill:
 	trainer EVENT_BEAT_SWIMMERF_JILL, SWIMMERF, JILL, SwimmerfJillSeenText, SwimmerfJillBeatenText, 0, SwimmerfJillScript
 
 SwimmerfJillScript:
 	end_if_just_battled
-	opentext
-	writetext SwimmerfJillAfterText
-	waitbutton
-	closetext
-	end
+	jumptextfaceplayer SwimmerfJillAfterText
 
 TrainerBird_keeperBryan:
 	trainer EVENT_BEAT_BIRD_KEEPER_BRYAN, BIRD_KEEPER, BRYAN, Bird_keeperBryanSeenText, Bird_keeperBryanBeatenText, 0, Bird_keeperBryanScript
 
 Bird_keeperBryanScript:
 	end_if_just_battled
-	opentext
-	writetext Bird_keeperBryanAfterText
-	waitbutton
-	closetext
-	end
+	jumptextfaceplayer Bird_keeperBryanAfterText
 
 TrainerSrandjrBeaandmay1:
 	trainer EVENT_BEAT_SR_AND_JR_BEA_AND_MAY, SR_AND_JR, BEAANDMAY1, SrandjrBeaandmay1SeenText, SrandjrBeaandmay1BeatenText, 0, TrainerSrandjrBeaandmay1Script
 
 TrainerSrandjrBeaandmay1Script:
 	end_if_just_battled
-	opentext
-	writetext SrandjrBeaandmay1AfterText
-	waitbutton
-	closetext
-	end
+	jumptextfaceplayer SrandjrBeaandmay1AfterText
 
 TrainerSrandjrBeaandmay2:
 	trainer EVENT_BEAT_SR_AND_JR_BEA_AND_MAY, SR_AND_JR, BEAANDMAY2, SrandjrBeaandmay2SeenText, SrandjrBeaandmay2BeatenText, 0, TrainerSrandjrBeaandmay2Script
 
 TrainerSrandjrBeaandmay2Script:
 	end_if_just_battled
-	opentext
-	writetext SrandjrBeaandmay2AfterText
-	waitbutton
-	closetext
-	end
+	jumptextfaceplayer SrandjrBeaandmay2AfterText
 
-Route35CoastBigPearl:
-	itemball BIG_PEARL
+TrainerSailorHarvey:
+	trainer EVENT_BEAT_SAILOR_HARVEY, SAILOR, HARVEY, SailorHarveySeenText, SailorHarveyBeatenText, 0, TrainerSailorHarveyScript
 
-Route35CoastHiddenStarPiece:
-	dwb EVENT_ROUTE_35_COAST_HIDDEN_STAR_PIECE, STAR_PIECE
+TrainerSailorHarveyScript:
+	end_if_just_battled
+	jumptextfaceplayer SailorHarveyAfterText
+
+TrainerLassRose:
+	trainer EVENT_BEAT_LASS_ROSE, LASS, ROSE, LassRoseSeenText, LassRoseBeatenText, 0, TrainerLassRoseScript
+
+TrainerLassRoseScript:
+	end_if_just_battled
+	jumptextfaceplayer LassRoseAfterText
 
 SwimmermWalterSeenText:
 	text "I forgot to wear"
@@ -212,23 +207,48 @@ SrandjrBeaandmay2AfterText:
 	cont "stronger."
 	done
 
-Route35Coast_MapEventHeader:
-.Warps:
-	db 0
+SailorHarveySeenText:
+	text "Hah! Your #mon"
+	line "sure look like"
+	cont "lightweights!"
+	done
 
-.XYTriggers:
-	db 0
+SailorHarveyBeatenText:
+	text "What power!"
+	line "How would you like"
 
-.Signposts:
-	db 1
-	signpost 14, 35, SIGNPOST_ITEM, Route35CoastHiddenStarPiece
+	para "to sail the seas"
+	line "with me?"
+	done
 
-.PersonEvents:
-	db 6
-	person_event SPRITE_SWIMMER_GUY, 7, 26, SPRITEMOVEDATA_STANDING_LEFT, 0, 0, -1, -1, (1 << 3) | PAL_OW_RED, PERSONTYPE_TRAINER, 5, TrainerSwimmermWalter, -1
-	person_event SPRITE_SWIMMER_GIRL, 20, 25, SPRITEMOVEDATA_SPINCOUNTERCLOCKWISE, 0, 0, -1, -1, (1 << 3) | PAL_OW_GREEN, PERSONTYPE_TRAINER, 3, TrainerSwimmerfLisa, -1
-	person_event SPRITE_SWIMMER_GIRL, 6, 16, SPRITEMOVEDATA_SPINCLOCKWISE, 0, 0, -1, -1, (1 << 3) | PAL_OW_GREEN, PERSONTYPE_TRAINER, 3, TrainerSwimmerfJill, -1
-	person_event SPRITE_YOUNGSTER, 10, 36, SPRITEMOVEDATA_SPINRANDOM_FAST, 0, 0, -1, -1, (1 << 3) | PAL_OW_BLUE, PERSONTYPE_TRAINER, 3, TrainerBird_keeperBryan, -1
-	person_event SPRITE_LASS, 15, 38, SPRITEMOVEDATA_STANDING_LEFT, 0, 0, -1, -1, (1 << 3) | PAL_OW_RED, PERSONTYPE_TRAINER, 1, TrainerSrandjrBeaandmay1, -1
-	person_event SPRITE_LASS, 16, 38, SPRITEMOVEDATA_STANDING_LEFT, 0, 0, -1, -1, (1 << 3) | PAL_OW_RED, PERSONTYPE_TRAINER, 1, TrainerSrandjrBeaandmay2, -1
-	person_event SPRITE_BALL_CUT_FRUIT, 5, 37, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, -1, (1 << 3) | PAL_OW_RED, PERSONTYPE_ITEMBALL, 0, Route35CoastBigPearl, EVENT_ROUTE_35_COAST_BIG_PEARL
+SailorHarveyAfterText:
+	text "On the sea, the"
+	line "only thing you can"
+
+	para "count on is your"
+	line "own good self!"
+
+	para "I'm so proud of my"
+	line "buff bod!"
+	done
+
+LassRoseSeenText:
+	text "I collected these"
+	line "#mon from all"
+	cont "around the world!"
+	done
+
+LassRoseBeatenText:
+	text "Oh no!"
+	line "I went around the"
+	cont "world for these!"
+	done
+
+LassRoseAfterText:
+	text "You hurt my poor"
+	line "worldly #mon!"
+
+	para "I demand that you"
+	line "heal them at a"
+	cont "#mon Center!"
+	done

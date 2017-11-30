@@ -76,8 +76,8 @@ endr
 	dw .Pokemon
 	dw .Player
 	dw .Rival
-	dw .Box
 	dw .TrendyPhrase
+	dw .Box
 
 .Pokemon: ; 1173e (4:573e)
 	ld a, [CurPartySpecies]
@@ -116,12 +116,17 @@ endr
 
 .Player: ; 1178d (4:578d)
 	farcall GetPlayerIcon
+	ld a, [PlayerGender]
+	bit 0, a
+	ld c, SPRITE_ANIM_INDEX_RED_WALK
+	jr z, .got_player_walk
+	ld c, SPRITE_ANIM_INDEX_BLUE_WALK
+.got_player_walk
 	call .LoadSprite
 	hlcoord 5, 2
 	ld de, .PlayerNameString
 	call PlaceString
-	call .StoreSpriteIconParams
-	ret
+	jp .StoreSpriteIconParams
 
 ; 117a3 (4:57a3)
 
@@ -132,13 +137,12 @@ endr
 
 .Rival: ; 117ae (4:57ae)
 	ld de, SilverSpriteGFX
-	ld b, BANK(SilverSpriteGFX)
+	lb bc, BANK(SilverSpriteGFX), SPRITE_ANIM_INDEX_RED_WALK
 	call .LoadSprite
 	hlcoord 5, 2
 	ld de, .RivalNameString
 	call PlaceString
-	call .StoreSpriteIconParams
-	ret
+	jp .StoreSpriteIconParams
 
 ; 117c3 (4:57c3)
 
@@ -146,6 +150,18 @@ endr
 	db "Rival's name?@"
 
 ; 117d1
+
+.TrendyPhrase:
+	ld de, ArtistSpriteGFX
+	lb bc, BANK(ArtistSpriteGFX), SPRITE_ANIM_INDEX_BLUE_WALK
+	call .LoadSprite
+	hlcoord 5, 2
+	ld de, .TrendyPhraseString
+	call PlaceString
+	jp .StoreSpriteIconParams
+
+.TrendyPhraseString:
+	db "What's trendy?@"
 
 .Box: ; 117f5 (4:57f5)
 	ld de, BallCutFruitSpriteGFX
@@ -165,8 +181,7 @@ endr
 	hlcoord 5, 2
 	ld de, .BoxNameString
 	call PlaceString
-	call .StoreBoxIconParams
-	ret
+	jp .StoreBoxIconParams
 
 ; 11822 (4:5822)
 
@@ -175,20 +190,8 @@ endr
 
 ; 1182c
 
-.TrendyPhrase:
-	ld de, RockerSpriteGFX
-	ld b, BANK(RockerSpriteGFX)
-	call .LoadSprite
-	hlcoord 5, 2
-	ld de, .TrendyPhraseString
-	call PlaceString
-	call .StoreSpriteIconParams
-	ret
-
-.TrendyPhraseString:
-	db "Trendy phrase?"
-
 .LoadSprite: ; 11847 (4:5847)
+	push bc
 	push de
 	ld hl, VTiles0 tile $00
 	ld c, $4
@@ -206,16 +209,8 @@ endr
 	ld [hli], a
 	ld [hl], a
 	pop de
-	ld b, SPRITE_ANIM_INDEX_RED_WALK
-	ld a, d
-	cp KrisSpriteGFX / $100
-	jr nz, .not_kris
-	ld a, e
-	cp KrisSpriteGFX % $100
-	jr nz, .not_kris
-	ld b, SPRITE_ANIM_INDEX_BLUE_WALK
-.not_kris
-	ld a, b
+	pop bc
+	ld a, c
 	depixel 4, 4, 4, 0
 	jp _InitSpriteAnimStruct
 
@@ -245,7 +240,7 @@ NamingScreen_IsTargetBox: ; 1189c
 	push bc
 	push af
 	ld a, [wNamingScreenType]
-	sub $3
+	sub $4
 	ld b, a
 	pop af
 	dec b

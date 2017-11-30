@@ -240,31 +240,28 @@ InitBattleAnimBuffer: ; ccaaa
 	ld d, a
 	ld a, [wBattleAnimTemp1]
 	cp $ff
-	jr nz, .check_kinesis_softboiled_milkdrink
+	jr nz, .check_psystrike_softboiled_milkdrink
 	ld a, 5 * 8
 	add d
 	jr .done
 
-.check_kinesis_softboiled_milkdrink
+.check_psystrike_softboiled_milkdrink
 	sub d
 	push af
 	ld a, [FXAnimIDHi]
 	or a
 	jr nz, .no_sub
 	ld a, [FXAnimIDLo]
-;	cp KINESIS
-;	jr z, .kinesis
+	cp PSYSTRIKE
+	jr z, .sub_8
 	cp SOFTBOILED
-	jr z, .softboiled
+	jr z, .sub_8
 	cp MILK_DRINK
 	jr nz, .no_sub
-;.kinesis
-.softboiled
-.milk_drink
+.sub_8
 	pop af
 	sub 1 * 8
 	jr .done
-
 .no_sub
 	pop af
 .done
@@ -301,13 +298,11 @@ GetBattleAnimTileOffset: ; ccb31 (33:4b31)
 	ret
 
 _ExecuteBGEffects: ; ccb48
-	farcall ExecuteBGEffects
-	ret
+	farjp ExecuteBGEffects
 
 ; ccb4f
 
 _QueueBGEffect: ; ccb4f (33:4b4f)
-	farcall QueueBGEffect
-	ret
+	farjp QueueBGEffect
 
 ; ccb56 (33:4b56)

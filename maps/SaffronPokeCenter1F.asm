@@ -1,62 +1,50 @@
-const_value set 2
-	const SAFFRONPOKECENTER1F_NURSE
-	const SAFFRONPOKECENTER1F_TEACHER
-	const SAFFRONPOKECENTER1F_FISHER
-	const SAFFRONPOKECENTER1F_YOUNGSTER
-
 SaffronPokeCenter1F_MapScriptHeader:
-.MapTriggers:
-	db 0
 
-.MapCallbacks:
-	db 0
+.MapTriggers: db 0
 
-NurseScript_0x18a47d:
-	jumpstd pokecenternurse
+.MapCallbacks: db 0
 
-TeacherScript_0x18a480:
-	jumptextfaceplayer UnknownText_0x18a4a3
+SaffronPokeCenter1F_MapEventHeader:
 
-FisherScript_0x18a48c:
-	faceplayer
-	opentext
-	checkevent EVENT_RETURNED_MACHINE_PART
-	iftrue .SolvedKantoPowerCrisis
-	writetext UnknownText_0x18a5d3
-	waitbutton
-	closetext
-	end
+.Warps: db 3
+	warp_def 7, 5, 4, SAFFRON_CITY
+	warp_def 7, 6, 4, SAFFRON_CITY
+	warp_def 7, 0, 1, POKECENTER_2F
 
-.SolvedKantoPowerCrisis:
-	writetext UnknownText_0x18a62e
-	waitbutton
-	closetext
-	end
+.XYTriggers: db 0
 
-YoungsterScript_0x18a4a0:
-	jumptextfaceplayer UnknownText_0x18a6c5
+.Signposts: db 1
+	signpost 1, 10, SIGNPOST_READ, PokemonJournalSabrinaScript
+
+.PersonEvents: db 4
+	pc_nurse_event 1, 5
+	person_event SPRITE_FISHER, 5, 11, SPRITEMOVEDATA_STANDING_LEFT, 0, 0, -1, -1, (1 << 3) | PAL_OW_RED, PERSONTYPE_SCRIPT, 0, SaffronPokeCenter1FFisherScript, -1
+	person_event SPRITE_TEACHER, 4, 2, SPRITEMOVEDATA_WANDER, 1, 1, -1, -1, (1 << 3) | PAL_OW_GREEN, PERSONTYPE_COMMAND, jumptextfaceplayer, SaffronPokeCenter1FTeacherText, -1
+	person_event SPRITE_YOUNGSTER, 4, 8, SPRITEMOVEDATA_SPINRANDOM_SLOW, 0, 0, -1, -1, (1 << 3) | PAL_OW_BLUE, PERSONTYPE_COMMAND, jumptextfaceplayer, SaffronPokeCenter1FYoungsterText, -1
 
 PokemonJournalSabrinaScript:
 	setflag ENGINE_READ_SABRINA_JOURNAL
-	jumptext PokemonJournalSabrinaText
+	thistext
 
-UnknownText_0x18a4a3:
-	text "What are Johto's"
-	line "#mon Centers"
-	cont "like?"
+	text "#mon Journal"
 
-	para "…Oh, I see. So"
-	line "they're not much"
+	para "Special Feature:"
+	line "Leader Sabrina!"
 
-	para "different from the"
-	line "ones in Kanto."
+	para "People say that"
+	line "Sabrina can com-"
+	cont "municate with her"
 
-	para "I can go to Johto"
-	line "without worrying,"
-	cont "then!"
+	para "#mon during"
+	line "battle without"
+	cont "speaking."
 	done
 
-UnknownText_0x18a5d3:
+SaffronPokeCenter1FFisherScript:
+	checkevent EVENT_RETURNED_MACHINE_PART
+	iftrue_jumptextfaceplayer .Text2
+	thistextfaceplayer
+
 	text "I just happened to"
 	line "come through Rock"
 
@@ -65,7 +53,7 @@ UnknownText_0x18a5d3:
 	cont "the Power Plant."
 	done
 
-UnknownText_0x18a62e:
+.Text2:
 	text "Caves collapse"
 	line "easily."
 
@@ -81,7 +69,23 @@ UnknownText_0x18a62e:
 	cont "knowledge."
 	done
 
-UnknownText_0x18a6c5:
+SaffronPokeCenter1FTeacherText:
+	text "What are Johto's"
+	line "#mon Centers"
+	cont "like?"
+
+	para "…Oh, I see. So"
+	line "they're not much"
+
+	para "different from the"
+	line "ones in Kanto."
+
+	para "I can go to Johto"
+	line "without worrying,"
+	cont "then!"
+	done
+
+SaffronPokeCenter1FYoungsterText:
 	text "Silph Co.'s Head"
 	line "Office and the"
 
@@ -91,39 +95,3 @@ UnknownText_0x18a6c5:
 	para "places to see in"
 	line "Saffron."
 	done
-
-PokemonJournalSabrinaText:
-	text "#mon Journal"
-
-	para "Special Feature:"
-	line "Leader Sabrina!"
-
-	para "People say that"
-	line "Sabrina can com-"
-	cont "municate with her"
-
-	para "#mon during"
-	line "battle without"
-	cont "speaking."
-	done
-
-SaffronPokeCenter1F_MapEventHeader:
-.Warps:
-	db 3
-	warp_def $7, $5, 4, SAFFRON_CITY
-	warp_def $7, $6, 4, SAFFRON_CITY
-	warp_def $7, $0, 1, POKECENTER_2F
-
-.XYTriggers:
-	db 0
-
-.Signposts:
-	db 1
-	signpost 1, 10, SIGNPOST_READ, PokemonJournalSabrinaScript
-
-.PersonEvents:
-	db 4
-	person_event SPRITE_NURSE, 1, 5, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, -1, 0, PERSONTYPE_SCRIPT, 0, NurseScript_0x18a47d, -1
-	person_event SPRITE_TEACHER, 4, 2, SPRITEMOVEDATA_WANDER, 1, 1, -1, -1, (1 << 3) | PAL_OW_GREEN, PERSONTYPE_SCRIPT, 0, TeacherScript_0x18a480, -1
-	person_event SPRITE_FISHER, 5, 11, SPRITEMOVEDATA_STANDING_LEFT, 0, 0, -1, -1, (1 << 3) | PAL_OW_RED, PERSONTYPE_SCRIPT, 0, FisherScript_0x18a48c, -1
-	person_event SPRITE_YOUNGSTER, 4, 8, SPRITEMOVEDATA_SPINRANDOM_SLOW, 0, 0, -1, -1, (1 << 3) | PAL_OW_BLUE, PERSONTYPE_SCRIPT, 0, YoungsterScript_0x18a4a0, -1

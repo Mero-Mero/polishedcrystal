@@ -52,7 +52,8 @@ SpawnPlayer: ; 8029
 PlayerObjectTemplate: ; 8071
 ; A dummy map object used to initialize the player object.
 ; Shorter than the actual amount copied by two bytes.
-; Said bytes seem to be unused.
+; Said bytes seem to be unused, but the game freezes when you first spawn
+; in your room if this is not loaded.
 	person_event SPRITE_CHRIS, -4, -4, SPRITEMOVEDATA_PLAYER, 15, 15, -1, -1, 0, PERSONTYPE_SCRIPT, 0, 0, -1
 
 CopyDECoordsToMapObject:: ; 807e
@@ -159,11 +160,6 @@ CopyObjectStruct:: ; 80e7
 	ret
 
 CopyMapObjectToObjectStruct: ; 8116
-	call .CopyMapObjectToTempObject
-	call CopyTempObjectToObjectStruct
-	ret
-
-.CopyMapObjectToTempObject: ; 811d
 	ld a, [hObjectStructIndexBuffer]
 	ld hl, MAPOBJECT_OBJECT_STRUCT_ID
 	add hl, bc
@@ -218,7 +214,8 @@ CopyMapObjectToObjectStruct: ; 8116
 	add hl, bc
 	ld a, [hl]
 	ld [wTempObjectCopyRadius], a
-	ret
+
+	jp CopyTempObjectToObjectStruct
 
 InitializeVisibleSprites: ; 8177
 	ld bc, MapObjects + OBJECT_LENGTH
@@ -265,7 +262,7 @@ InitializeVisibleSprites: ; 8177
 	push bc
 	call CopyObjectStruct
 	pop bc
-	jp c, .ret
+	ret c
 
 .next
 	ld hl, OBJECT_LENGTH
@@ -276,9 +273,6 @@ InitializeVisibleSprites: ; 8177
 	inc a
 	cp NUM_OBJECTS
 	jr nz, .loop
-	ret
-
-.ret ; 81c9
 	ret
 
 CheckObjectEnteringVisibleRange:: ; 81ca
@@ -514,17 +508,12 @@ TrainerWalkToPlayer: ; 831e
 	call InitMovementBuffer
 	ld a, movement_step_sleep_1
 	call AppendToMovementBuffer
-	ld a, [wd03f]
-	dec a
-	jr z, .TerminateStep
 	ld a, [hLastTalked]
 	ld b, a
 	ld c, PLAYER
 	ld d, 1
 	call .GetPathToPlayer
 	call DecrementMovementBufferCount
-
-.TerminateStep:
 	ld a, movement_step_end
 	jp AppendToMovementBuffer
 

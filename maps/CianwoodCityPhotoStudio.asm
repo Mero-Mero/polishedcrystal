@@ -1,12 +1,21 @@
-const_value set 2
-	const CIANWOODCITYPHOTOSTUDIO_FISHING_GURU
-
 CianwoodCityPhotoStudio_MapScriptHeader:
-.MapTriggers:
-	db 0
 
-.MapCallbacks:
-	db 0
+.MapTriggers: db 0
+
+.MapCallbacks: db 0
+
+CianwoodCityPhotoStudio_MapEventHeader:
+
+.Warps: db 2
+	warp_def 7, 2, 5, CIANWOOD_CITY
+	warp_def 7, 3, 5, CIANWOOD_CITY
+
+.XYTriggers: db 0
+
+.Signposts: db 0
+
+.PersonEvents: db 1
+	person_event SPRITE_FISHING_GURU, 3, 2, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, -1, (1 << 3) | PAL_OW_RED, PERSONTYPE_SCRIPT, 0, FishingGuruScript_0x9e0e0, -1
 
 FishingGuruScript_0x9e0e0:
 	faceplayer
@@ -40,34 +49,19 @@ FishingGuruScript_0x9e0e0:
 	writetext PhotoStudioPrestoText
 	special PlayCurMonCry
 	waitbutton
-	writetext PhotoStudioComeAgainText
-	waitbutton
-	closetext
-	end
+	jumpopenedtext PhotoStudioComeAgainText
 
 .AlreadyTookPhoto:
-	writetext PhotoStudioAlreadyDoneText
-	waitbutton
-	closetext
-	end
+	jumpopenedtext PhotoStudioAlreadyDoneText
 
 .RefusedPhoto:
-	writetext PhotoStudioRefusedText
-	waitbutton
-	closetext
-	end
+	jumpopenedtext PhotoStudioRefusedText
 
 .NoPicture:
-	writetext PhotoStudioNoPictureText
-	waitbutton
-	closetext
-	end
+	jumpopenedtext PhotoStudioNoPictureText
 
 .EggPicture:
-	writetext PhotoStudioEggPictureText
-	waitbutton
-	closetext
-	end
+	jumpopenedtext PhotoStudioEggPictureText
 
 PhotoStudioGreetingText:
 	text "I am Cameron"
@@ -97,7 +91,9 @@ PhotoStudioHoldStillText:
 PhotoStudioPrestoText:
 	text "Presto! All done."
 
-	para "Your #mon"
+	para "Your @"
+	text_from_ram StringBuffer3
+	text ""
 	line "looks happier!"
 	done
 
@@ -131,19 +127,3 @@ PhotoStudioEggPictureText:
 	text "An Egg? My talent"
 	line "is worth more…"
 	done
-
-CianwoodCityPhotoStudio_MapEventHeader:
-.Warps:
-	db 2
-	warp_def $7, $2, 5, CIANWOOD_CITY
-	warp_def $7, $3, 5, CIANWOOD_CITY
-
-.XYTriggers:
-	db 0
-
-.Signposts:
-	db 0
-
-.PersonEvents:
-	db 1
-	person_event SPRITE_FISHING_GURU, 3, 2, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, -1, (1 << 3) | PAL_OW_RED, PERSONTYPE_SCRIPT, 0, FishingGuruScript_0x9e0e0, -1

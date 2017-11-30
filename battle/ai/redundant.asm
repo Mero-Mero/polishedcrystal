@@ -14,45 +14,38 @@ AI_Redundant: ; 2c41a
 	jp hl
 
 .Moves: ; 2c42c
-	dbw EFFECT_DREAM_EATER,  .DreamEater
-	dbw EFFECT_HEAL,         .Heal
-	dbw EFFECT_LIGHT_SCREEN, .LightScreen
-	dbw EFFECT_MIST,         .Mist
-	dbw EFFECT_FOCUS_ENERGY, .FocusEnergy
-	dbw EFFECT_CONFUSE,      .Confuse
-	dbw EFFECT_TRANSFORM,    .Transform
-	dbw EFFECT_REFLECT,      .Reflect
-	dbw EFFECT_SUBSTITUTE,   .Substitute
-	dbw EFFECT_LEECH_SEED,   .LeechSeed
-	dbw EFFECT_DISABLE,      .Disable
-	dbw EFFECT_ENCORE,       .Encore
-	dbw EFFECT_SNORE,        .Snore
-	dbw EFFECT_SLEEP_TALK,   .SleepTalk
-	dbw EFFECT_MEAN_LOOK,    .MeanLook
-	dbw EFFECT_SPIKES,       .Spikes
-	dbw EFFECT_FORESIGHT,    .Foresight
-	dbw EFFECT_PERISH_SONG,  .PerishSong
-	dbw EFFECT_SANDSTORM,    .Sandstorm
-	dbw EFFECT_HAIL,         .Hail
-	dbw EFFECT_ATTRACT,      .Attract
-	dbw EFFECT_SAFEGUARD,    .Safeguard
-	dbw EFFECT_RAIN_DANCE,   .RainDance
-	dbw EFFECT_SUNNY_DAY,    .SunnyDay
-	dbw EFFECT_TELEPORT,     .Teleport
-	dbw EFFECT_MORNING_SUN,  .MorningSun
-	dbw EFFECT_MOONLIGHT,    .Moonlight
-	dbw EFFECT_SWAGGER,      .Swagger
-	dbw EFFECT_FUTURE_SIGHT, .FutureSight
+	dbw EFFECT_DREAM_EATER,   .DreamEater
+	dbw EFFECT_HEAL,          .Heal
+	dbw EFFECT_LIGHT_SCREEN,  .LightScreen
+	dbw EFFECT_FOCUS_ENERGY,  .FocusEnergy
+	dbw EFFECT_CONFUSE,       .Confuse
+	dbw EFFECT_TRANSFORM,     .Transform
+	dbw EFFECT_REFLECT,       .Reflect
+	dbw EFFECT_SUBSTITUTE,    .Substitute
+	dbw EFFECT_LEECH_SEED,    .LeechSeed
+	dbw EFFECT_DISABLE,       .Disable
+	dbw EFFECT_ENCORE,        .Encore
+	dbw EFFECT_SLEEP_TALK,    .SleepTalk
+	dbw EFFECT_MEAN_LOOK,     .MeanLook
+	dbw EFFECT_SPIKES,        .Spikes
+	dbw EFFECT_FORESIGHT,     .Foresight
+	dbw EFFECT_PERISH_SONG,   .PerishSong
+	dbw EFFECT_SANDSTORM,     .Sandstorm
+	dbw EFFECT_HAIL,          .Hail
+	dbw EFFECT_ATTRACT,       .Attract
+	dbw EFFECT_SAFEGUARD,     .Safeguard
+	dbw EFFECT_RAIN_DANCE,    .RainDance
+	dbw EFFECT_SUNNY_DAY,     .SunnyDay
+	dbw EFFECT_TELEPORT,      .Teleport
+	dbw EFFECT_HEALING_LIGHT, .HealingLight
+	dbw EFFECT_SWAGGER,       .Swagger
+	dbw EFFECT_FUTURE_SIGHT,  .FutureSight
+	dbw EFFECT_BATON_PASS,    .BatonPass
 	db -1
 
 .LightScreen: ; 2c487
 	ld a, [EnemyScreens]
 	bit SCREENS_LIGHT_SCREEN, a
-	ret
-
-.Mist: ; 2c48d
-	ld a, [EnemySubStatus4]
-	bit SUBSTATUS_MIST, a
 	ret
 
 .FocusEnergy: ; 2c493
@@ -98,7 +91,6 @@ AI_Redundant: ; 2c41a
 	bit SUBSTATUS_ENCORED, a
 	ret
 
-.Snore:
 .SleepTalk: ; 2c4c8
 	ld a, [EnemyMonStatus]
 	and SLP
@@ -112,8 +104,10 @@ AI_Redundant: ; 2c41a
 
 .Spikes: ; 2c4e3
 	ld a, [PlayerScreens]
-	bit SCREENS_SPIKES, a
-	ret
+	and SCREENS_SPIKES
+	cp SCREENS_SPIKES
+	jr z, .Redundant
+	jr .NotRedundant
 
 .Foresight: ; 2c4e9
 	ld a, [PlayerSubStatus1]
@@ -178,9 +172,13 @@ AI_Redundant: ; 2c41a
 	and a
 	ret
 
+.BatonPass:
+	farcall CheckAnyOtherAliveMons
+	jr z, .Redundant
+	jr .NotRedundant
+
 .Heal:
-.MorningSun:
-.Moonlight: ; 2c539
+.HealingLight: ; 2c539
 	farcall AICheckEnemyMaxHP
 	jr nc, .NotRedundant
 

@@ -203,7 +203,13 @@ UnknownText_0x1c587d::
 	done
 
 UnknownText_0x1c589f::
-	text "Which prize would"
+	text "You can cash in"
+	line "your saved points"
+
+	para "for a lovely prize"
+	line "of your choice!"
+
+	para "Which prize would"
 	line "you like?"
 	done
 
@@ -215,19 +221,16 @@ UnknownText_0x1c58bc::
 
 UnknownText_0x1c58d1::
 	text "Here you go!"
-	para ""
 	done
 
 UnknownText_0x1c58e0::
 	text "You don't have"
 	line "enough points."
-	para ""
 	done
 
 UnknownText_0x1c58ff::
 	text "You have no room"
 	line "for it."
-	para ""
 	done
 
 UnknownText_0x1c591a::

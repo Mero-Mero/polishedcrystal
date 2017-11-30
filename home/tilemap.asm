@@ -1,6 +1,5 @@
 PushWindow:: ; 1c00
-	farcall _PushWindow
-	ret
+	farjp _PushWindow
 ; 1c07
 
 ExitMenu:: ; 0x1c07
@@ -10,8 +9,7 @@ ExitMenu:: ; 0x1c07
 	ret
 
 InitVerticalMenuCursor:: ; 0x1c10
-	farcall _InitVerticalMenuCursor
-	ret
+	farjp _InitVerticalMenuCursor
 
 CloseWindow:: ; 0x1c17
 	push af
@@ -25,9 +23,7 @@ RestoreTileBackup:: ; 0x1c23
 	call MenuBoxCoord2Tile
 	call .copy
 	call MenuBoxCoord2Attr
-	call .copy
-	ret
-; 0x1c30
+	; fallthrough
 
 .copy ; 0x1c30
 	call GetMenuBoxDims
@@ -170,10 +166,8 @@ GetMenuTextStartCoord:: ; 1cc6
 ; bit 7: if set, leave extra room on the left
 	ld a, [wMenuData2Flags]
 	bit 7, a
-	jr z, .bit_7_clear
+	ret z
 	inc c
-
-.bit_7_clear
 	ret
 ; 1ce1
 

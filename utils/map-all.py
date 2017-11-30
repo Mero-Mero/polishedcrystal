@@ -10,23 +10,21 @@ import sys
 import os
 from collections import OrderedDict
 
-code_directory         = './'
-tileset_filename       = 'constants/tilemap_constants.asm'
-maps_filename          = 'constants/map_constants.asm'
-map_headers_filename   = 'maps/map_headers.asm'
-block_data_filenames   = {'maps/blockdata_1.asm', 'maps/blockdata_2.asm',
-                          'maps/blockdata_3.asm', 'maps/blockdata_4.asm',
-                          'maps/blockdata_5.asm', 'maps/blockdata_6.asm'}
-block_filename_fmt     = 'maps/%s.blk'
+code_directory       = './'
+tileset_filename     = 'constants/tilemap_constants.asm'
+maps_filename        = 'constants/map_constants.asm'
+map_headers_filename = 'maps/map_headers.asm'
+block_data_filename  = 'maps/block_data.asm'
+block_filename_fmt   = 'maps/%s.blk'
 
-tileset_names = ['johto1', 'johto2', 'kanto1', 'johto3', 'house1', 'house2',
-                 'pokecenter', 'gate', 'port', 'lab', 'facility', 'mart',
-                 'mansion', 'game_corner', 'gym1', 'house3', 'gym2', 'gym3',
-                 'lighthouse', 'kanto2', 'pokecom', 'battle_tower', 'tower',
-                 'cave', 'park', 'ruins', 'radio_tower', 'warehouse',
-                 'ice_path', 'forest', 'safari', 'alph', 'pokemon_mansion',
-                 'faraway', 'tunnel', 'decor', 'shamouti', 'museum', 'hotel',
-                 'quiet_cave', 'valencia']
+tileset_names = ['johto1', 'johto2', 'johto3', 'johto4', 'kanto1', 'kanto2',
+                 'shamouti', 'valencia', 'faraway', 'house1', 'house2', 'house3',
+                 'pokecenter', 'pokecom', 'mart', 'gate', 'gym1', 'gym2', 'gym3',
+                 'port', 'lab', 'facility', 'mansion', 'game_corner', 'decor',
+                 'museum', 'hotel', 'tower', 'battle_tower', 'radio_tower',
+                 'lighthouse', 'warehouse', 'cave', 'quiet_cave', 'ice_path',
+                 'tunnel', 'forest', 'park', 'safari', 'ruins', 'alph',
+                 'pokemon_mansion']
 
 # {'TILESET_JOHTO_1': 1, ...}
 tileset_ids = {}
@@ -74,19 +72,18 @@ def read_map_tilesets():
 				map_tilesets[map_name] = map_tileset
 
 def read_map_block_data():
-	for block_data_filename in block_data_filenames:
-		with open(code_directory + block_data_filename, 'r') as f:
-			map_names = []
-			for line in f:
-				line = line.strip()
-				if line.endswith('_BlockData:'):
-					map_names.append(line[:-11])
-				elif line.startswith('INCBIN "maps/') and line.endswith('.blk"'):
-					block_data_name = line[13:-5]
-					for map_name in map_names:
-						if map_name != block_data_name:
-							map_block_data_exceptions[map_name] = block_data_name
-					map_names[:] = []
+	with open(code_directory + block_data_filename, 'r') as f:
+		map_names = []
+		for line in f:
+			line = line.strip()
+			if line.endswith('_BlockData:'):
+				map_names.append(line[:-11])
+			elif line.startswith('INCBIN "maps/') and line.endswith('.blk"'):
+				block_data_name = line[13:-5]
+				for map_name in map_names:
+					if map_name != block_data_name:
+						map_block_data_exceptions[map_name] = block_data_name
+				map_names[:] = []
 
 def render_map_images(valid_tilesets):
 	rendered = set()
@@ -97,7 +94,7 @@ def render_map_images(valid_tilesets):
 			block_data_name = map_block_data_exceptions.get(map_name, map_name)
 			if block_data_name in rendered:
 				continue
-			command = 'python utils/map.py %s %d %s' % (block_filename_fmt % block_data_name, map_height, tileset_name)
+			command = 'python utils/map.py %s h%d %s' % (block_filename_fmt % block_data_name, map_height, tileset_name)
 			print()
 			print(command)
 			os.system(command)
@@ -111,7 +108,7 @@ def main():
 	read_map_heights()
 	print('Reading map tilesets from %s...' % map_headers_filename, file=sys.stderr)
 	read_map_tilesets()
-	print('Reading map block data from %s...' % ', '.join(block_data_filenames), file=sys.stderr)
+	print('Reading map block data from %s...' % block_data_filename, file=sys.stderr)
 	read_map_block_data()
 	print('Rendering map images from each %s...'% (block_filename_fmt % '<name>'), file=sys.stderr)
 	render_map_images(valid_tilesets)

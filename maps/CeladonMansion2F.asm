@@ -1,18 +1,28 @@
 CeladonMansion2F_MapScriptHeader:
-.MapTriggers:
-	db 0
 
-.MapCallbacks:
-	db 0
+.MapTriggers: db 0
 
-CeladonMansion2FComputer:
-	jumptext CeladonMansion2FComputerText
+.MapCallbacks: db 0
+
+CeladonMansion2F_MapEventHeader:
+
+.Warps: db 4
+	warp_def 0, 0, 4, CELADON_MANSION_1F
+	warp_def 0, 1, 2, CELADON_MANSION_3F
+	warp_def 0, 6, 3, CELADON_MANSION_3F
+	warp_def 0, 7, 5, CELADON_MANSION_1F
+
+.XYTriggers: db 0
+
+.Signposts: db 3
+	signpost 3, 0, SIGNPOST_JUMPTEXT, CeladonMansion2FComputerText
+	signpost 8, 5, SIGNPOST_UP, CeladonMansion2FSign
+	signpost 3, 2, SIGNPOST_JUMPSTD, difficultbookshelf
+
+.PersonEvents: db 0
 
 CeladonMansion2FSign:
 	jumptext CeladonMansion2FSignText
-
-CeladonMansion2FBookshelf:
-	jumpstd difficultbookshelf
 
 CeladonMansion2FComputerText:
 	text "<PLAYER> turned on"
@@ -48,23 +58,3 @@ CeladonMansion2FSignText:
 	text "GAME FREAK"
 	line "Meeting Room"
 	done
-
-CeladonMansion2F_MapEventHeader:
-.Warps:
-	db 4
-	warp_def $0, $0, 4, CELADON_MANSION_1F
-	warp_def $0, $1, 2, CELADON_MANSION_3F
-	warp_def $0, $6, 3, CELADON_MANSION_3F
-	warp_def $0, $7, 5, CELADON_MANSION_1F
-
-.XYTriggers:
-	db 0
-
-.Signposts:
-	db 3
-	signpost 3, 0, SIGNPOST_READ, CeladonMansion2FComputer
-	signpost 8, 5, SIGNPOST_UP, CeladonMansion2FSign
-	signpost 3, 2, SIGNPOST_READ, CeladonMansion2FBookshelf
-
-.PersonEvents:
-	db 0

@@ -1,35 +1,43 @@
-const_value set 2
-	const ROUTE20_SWIMMER_GIRL1
-	const ROUTE20_SWIMMER_GIRL2
-	const ROUTE20_SWIMMER_GIRL3
-	const ROUTE20_SWIMMER_GIRL4
-	const ROUTE20_SWIMMER_GUY1
-	const ROUTE20_SWIMMER_GUY2
-	const ROUTE20_SWIMMER_GUY3
-	const ROUTE20_LASS1
-	const ROUTE20_LASS2
-	const ROUTE20_YOUNGSTER1
-	const ROUTE20_YOUNGSTER2
-	const ROUTE20_YOUNGSTER3
-	const ROUTE20_POKE_BALL
-
 Route20_MapScriptHeader:
-.MapTriggers:
-	db 0
 
-.MapCallbacks:
-	db 0
+.MapTriggers: db 0
+
+.MapCallbacks: db 0
+
+Route20_MapEventHeader:
+
+.Warps: db 2
+	warp_def 9, 62, 1, SEAFOAM_ISLANDS_1F
+	warp_def 5, 54, 4, SEAFOAM_ISLANDS_1F
+
+.XYTriggers: db 0
+
+.Signposts: db 3
+	signpost 11, 61, SIGNPOST_JUMPTEXT, CinnabarGymSignText
+	signpost 7, 57, SIGNPOST_JUMPTEXT, SeafoamIslandsSignText
+	signpost 10, 21, SIGNPOST_ITEM + STARDUST, EVENT_ROUTE_20_HIDDEN_STARDUST
+
+.PersonEvents: db 13
+	person_event SPRITE_SWIMMER_GIRL, 10, 91, SPRITEMOVEDATA_SPINCLOCKWISE, 0, 0, -1, -1, (1 << 3) | PAL_OW_GREEN, PERSONTYPE_TRAINER, 3, TrainerSwimmerfNicole, -1
+	person_event SPRITE_SWIMMER_GIRL, 13, 70, SPRITEMOVEDATA_SPINCOUNTERCLOCKWISE, 0, 0, -1, -1, (1 << 3) | PAL_OW_GREEN, PERSONTYPE_TRAINER, 3, TrainerSwimmerfLori, -1
+	person_event SPRITE_SWIMMER_GIRL, 4, 32, SPRITEMOVEDATA_SPINRANDOM_FAST, 0, 0, -1, -1, (1 << 3) | PAL_OW_GREEN, PERSONTYPE_TRAINER, 3, TrainerSwimmerfMina, -1
+	person_event SPRITE_SWIMMER_GIRL, 14, 54, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, -1, (1 << 3) | PAL_OW_GREEN, PERSONTYPE_TRAINER, 2, TrainerSwimmerfLeona, -1
+	person_event SPRITE_SWIMMER_GUY, 6, 6, SPRITEMOVEDATA_SPINRANDOM_FAST, 0, 0, -1, -1, (1 << 3) | PAL_OW_RED, PERSONTYPE_TRAINER, 3, TrainerSwimmermCameron, -1
+	person_event SPRITE_SWIMMER_GUY, 3, 69, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, -1, (1 << 3) | PAL_OW_RED, PERSONTYPE_TRAINER, 3, TrainerSwimmermLuis, -1
+	person_event SPRITE_SWIMMER_GUY, 8, 80, SPRITEMOVEDATA_SPINRANDOM_FAST, 0, 0, -1, -1, (1 << 3) | PAL_OW_RED, PERSONTYPE_TRAINER, 3, TrainerSwimmermElmo, -1
+	person_event SPRITE_LASS, 12, 16, SPRITEMOVEDATA_SPINRANDOM_SLOW, 0, 0, -1, -1, (1 << 3) | PAL_OW_GREEN, PERSONTYPE_TRAINER, 2, TrainerPicnickerCheyenne, -1
+	person_event SPRITE_LASS, 14, 24, SPRITEMOVEDATA_STANDING_LEFT, 0, 0, -1, -1, (1 << 3) | PAL_OW_GREEN, PERSONTYPE_TRAINER, 5, TrainerPicnickerAdrian, -1
+	person_event SPRITE_YOUNGSTER, 14, 12, SPRITEMOVEDATA_SPINRANDOM_SLOW, 0, 0, -1, -1, (1 << 3) | PAL_OW_GREEN, PERSONTYPE_TRAINER, 2, TrainerCamperPedro, -1
+	person_event SPRITE_YOUNGSTER, 9, 38, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, -1, (1 << 3) | PAL_OW_BLUE, PERSONTYPE_TRAINER, 1, TrainerBird_keeperBert, -1
+	person_event SPRITE_YOUNGSTER, 5, 61, SPRITEMOVEDATA_STANDING_LEFT, 0, 0, -1, -1, (1 << 3) | PAL_OW_BLUE, PERSONTYPE_TRAINER, 3, TrainerBird_keeperErnie, -1
+	itemball_event 3, 64, BIG_PEARL, 1, EVENT_ROUTE_20_BIG_PEARL
 
 TrainerSwimmerfNicole:
 	trainer EVENT_BEAT_SWIMMERF_NICOLE, SWIMMERF, NICOLE, SwimmerfNicoleSeenText, SwimmerfNicoleBeatenText, 0, SwimmerfNicoleScript
 
 SwimmerfNicoleScript:
 	end_if_just_battled
-	opentext
-	writetext UnknownText_0x1acd93
-	waitbutton
-	closetext
-	end
+	jumptextfaceplayer UnknownText_0x1acd93
 
 SwimmerfNicoleSeenText:
 	text "I feel so much"
@@ -53,11 +61,7 @@ TrainerSwimmerfLori:
 
 SwimmerfLoriScript:
 	end_if_just_battled
-	opentext
-	writetext UnknownText_0x1ace15
-	waitbutton
-	closetext
-	end
+	jumptextfaceplayer UnknownText_0x1ace15
 
 SwimmerfLoriSeenText:
 	text "What an impressive"
@@ -82,11 +86,7 @@ TrainerSwimmerfMina:
 
 .Script:
 	end_if_just_battled
-	opentext
-	writetext .AfterText
-	waitbutton
-	closetext
-	end
+	jumptextfaceplayer .AfterText
 
 .SeenText:
 	text "Mmph? Mmmph"
@@ -113,11 +113,7 @@ TrainerSwimmerfLeona:
 
 .Script:
 	end_if_just_battled
-	opentext
-	writetext .AfterText
-	waitbutton
-	closetext
-	end
+	jumptextfaceplayer .AfterText
 
 .SeenText:
 	text "Look! It's my very"
@@ -144,11 +140,7 @@ TrainerSwimmermCameron:
 
 SwimmermCameronScript:
 	end_if_just_battled
-	opentext
-	writetext UnknownText_0x1ace8b
-	waitbutton
-	closetext
-	end
+	jumptextfaceplayer UnknownText_0x1ace8b
 
 SwimmermCameronSeenText:
 	text "I guess it's im-"
@@ -173,11 +165,7 @@ TrainerSwimmermLuis:
 
 .Script:
 	end_if_just_battled
-	opentext
-	writetext .AfterText
-	waitbutton
-	closetext
-	end
+	jumptextfaceplayer .AfterText
 
 .SeenText:
 	text "I've worn my best"
@@ -201,11 +189,7 @@ TrainerSwimmermElmo:
 
 .Script:
 	end_if_just_battled
-	opentext
-	writetext .AfterText
-	waitbutton
-	closetext
-	end
+	jumptextfaceplayer .AfterText
 
 .SeenText:
 	text "I used to be a"
@@ -232,11 +216,7 @@ TrainerPicnickerCheyenne:
 
 .Script:
 	end_if_just_battled
-	opentext
-	writetext .AfterText
-	waitbutton
-	closetext
-	end
+	jumptextfaceplayer .AfterText
 
 .SeenText:
 	text "When I was a kid,"
@@ -263,11 +243,7 @@ TrainerPicnickerAdrian:
 
 .Script:
 	end_if_just_battled
-	opentext
-	writetext .AfterText
-	waitbutton
-	closetext
-	end
+	jumptextfaceplayer .AfterText
 
 .SeenText:
 	text "Are you in a"
@@ -291,11 +267,7 @@ TrainerCamperPedro:
 
 .Script:
 	end_if_just_battled
-	opentext
-	writetext .AfterText
-	waitbutton
-	closetext
-	end
+	jumptextfaceplayer .AfterText
 
 .SeenText:
 	text "Have you ever gone"
@@ -320,11 +292,7 @@ TrainerBird_keeperBert:
 
 .Script:
 	end_if_just_battled
-	opentext
-	writetext .AfterText
-	waitbutton
-	closetext
-	end
+	jumptextfaceplayer .AfterText
 
 .SeenText:
 	text "Found it! A"
@@ -350,11 +318,7 @@ TrainerBird_keeperErnie:
 
 .Script:
 	end_if_just_battled
-	opentext
-	writetext .AfterText
-	waitbutton
-	closetext
-	end
+	jumptextfaceplayer .AfterText
 
 .SeenText:
 	text "Hey, hey. Will you"
@@ -371,12 +335,6 @@ TrainerBird_keeperErnie:
 	line "special!"
 	done
 
-Route20BigPearl:
-	itemball BIG_PEARL
-
-CinnabarGymSign:
-	jumptext CinnabarGymSignText
-
 CinnabarGymSignText:
 	text "Seafoam Islands"
 
@@ -387,43 +345,6 @@ CinnabarGymSignText:
 	line "Leader: Blaine"
 	done
 
-SeafoamIslandsSign:
-	jumptext SeafoamIslandsSignText
-
 SeafoamIslandsSignText:
 	text "Seafoam Islands"
 	done
-
-Route20HiddenStardust:
-	dwb EVENT_ROUTE_20_HIDDEN_STARDUST, STARDUST
-
-Route20_MapEventHeader:
-.Warps:
-	db 2
-	warp_def $9, $3e, 1, SEAFOAM_ISLANDS_1F
-	warp_def $5, $36, 4, SEAFOAM_ISLANDS_1F
-
-.XYTriggers:
-	db 0
-
-.Signposts:
-	db 3
-	signpost 11, 61, SIGNPOST_READ, CinnabarGymSign
-	signpost 7, 57, SIGNPOST_READ, SeafoamIslandsSign
-	signpost 10, 21, SIGNPOST_ITEM, Route20HiddenStardust
-
-.PersonEvents:
-	db 13
-	person_event SPRITE_SWIMMER_GIRL, 10, 91, SPRITEMOVEDATA_SPINCLOCKWISE, 0, 0, -1, -1, (1 << 3) | PAL_OW_GREEN, PERSONTYPE_TRAINER, 3, TrainerSwimmerfNicole, -1
-	person_event SPRITE_SWIMMER_GIRL, 13, 70, SPRITEMOVEDATA_SPINCOUNTERCLOCKWISE, 0, 0, -1, -1, (1 << 3) | PAL_OW_GREEN, PERSONTYPE_TRAINER, 3, TrainerSwimmerfLori, -1
-	person_event SPRITE_SWIMMER_GIRL, 4, 32, SPRITEMOVEDATA_SPINRANDOM_FAST, 0, 0, -1, -1, (1 << 3) | PAL_OW_GREEN, PERSONTYPE_TRAINER, 3, TrainerSwimmerfMina, -1
-	person_event SPRITE_SWIMMER_GIRL, 14, 54, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, -1, (1 << 3) | PAL_OW_GREEN, PERSONTYPE_TRAINER, 2, TrainerSwimmerfLeona, -1
-	person_event SPRITE_SWIMMER_GUY, 6, 6, SPRITEMOVEDATA_SPINRANDOM_FAST, 0, 0, -1, -1, (1 << 3) | PAL_OW_RED, PERSONTYPE_TRAINER, 3, TrainerSwimmermCameron, -1
-	person_event SPRITE_SWIMMER_GUY, 3, 69, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, -1, (1 << 3) | PAL_OW_RED, PERSONTYPE_TRAINER, 3, TrainerSwimmermLuis, -1
-	person_event SPRITE_SWIMMER_GUY, 8, 80, SPRITEMOVEDATA_SPINRANDOM_FAST, 0, 0, -1, -1, (1 << 3) | PAL_OW_RED, PERSONTYPE_TRAINER, 3, TrainerSwimmermElmo, -1
-	person_event SPRITE_LASS, 12, 16, SPRITEMOVEDATA_SPINRANDOM_SLOW, 0, 0, -1, -1, (1 << 3) | PAL_OW_GREEN, PERSONTYPE_TRAINER, 2, TrainerPicnickerCheyenne, -1
-	person_event SPRITE_LASS, 14, 24, SPRITEMOVEDATA_STANDING_LEFT, 0, 0, -1, -1, (1 << 3) | PAL_OW_GREEN, PERSONTYPE_TRAINER, 5, TrainerPicnickerAdrian, -1
-	person_event SPRITE_YOUNGSTER, 14, 12, SPRITEMOVEDATA_SPINRANDOM_SLOW, 0, 0, -1, -1, (1 << 3) | PAL_OW_GREEN, PERSONTYPE_TRAINER, 2, TrainerCamperPedro, -1
-	person_event SPRITE_YOUNGSTER, 9, 38, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, -1, (1 << 3) | PAL_OW_BLUE, PERSONTYPE_TRAINER, 1, TrainerBird_keeperBert, -1
-	person_event SPRITE_YOUNGSTER, 5, 61, SPRITEMOVEDATA_STANDING_LEFT, 0, 0, -1, -1, (1 << 3) | PAL_OW_BLUE, PERSONTYPE_TRAINER, 3, TrainerBird_keeperErnie, -1
-	person_event SPRITE_BALL_CUT_FRUIT, 3, 64, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, -1, (1 << 3) | PAL_OW_RED, PERSONTYPE_ITEMBALL, 0, Route20BigPearl, EVENT_ROUTE_20_BIG_PEARL

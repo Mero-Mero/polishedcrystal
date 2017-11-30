@@ -1,56 +1,48 @@
-UserPartyAttr:: ; 3945
+; *PartyAttr returns address to attribute in hl, content
+; in a. Returns z if dealing with a wildmon (no party
+; struct), otherwise nz.
+UserPartyAttr::
+; Return z if wildmon
 	push af
 	ld a, [hBattleTurn]
 	and a
-	jr nz, .ot
+	jr nz, OTPartyAttrPre
+BattlePartyAttrPre:
 	pop af
-	jr BattlePartyAttr
-.ot
-	pop af
-	jr OTPartyAttr
-; 3951
-
-
-;OpponentPartyAttr:: ; 3951
-;	push af
-;	ld a, [hBattleTurn]
-;	and a
-;	jr z, .ot
-;	pop af
-;	jr BattlePartyAttr
-;.ot
-;	pop af
-;	jr OTPartyAttr
-;; 395d
-
-
-BattlePartyAttr:: ; 395d
-; Get attribute a from the active BattleMon's party struct.
-	push bc
-	ld c, a
-	ld b, 0
+BattlePartyAttr::
+; Returns nz (not a wildmon)
 	ld hl, PartyMons
-	add hl, bc
-	ld a, [CurBattleMon]
-	call GetPartyLocation
-	pop bc
-	ret
-; 396d
-
-
-OTPartyAttr:: ; 396d
-; Get attribute a from the active EnemyMon's party struct.
 	push bc
 	ld c, a
+	ld a, [CurBattleMon]
+DoBattlePartyAttr:
 	ld b, 0
-	ld hl, OTPartyMon1Species
 	add hl, bc
-	ld a, [CurOTMon]
 	call GetPartyLocation
+	or 1
+	ld a, [hl]
 	pop bc
 	ret
-; 397d
 
+OpponentPartyAttr::
+; Return z if wildmon
+	push af
+	ld a, [hBattleTurn]
+	and a
+	jr nz, BattlePartyAttrPre
+OTPartyAttrPre:
+	pop af
+OTPartyAttr::
+; Return z if wildmon
+	ld a, [wBattleMode]
+	dec a
+	ret z
+
+	ld hl, OTPartyMons
+	push bc
+	ld c, a
+	ld a, [CurOTMon]
+	jr DoBattlePartyAttr
 
 ResetDamage:: ; 397d
 	xor a
@@ -126,17 +118,17 @@ RefreshBattleHuds:: ; 39c9
 
 UpdateBattleHuds:: ; 39d4
 	farcall UpdatePlayerHUD
-	farcall UpdateEnemyHUD
-	ret
+	farjp UpdateEnemyHUD
 
 GetBackupItemAddr::
 ; Returns address of backup item for current mon in hl
+	push bc
 	ld a, [CurBattleMon]
+	ld c, a
+	ld b, 0
 	ld hl, PartyBackupItems
-	add l
-	ld l, a
-	ret nc
-	inc h
+	add hl, bc
+	pop bc
 	ret
 
 SetBackupItem::
@@ -226,9 +218,7 @@ ConsumeUserItem::
 	ld de, EnemyMonItem
 	ld hl, OTPartyMon1Item
 .got_item_pointers
-	push bc
 	call GetPartyLocation
-	pop bc
 
 	; Air Balloons are consumed permanently, so don't write it to UsedItems
 	ld a, [de]
@@ -314,13 +304,11 @@ BattleJumptable::
 	ld a, [hli]
 	ld h, [hl]
 	ld l, a
-	call .jp_hl
+	call _hl_
 	or 1
 .end
 	pop bc
 	ret
-.jp_hl
-	jp hl
 
 GetMoveAttr::
 ; Assuming hl = Moves + x, return attribute x of move a.
@@ -344,8 +332,7 @@ GetMoveByte::
 	jp GetFarByte
 
 DisappearUser::
-	farcall _DisappearUser
-	ret
+	farjp _DisappearUser
 
 ; Damage modifiers. a contains $xy where damage is multiplied by x, then divided by y
 ApplyPhysicalAttackDamageMod::
@@ -388,6 +375,8 @@ ApplySpecialDefenseDamageMod::
 	jr ApplySpecialAttackDamageMod
 
 ApplyDamageMod::
+; a = $xy: multiply multiplicands by x, then divide by y
+; Used by things other than damage
 	push bc
 	push hl
 	ld b, a
@@ -491,7 +480,9 @@ ContactMoves::
 	db ASTONISH
 	db BITE
 	db BODY_SLAM
+	db BUG_BITE
 	db BULLET_PUNCH
+	db CLOSE_COMBAT
 	db COUNTER
 	db CRABHAMMER
 	db CROSS_CHOP
@@ -503,19 +494,18 @@ ContactMoves::
 	db DOUBLE_EDGE
 	db DRAGON_CLAW
 	db DRAIN_KISS
+	db DRAIN_PUNCH
 	db DRILL_PECK
 	db DYNAMICPUNCH
 	db EXTREMESPEED
 	db FALSE_SWIPE
 	db FEINT_ATTACK
 	db FIRE_PUNCH
-	db FLAIL
 	db FLAME_WHEEL
 	db FLARE_BLITZ
 	db FLY
-	db FURY_ATTACK
-	db FURY_CUTTER
-	db FURY_SWIPES
+	db FURY_STRIKES
+	db GYRO_BALL
 	db GIGA_IMPACT
 	db HEADBUTT
 	db HI_JUMP_KICK
@@ -525,6 +515,7 @@ ContactMoves::
 	db IRON_HEAD
 	db IRON_TAIL
 	db KARATE_CHOP
+	db KNOCK_OFF
 	db LEECH_LIFE
 	db LICK
 	db LOW_KICK
@@ -537,6 +528,7 @@ ContactMoves::
 	db PETAL_DANCE
 	db PLAY_ROUGH
 	db POISON_JAB
+	db POWER_WHIP
 	db PURSUIT
 	db QUICK_ATTACK
 	db RAGE
@@ -553,14 +545,12 @@ ContactMoves::
 	db STEEL_WING
 	db STOMP
 	db STRENGTH
-	db SUBMISSION
 	db SUPER_FANG
 	db TACKLE
 	db TAKE_DOWN
 	db THIEF
 	db THRASH
 	db THUNDERPUNCH
-	db TRIPLE_KICK
 	db U_TURN
 	db VINE_WHIP
 	db WATERFALL
@@ -581,6 +571,7 @@ PowderMoves::
 PunchingMoves::
 	db BULLET_PUNCH
 	db DIZZY_PUNCH
+	db DRAIN_PUNCH
 	db DYNAMICPUNCH
 	db FIRE_PUNCH
 	db MACH_PUNCH
@@ -592,7 +583,6 @@ SoundMoves::
 	db DISARM_VOICE
 	db GROWL
 	db HYPER_VOICE
-	db METAL_SOUND
 	db PERISH_SONG
 	db ROAR
 	db SCREECH
@@ -608,16 +598,17 @@ SubstituteBypassMoves::
 	db ENCORE
 	db FORESIGHT
 	db SPIKES
+	db TOXIC_SPIKES
 	db -1
 
 DynamicPowerMoves::
 ; used by Forewarn and for move power listing
 	db COUNTER
-	db MIRROR_COAT
 	db DRAGON_RAGE
-	db FLAIL
+	db GYRO_BALL
 ;   db LOW_KICK
 	db MAGNITUDE
+	db MIRROR_COAT
 	db NIGHT_SHADE
 	db RETURN
 	db REVERSAL
@@ -697,6 +688,175 @@ CheckIfSomeoneIsSomeType
 	cp b
 	ret
 
+GetHiddenPowerType::
+; return Hidden Power type in a from DVs at hl
+; b = %0ace0bdf (a, b, c, d, e, f = HP, Atk, Def, Spd, SAt, SDF)
+	ld b, 0
+	ld a, [hli]
+	and %00010001
+	add b
+	sla a
+	ld b, a
+	ld a, [hli]
+	and %00010001
+	add b
+	sla a
+	ld b, a
+	ld a, [hl]
+	and %00010001
+	add b
+	ld b, a
+; a = %00acebdf
+	and $f
+	sla a
+	ld c, a
+	ld a, b
+	and $f0
+	or c
+	srl a
+; get type
+	ld hl, .Types
+	ld b, 0
+	ld c, a
+	add hl, bc
+	ld a, [hl]
+	ret
+
+.Types:
+if DEF(FAITHFUL)
+; type = %fedcba * 15 / 63
+	db FIGHTING ; 00
+	db STEEL    ; 32
+	db FLYING   ; 08
+	db WATER    ; 40
+	db FIGHTING ; 02
+	db FIRE     ; 34
+	db POISON   ; 10
+	db GRASS    ; 42
+	db GROUND   ; 16
+	db ELECTRIC ; 48
+	db BUG      ; 24
+	db ICE      ; 56
+	db ROCK     ; 18
+	db ELECTRIC ; 50
+	db GHOST    ; 26
+	db ICE      ; 58
+	db FIGHTING ; 04
+	db FIRE     ; 36
+	db POISON   ; 12
+	db GRASS    ; 44
+	db FLYING   ; 06
+	db WATER    ; 38
+	db GROUND   ; 14
+	db GRASS    ; 46
+	db ROCK     ; 20
+	db PSYCHIC  ; 52
+	db GHOST    ; 28
+	db DRAGON   ; 60
+	db BUG      ; 22
+	db PSYCHIC  ; 54
+	db STEEL    ; 30
+	db DRAGON   ; 62
+	db FIGHTING ; 01
+	db STEEL    ; 33
+	db POISON   ; 09
+	db WATER    ; 41
+	db FIGHTING ; 03
+	db FIRE     ; 35
+	db POISON   ; 11
+	db GRASS    ; 43
+	db ROCK     ; 17
+	db ELECTRIC ; 49
+	db BUG      ; 25
+	db ICE      ; 57
+	db ROCK     ; 19
+	db PSYCHIC  ; 51
+	db GHOST    ; 27
+	db DRAGON   ; 59
+	db FLYING   ; 05
+	db FIRE     ; 37
+	db GROUND   ; 13
+	db GRASS    ; 45
+	db FLYING   ; 07
+	db WATER    ; 39
+	db GROUND   ; 15
+	db ELECTRIC ; 47
+	db BUG      ; 21
+	db PSYCHIC  ; 53
+	db GHOST    ; 29
+	db DRAGON   ; 61
+	db BUG      ; 23
+	db ICE      ; 55
+	db STEEL    ; 31
+	db DARK     ; 63
+else
+; type = %fedcba * 16 / 63
+	db FIGHTING ; 00
+	db FIRE     ; 32
+	db POISON   ; 08
+	db GRASS    ; 40
+	db FIGHTING ; 02
+	db FIRE     ; 34
+	db POISON   ; 10
+	db GRASS    ; 42
+	db ROCK     ; 16
+	db PSYCHIC  ; 48
+	db GHOST    ; 24
+	db DRAGON   ; 56
+	db ROCK     ; 18
+	db PSYCHIC  ; 50
+	db GHOST    ; 26
+	db DRAGON   ; 58
+	db FLYING   ; 04
+	db WATER    ; 36
+	db GROUND   ; 12
+	db ELECTRIC ; 44
+	db FLYING   ; 06
+	db WATER    ; 38
+	db GROUND   ; 14
+	db ELECTRIC ; 46
+	db BUG      ; 20
+	db ICE      ; 52
+	db STEEL    ; 28
+	db DARK     ; 60
+	db BUG      ; 22
+	db ICE      ; 54
+	db STEEL    ; 30
+	db DARK     ; 62
+	db FIGHTING ; 01
+	db FIRE     ; 33
+	db POISON   ; 09
+	db GRASS    ; 41
+	db FIGHTING ; 03
+	db FIRE     ; 35
+	db POISON   ; 11
+	db GRASS    ; 43
+	db ROCK     ; 17
+	db PSYCHIC  ; 49
+	db GHOST    ; 25
+	db DRAGON   ; 57
+	db ROCK     ; 19
+	db PSYCHIC  ; 51
+	db GHOST    ; 27
+	db DRAGON   ; 59
+	db FLYING   ; 05
+	db WATER    ; 37
+	db GROUND   ; 13
+	db ELECTRIC ; 45
+	db FLYING   ; 07
+	db WATER    ; 39
+	db GROUND   ; 15
+	db ELECTRIC ; 47
+	db BUG      ; 21
+	db ICE      ; 53
+	db STEEL    ; 29
+	db DARK     ; 61
+	db BUG      ; 23
+	db ICE      ; 55
+	db STEEL    ; 31
+	db FAIRY    ; 63
+endc
+
 CheckPinch::
 ; return z if we are in a pinch (HP<=1/3)
 	push hl
@@ -727,6 +887,23 @@ CompareHP::
 	pop hl
 	ret
 
+CheckContactMove::
+; Check if user's move made contact. Returns nc if it is
+	farcall GetUserItemAfterUnnerve
+	ld a, b
+	cp HELD_PROTECTIVE_PADS
+	jr z, .protective_pads
+	ld a, BATTLE_VARS_MOVE
+	call GetBattleVar
+	cp STRUGGLE
+	ret z
+	ld hl, ContactMoves
+	ld de, 1
+	call IsInArray
+.protective_pads
+	ccf
+	ret
+
 HasUserFainted::
 	ld a, [hBattleTurn]
 	and a
@@ -750,24 +927,63 @@ GetWeatherAfterCloudNine::
 ; Returns 0 if a cloud nine user is on the field,
 ; [Weather] otherwise.
 	ld a, [PlayerAbility]
-	cp CLOUD_NINE
-	jr z, .suppress
+	xor CLOUD_NINE
+	ret z
 	ld a, [EnemyAbility]
-	cp CLOUD_NINE
-	jr z, .suppress
+	xor CLOUD_NINE
+	ret z
 	ld a, [Weather]
 	ret
-.suppress
-	xor a
+
+CheckSpeedWithQuickClaw::
+	; Quick Claw has a chance to override speed
+	ld a, [hBattleTurn]
+	ld e, a
+	ld d, 0
+	push de
+	call SetPlayerTurn
+	call CheckSpeed
+	call nz, SetEnemyTurn
+	pop de
+	call .do_it
+	call SwitchTurn
+	call .do_it
+	ld a, e
+	ld [hBattleTurn], a
+	ld a, d ; +1: player, -1: enemy, 0: both/neither
+	and a
+	jr z, CheckSpeed
+	dec a
+	ret
+.do_it
+	push de
+	farcall GetUserItemAfterUnnerve
+	pop de
+	ld a, b
+	cp HELD_QUICK_CLAW
+	ret nz
+	ld a, 100
+	call BattleRandomRange
+	cp c
+	ret nc
+	push de
+	farcall ItemRecoveryAnim
+	farcall GetUserItemAfterUnnerve
+	ld a, [hl]
+	ld [wNamedObjectIndexBuffer], a
+	call GetItemName
+	ld hl, BattleText_UserItemLetItMoveFirst
+	call StdBattleTextBox
+	pop de
+	inc d
+	ld a, [hBattleTurn]
+	and a
+	ret z
+	dec d
+	dec d
 	ret
 
 CheckSpeed::
-; Quick Claw only applies for moves
-	ld d, 0
-	jr CheckSpeedInner
-CheckSpeedWithQuickClaw::
-	ld d, 1
-CheckSpeedInner:
 ; Compares speed stat, applying items (usually, see above) and
 ; stat changes. and see who ends up on top. Returns z if the player
 ; outspeeds, otherwise nz, randomly on tie (which also sets carry)
@@ -794,8 +1010,8 @@ CheckSpeedInner:
 	jr c, .player_first
 	jr nz, .enemy_first
 	; Speed is equal, so randomize. Account for linking.
-	ld a, [hLinkPlayerNumber]
-	cp 2
+	ld a, [hSerialConnectionStatus]
+	cp USING_INTERNAL_CLOCK
 	ld b, 0
 	jr z, .secondary_player
 	ld b, 1

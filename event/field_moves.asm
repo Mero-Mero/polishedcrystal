@@ -7,8 +7,7 @@ BlindingFlash:: ; 8c7e1
 	ld b, SCGB_MAPPALS
 	call GetSGBLayout
 	farcall LoadBlindingFlashPalette
-	farcall FadeInPalettes
-	ret
+	farjp FadeInPalettes
 ; 8c80a
 
 ShakeHeadbuttTree: ; 8c80a
@@ -64,8 +63,7 @@ ShakeHeadbuttTree: ; 8c80a
 	ld hl, VTiles1
 	lb bc, BANK(FontNormal), 12
 	call Get1bpp
-	call ReplaceKrisSprite
-	ret
+	jp ReplaceKrisSprite
 ; 8c893
 
 HeadbuttTreeGFX: ; 8c893
@@ -120,16 +118,13 @@ OWCutAnimation: ; 8c940
 .loop
 	ld a, [wJumptableIndex]
 	bit 7, a
-	jr nz, .finish
+	ret nz
 	ld a, 36 * 4
 	ld [wCurrSpriteOAMAddr], a
 	farcall DoNextFrameForAllSprites
 	call OWCutJumptable
 	call DelayFrame
 	jr .loop
-
-.finish
-	ret
 ; 8c96d
 
 .LoadCutGFX: ; 8c96d
@@ -385,9 +380,6 @@ FlyToAnim: ; 8cb33
 .exit
 	pop af
 	ld [VramState], a
-	jp .RestorePlayerSprite_DespawnLeaves
-
-.RestorePlayerSprite_DespawnLeaves: ; 8cb82 (23:4b82)
 	ld hl, Sprites + 2 ; Tile ID
 	xor a
 	ld c, $4

@@ -1,35 +1,68 @@
-const_value set 2
-	const ROUTE32_FISHER1
-	const ROUTE32_FISHER2
-	const ROUTE32_FISHER3
-	const ROUTE32_YOUNGSTER1
-	const ROUTE32_YOUNGSTER2
-	const ROUTE32_YOUNGSTER3
-	const ROUTE32_LASS1
-	const ROUTE32_COOLTRAINER_M
-	const ROUTE32_YOUNGSTER4
-	const ROUTE32_FISHER4
-	const ROUTE32_POKE_BALL1
-	const ROUTE32_FISHER5
-	const ROUTE32_FRIEDA
-	const ROUTE32_POKE_BALL2
-	const ROUTE32_CUT_TREE
-
 Route32_MapScriptHeader:
-.MapTriggers:
-	db 0
 
-.MapCallbacks:
-	db 3
-	dbw MAPCALLBACK_NEWMAP, .FlyPoint
-	dbw MAPCALLBACK_OBJECTS, .Frieda
-	dbw MAPCALLBACK_SPRITES, .SwimmerGuySprite
+.MapTriggers: db 0
 
-.FlyPoint:
+.MapCallbacks: db 3
+	dbw MAPCALLBACK_NEWMAP, Route32FlyPoint
+	dbw MAPCALLBACK_OBJECTS, Route32Frieda
+	dbw MAPCALLBACK_SPRITES, Route32SwimmerGuySprite
+
+Route32_MapEventHeader:
+
+.Warps: db 5
+	warp_def 73, 11, 1, ROUTE_32_POKECENTER_1F
+	warp_def 2, 4, 3, ROUTE_32_RUINS_OF_ALPH_GATE
+	warp_def 3, 4, 4, ROUTE_32_RUINS_OF_ALPH_GATE
+	warp_def 79, 6, 4, UNION_CAVE_1F
+	warp_def 24, 4, 1, HIDDEN_TREE_GROTTO
+
+.XYTriggers: db 6
+	xy_trigger 0, 8, 18, Route32CooltrainerMStopsYou
+	xy_trigger 1, 24, 10, Route32LyraIntroducesHiddenGrottoes1
+	xy_trigger 1, 24, 11, Route32LyraIntroducesHiddenGrottoes2
+	xy_trigger 1, 24, 12, Route32LyraIntroducesHiddenGrottoes3
+	xy_trigger 1, 24, 13, Route32LyraIntroducesHiddenGrottoes4
+	xy_trigger 2, 71, 7, Route32WannaBuyASlowpokeTailScript
+
+.Signposts: db 7
+	signpost  5, 13, SIGNPOST_JUMPTEXT, Route32SignText
+	signpost  1,  9, SIGNPOST_JUMPTEXT, Route32RuinsSignText
+	signpost 84, 10, SIGNPOST_JUMPTEXT, Route32UnionCaveSignText
+	signpost 67, 12, SIGNPOST_ITEM + GREAT_BALL, EVENT_ROUTE_32_HIDDEN_GREAT_BALL
+	signpost 40, 11, SIGNPOST_ITEM + SUPER_POTION, EVENT_ROUTE_32_HIDDEN_SUPER_POTION
+	signpost 23, 4, SIGNPOST_JUMPSTD, treegrotto, HIDDENGROTTO_ROUTE_32
+	signpost 23, 5, SIGNPOST_JUMPSTD, treegrotto, HIDDENGROTTO_ROUTE_32
+
+.PersonEvents: db 17
+	person_event SPRITE_COOLTRAINER_M, 8, 19, SPRITEMOVEDATA_STANDING_LEFT, 0, 0, -1, -1, (1 << 3) | PAL_OW_RED, PERSONTYPE_SCRIPT, 0, Route32CooltrainermPetrieScript, -1
+	person_event SPRITE_FISHER, 70, 7, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, -1, 0, PERSONTYPE_SCRIPT, 0, SlowpokeTailSalesmanScript, EVENT_SLOWPOKE_WELL_ROCKETS
+	person_event SPRITE_NEW_BARK_LYRA, 67, 12, SPRITEMOVEDATA_STANDING_LEFT, 0, 0, -1, -1, 0, PERSONTYPE_SCRIPT, 0, FriedaScript, EVENT_ROUTE_32_FRIEDA_OF_FRIDAY
+	person_event SPRITE_NEW_BARK_LYRA, 33, 12, SPRITEMOVEDATA_STANDING_LEFT, 0, 0, -1, -1, (1 << 3) | PAL_OW_GREEN, PERSONTYPE_TRAINER, 1, TrainerPicnickerLiz1, -1
+	person_event SPRITE_FISHER, 49, 8, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, -1, (1 << 3) | PAL_OW_GREEN, PERSONTYPE_TRAINER, 1, TrainerFisherJustin, -1
+	person_event SPRITE_FISHER, 56, 12, SPRITEMOVEDATA_STANDING_UP, 0, 0, -1, -1, (1 << 3) | PAL_OW_GREEN, PERSONTYPE_TRAINER, 3, TrainerFisherRalph1, -1
+	person_event SPRITE_FISHER, 48, 6, SPRITEMOVEDATA_STANDING_LEFT, 0, 0, -1, -1, (1 << 3) | PAL_OW_GREEN, PERSONTYPE_TRAINER, 1, TrainerFisherHenry, -1
+	person_event SPRITE_YOUNGSTER, 18, 16, SPRITEMOVEDATA_STANDING_RIGHT, 0, 0, -1, -1, (1 << 3) | PAL_OW_BLUE, PERSONTYPE_TRAINER, 3, TrainerYoungsterAlbert, -1
+	person_event SPRITE_YOUNGSTER, 63, 4, SPRITEMOVEDATA_SPINRANDOM_FAST, 0, 0, -1, -1, (1 << 3) | PAL_OW_BLUE, PERSONTYPE_TRAINER, 3, TrainerYoungsterGordon, -1
+	person_event SPRITE_YOUNGSTER, 45, 3, SPRITEMOVEDATA_STANDING_UP, 0, 0, -1, -1, (1 << 3) | PAL_OW_GREEN, PERSONTYPE_TRAINER, 3, TrainerCamperRoland, -1
+	person_event SPRITE_YOUNGSTER, 82, 11, SPRITEMOVEDATA_STANDING_UP, 0, 0, -1, -1, (1 << 3) | PAL_OW_BLUE, PERSONTYPE_TRAINER, 3, TrainerBird_keeperPeter, -1
+	itemball_event 53, 6, GREAT_BALL, 1, EVENT_ROUTE_32_GREAT_BALL
+	person_event SPRITE_FISHER, 13, 15, SPRITEMOVEDATA_STANDING_RIGHT, 0, 0, -1, -1, 0, PERSONTYPE_SCRIPT, 0, Route32RoarTMGuyScript, -1
+	itemball_event 32, 6, REPEL, 1, EVENT_ROUTE_32_REPEL
+	cuttree_event 19, 10, EVENT_ROUTE_32_CUT_TREE
+	cuttree_event 29, -1, EVENT_MAGNET_TUNNEL_EAST_CUT_TREE
+	cuttree_event 32, 23, EVENT_CHERRYGROVE_BAY_CUT_TREE
+
+const_value set 1
+	const ROUTE32_COOLTRAINER_M
+	const ROUTE32_FISHER4
+	const ROUTE32_FRIEDA
+	const ROUTE32_LASS
+
+Route32FlyPoint:
 	setflag ENGINE_FLYPOINT_UNION_CAVE
 	return
 
-.Frieda:
+Route32Frieda:
 	checkcode VAR_WEEKDAY
 	if_equal FRIDAY, .FriedaAppears
 	disappear ROUTE32_FRIEDA
@@ -39,41 +72,41 @@ Route32_MapScriptHeader:
 	appear ROUTE32_FRIEDA
 	return
 
-.SwimmerGuySprite:
+Route32SwimmerGuySprite:
 	variablesprite SPRITE_GUIDE_GENT, SPRITE_SWIMMER_GUY
 	return
 
-Route32CooltrainerMScript:
+Route32CooltrainermPetrieScript:
 	faceplayer
 Route32CooltrainerMTrigger:
-	opentext
 	checkflag ENGINE_ZEPHYRBADGE
-	iffalse .DontHaveZephyrBadge
+	iffalse_jumptext Route32CooltrainerMText_VioletGym
 	checkevent EVENT_GOT_TOGEPI_EGG_FROM_ELMS_AIDE
-	iffalse .AideIsWaiting
+	iffalse_jumptext Route32CooltrainerMText_AideIsWaiting
 	checkevent EVENT_GOT_MIRACLE_SEED_FROM_ROUTE_32_LEADER
-	iftrue .GotMiracleSeed
+	iftrue_jumptext .AfterText2
 	checkevent EVENT_BEAT_COOLTRAINERM_PETRIE
 	iftrue .Beaten
 	checkevent EVENT_BEAT_CAMPER_ROLAND
-	iffalse .RouteNotCleared
+	iffalse_jumptext .IntroText
 	checkevent EVENT_BEAT_FISHER_JUSTIN
-	iffalse .RouteNotCleared
+	iffalse_jumptext .IntroText
 	checkevent EVENT_BEAT_FISHER_RALPH
-	iffalse .RouteNotCleared
+	iffalse_jumptext .IntroText
 	checkevent EVENT_BEAT_FISHER_HENRY
-	iffalse .RouteNotCleared
+	iffalse_jumptext .IntroText
 	checkevent EVENT_BEAT_PICNICKER_LIZ
-	iffalse .RouteNotCleared
+	iffalse_jumptext .IntroText
 	checkevent EVENT_BEAT_YOUNGSTER_ALBERT
-	iffalse .RouteNotCleared
+	iffalse_jumptext .IntroText
 	checkevent EVENT_BEAT_YOUNGSTER_GORDON
-	iffalse .RouteNotCleared
+	iffalse_jumptext .IntroText
 	checkevent EVENT_BEAT_BIRD_KEEPER_PETER
-	iffalse .RouteNotCleared
+	iffalse_jumptext .IntroText
+	opentext
 	writetext .QuestionText
 	yesorno
-	iffalse .NoBattle
+	iffalse_jumpopenedtext .RefusedText
 	writetext .SeenText
 	waitbutton
 	closetext
@@ -83,43 +116,23 @@ Route32CooltrainerMTrigger:
 	startbattle
 	reloadmapafterbattle
 	setevent EVENT_BEAT_COOLTRAINERM_PETRIE
-	opentext
 .Beaten:
+	opentext
 	writetext .AfterText1
 	buttonsound
 	verbosegiveitem MIRACLE_SEED
-	iffalse .Done
+	iffalse_endtext
 	setevent EVENT_GOT_MIRACLE_SEED_FROM_ROUTE_32_LEADER
 .GotMiracleSeed:
-	writetext .AfterText2
-	waitbutton
-.Done:
-	closetext
-	end
+	thisopenedtext
 
-.AideIsWaiting
-	writetext Route32CooltrainerMText_AideIsWaiting
-	waitbutton
-	closetext
-	end
+.AfterText2:
+	text "Your experiences"
+	line "in Violet City"
 
-.DontHaveZephyrBadge:
-	writetext Route32CooltrainerMText_VioletGym
-	waitbutton
-	closetext
-	end
-
-.RouteNotCleared:
-	writetext .IntroText
-	waitbutton
-	closetext
-	end
-
-.NoBattle:
-	writetext .RefusedText
-	waitbutton
-	closetext
-	end
+	para "should be useful"
+	line "for your journey."
+	done
 
 .IntroText:
 	text "You have some good"
@@ -192,29 +205,243 @@ Route32CooltrainerMTrigger:
 	cont "type moves."
 	done
 
-.AfterText2:
-	text "Your experiences"
-	line "in Violet City"
-
-	para "should be useful"
-	line "for your journey."
-	done
-
 Route32CooltrainerMStopsYou:
 	spriteface ROUTE32_COOLTRAINER_M, LEFT
 	spriteface PLAYER, RIGHT
-	opentext
-	writetext Route32CooltrainerMText_WhatsTheHurry
-	waitbutton
-	closetext
+	showtext Route32CooltrainerMText_WhatsTheHurry
 	follow PLAYER, ROUTE32_COOLTRAINER_M
 	applymovement PLAYER, Movement_Route32CooltrainerMPushesYouBackToViolet
 	stopfollow
 	spriteface PLAYER, DOWN
 	scall Route32CooltrainerMTrigger
-	applymovement ROUTE32_COOLTRAINER_M, Movement_Route32CooltrainerMReset1
-	applymovement ROUTE32_COOLTRAINER_M, Movement_Route32CooltrainerMReset2
+	applymovement ROUTE32_COOLTRAINER_M, Movement_Route32CooltrainerMReset
+	spriteface ROUTE32_COOLTRAINER_M, LEFT
 	end
+
+Route32LyraIntroducesHiddenGrottoes1:
+	scall Route32LyraIntroducesHiddenGrottoesIntroScript
+	applymovement ROUTE32_FRIEDA, Route32LyraIntroducesHiddenGrottoes_Left3
+	scall Route32LyraIntroducesHiddenGrottoesMainScript
+	applymovement ROUTE32_FRIEDA, Route32LyraIntroducesHiddenGrottoes_Left5
+	jump Route32LyraIntroducesHiddenGrottoesOutroScript
+
+Route32LyraIntroducesHiddenGrottoes2:
+	scall Route32LyraIntroducesHiddenGrottoesIntroScript
+	applymovement ROUTE32_FRIEDA, Route32LyraIntroducesHiddenGrottoes_Left2
+	scall Route32LyraIntroducesHiddenGrottoesMainScript
+	applymovement ROUTE32_FRIEDA, Route32LyraIntroducesHiddenGrottoes_Left6
+	jump Route32LyraIntroducesHiddenGrottoesOutroScript
+
+Route32LyraIntroducesHiddenGrottoes3:
+	scall Route32LyraIntroducesHiddenGrottoesIntroScript
+	applymovement ROUTE32_FRIEDA, Route32LyraIntroducesHiddenGrottoes_Left1
+	scall Route32LyraIntroducesHiddenGrottoesMainScript
+	applymovement ROUTE32_FRIEDA, Route32LyraIntroducesHiddenGrottoes_Left7
+	jump Route32LyraIntroducesHiddenGrottoesOutroScript
+
+Route32LyraIntroducesHiddenGrottoes4:
+	scall Route32LyraIntroducesHiddenGrottoesIntroScript
+	scall Route32LyraIntroducesHiddenGrottoesMainScript
+	applymovement ROUTE32_FRIEDA, Route32LyraIntroducesHiddenGrottoes_Left8
+	jump Route32LyraIntroducesHiddenGrottoesOutroScript
+
+Route32LyraIntroducesHiddenGrottoes_Left8:
+	step_left
+Route32LyraIntroducesHiddenGrottoes_Left7:
+	step_left
+Route32LyraIntroducesHiddenGrottoes_Left6:
+	step_left
+Route32LyraIntroducesHiddenGrottoes_Left5:
+	step_left
+	step_left
+Route32LyraIntroducesHiddenGrottoes_Left3:
+	step_left
+Route32LyraIntroducesHiddenGrottoes_Left2:
+	step_left
+Route32LyraIntroducesHiddenGrottoes_Left1:
+	step_left
+	step_end
+
+Route32LyraIntroducesHiddenGrottoesIntroScript:
+	disappear ROUTE32_FRIEDA
+	variablesprite SPRITE_NEW_BARK_LYRA, SPRITE_LYRA
+	special MapCallbackSprites_LoadUsedSpritesGFX
+	moveperson ROUTE32_FRIEDA, 13, 29
+	appear ROUTE32_FRIEDA
+	applymovement ROUTE32_FRIEDA, .StepUpMovement
+	showemote EMOTE_SHOCK, ROUTE32_FRIEDA, 15
+	special Special_FadeOutMusic
+	pause 15
+	applymovement ROUTE32_FRIEDA, .StepUpMovement
+	end
+
+.StepUpMovement:
+	step_up
+	step_up
+	step_end
+
+Route32LyraIntroducesHiddenGrottoesMainScript:
+	spriteface ROUTE32_FRIEDA, UP
+	playmusic MUSIC_LYRA_ENCOUNTER_HGSS
+	opentext
+	writetext .GreetingText
+	buttonsound
+	checkpoke EGG
+	iftrue .HaveEgg
+	writetext .NoEggText
+	jump .Continue
+.HaveEgg
+	writetext .HaveEggText
+.Continue
+	waitbutton
+	closetext
+	playsound SFX_SANDSTORM
+	waitsfx
+	showemote EMOTE_SHOCK, ROUTE32_FRIEDA, 15
+	applymovement ROUTE32_FRIEDA, .LookAroundMovement
+	showtext .QuestionText
+	disappear ROUTE32_LASS
+	follow ROUTE32_FRIEDA, PLAYER
+	end
+
+.GreetingText:
+	text "<PLAYER>!"
+	line "Hi there!"
+	done
+
+.NoEggText:
+	text "Prof.Elm said his"
+	line "aide was deliver-"
+	cont "ing an Egg to you."
+
+	para "Be sure to carry"
+	line "it. I'm curious"
+
+	para "what #mon it"
+	line "could be!"
+	done
+
+.HaveEggText:
+	text "Oh good! You're"
+	line "carrying that Egg"
+
+	para "just like Prof."
+	line "Elm asked."
+
+	para "I'm so curious"
+	line "what #mon it"
+	cont "could be!"
+	done
+
+.QuestionText:
+	text "<PLAYER>, did you"
+	line "hear that?"
+
+	para "It came from some-"
+	line "where nearby…"
+	done
+
+.LookAroundMovement:
+	turn_head_right
+	step_sleep_8
+	step_sleep_8
+	step_sleep_8
+	turn_head_left
+	step_sleep_8
+	step_sleep_8
+	step_sleep_8
+	turn_head_up
+	step_end
+
+Route32LyraIntroducesHiddenGrottoesOutroScript:
+	stopfollow
+	spriteface ROUTE32_FRIEDA, UP
+	showemote EMOTE_SHOCK, ROUTE32_FRIEDA, 15
+	pause 7
+	follow ROUTE32_FRIEDA, PLAYER
+	applyonemovement ROUTE32_FRIEDA, slow_step_up
+	stopfollow
+	spriteface PLAYER, UP
+	pause 15
+	spriteface ROUTE32_FRIEDA, DOWN
+	showtext .GrottoText
+	applymovement ROUTE32_FRIEDA, .LeaveMovement1
+	spriteface PLAYER, DOWN
+	applymovement ROUTE32_FRIEDA, .LeaveMovement2
+	disappear ROUTE32_FRIEDA
+	variablesprite SPRITE_NEW_BARK_LYRA, SPRITE_LASS
+	special MapCallbackSprites_LoadUsedSpritesGFX
+	moveperson ROUTE32_FRIEDA, 12, 67
+	checkcode VAR_WEEKDAY
+	if_not_equal FRIDAY, .Done
+	appear ROUTE32_FRIEDA
+.Done
+	appear ROUTE32_LASS
+	dotrigger $2
+	playmusic MUSIC_ROUTE_30
+	end
+
+.GrottoText:
+	text "Here it is!"
+	line "There's a gap in"
+	cont "the trees!"
+
+	para "I've heard of these"
+	line "places before."
+
+	para "It's a Hidden"
+	line "Grotto!"
+
+	para "Hidden Grottoes"
+	line "are found among"
+	cont "trees and cliff-"
+	cont "sides."
+
+	para "Some amazing #-"
+	line "mon might be"
+	cont "hiding in there!"
+
+	para "I wish I had time"
+	line "to look around,"
+
+	para "but I have things"
+	line "to do."
+
+	para "<PLAYER>, keep an"
+	line "eye out for more"
+	cont "Hidden Grottoes!"
+	done
+
+.LeaveMovement1:
+	step_left
+	step_down
+	step_end
+
+.LeaveMovement2:
+	step_down
+	step_down
+	step_down
+	step_down
+	step_down
+	step_end
+
+Route32WannaBuyASlowpokeTailScript:
+	spriteface ROUTE32_FISHER4, DOWN
+	spriteface PLAYER, UP
+	jump _OfferToSellSlowpokeTail
+
+SlowpokeTailSalesmanScript:
+	faceplayer
+_OfferToSellSlowpokeTail:
+	dotrigger $3
+	opentext
+	writetext Text_MillionDollarSlowpokeTail
+	yesorno
+	iffalse .refused
+	jumpopenedtext Text_ThoughtKidsWereLoaded
+
+.refused
+	jumpopenedtext Text_RefusedToBuySlowpokeTail
 
 Route32RoarTMGuyScript:
 	faceplayer
@@ -226,63 +453,27 @@ Route32RoarTMGuyScript:
 	verbosegivetmhm TM_ROAR
 	setevent EVENT_GOT_TM05_ROAR
 .AlreadyHaveRoar:
-	writetext Text_RoarOutro
-	waitbutton
-	closetext
-	end
-
-Route32WannaBuyASlowpokeTailScript:
-	spriteface ROUTE32_FISHER4, DOWN
-	spriteface PLAYER, UP
-	jump _OfferToSellSlowpokeTail
-
-SlowpokeTailSalesmanScript:
-	faceplayer
-_OfferToSellSlowpokeTail:
-	dotrigger $2
-	opentext
-	writetext Text_MillionDollarSlowpokeTail
-	yesorno
-	iffalse .refused
-	writetext Text_ThoughtKidsWereLoaded
-	waitbutton
-	closetext
-	end
-
-.refused
-	writetext Text_RefusedToBuySlowpokeTail
-	waitbutton
-	closetext
-	end
+	jumpopenedtext Text_RoarOutro
 
 TrainerCamperRoland:
 	trainer EVENT_BEAT_CAMPER_ROLAND, CAMPER, ROLAND, CamperRolandSeenText, CamperRolandBeatenText, 0, .Script
 
 .Script:
 	end_if_just_battled
-	opentext
-	writetext CamperRolandAfterText
-	waitbutton
-	closetext
-	end
+	jumptextfaceplayer CamperRolandAfterText
 
 TrainerFisherJustin:
 	trainer EVENT_BEAT_FISHER_JUSTIN, FISHER, JUSTIN, FisherJustinSeenText, FisherJustinBeatenText, 0, .Script
 
 .Script:
 	end_if_just_battled
-	opentext
-	writetext FisherJustinAfterText
-	waitbutton
-	closetext
-	end
+	jumptextfaceplayer FisherJustinAfterText
 
 TrainerFisherRalph1:
 	trainer EVENT_BEAT_FISHER_RALPH, FISHER, RALPH1, FisherRalph1SeenText, FisherRalph1BeatenText, 0, .Script
 
 .Script:
 	writecode VAR_CALLERID, PHONE_FISHER_RALPH
-	end_if_just_battled
 	opentext
 	checkflag ENGINE_RALPH
 	iftrue .Rematch
@@ -369,10 +560,7 @@ TrainerFisherRalph1:
 	end
 
 .Swarm:
-	writetext FisherRalphSwarmText
-	waitbutton
-	closetext
-	end
+	jumpopenedtext FisherRalphSwarmText
 
 .AskNumber1:
 	jumpstd asknumber1m
@@ -407,18 +595,13 @@ TrainerFisherHenry:
 
 .Script:
 	end_if_just_battled
-	opentext
-	writetext FisherHenryAfterText
-	waitbutton
-	closetext
-	end
+	jumptextfaceplayer FisherHenryAfterText
 
 TrainerPicnickerLiz1:
 	trainer EVENT_BEAT_PICNICKER_LIZ, PICNICKER, LIZ1, PicnickerLiz1SeenText, PicnickerLiz1BeatenText, 0, .Script
 
 .Script:
 	writecode VAR_CALLERID, PHONE_PICNICKER_LIZ
-	end_if_just_battled
 	opentext
 	checkflag ENGINE_LIZ
 	iftrue .Rematch
@@ -535,41 +718,29 @@ TrainerYoungsterAlbert:
 
 .Script:
 	end_if_just_battled
-	opentext
-	writetext YoungsterAlbertAfterText
-	waitbutton
-	closetext
-	end
+	jumptextfaceplayer YoungsterAlbertAfterText
 
 TrainerYoungsterGordon:
 	trainer EVENT_BEAT_YOUNGSTER_GORDON, YOUNGSTER, GORDON, YoungsterGordonSeenText, YoungsterGordonBeatenText, 0, .Script
 
 .Script:
 	end_if_just_battled
-	opentext
-	writetext YoungsterGordonAfterText
-	waitbutton
-	closetext
-	end
+	jumptextfaceplayer YoungsterGordonAfterText
 
 TrainerBird_keeperPeter:
 	trainer EVENT_BEAT_BIRD_KEEPER_PETER, BIRD_KEEPER, PETER, Bird_keeperPeterSeenText, Bird_keeperPeterBeatenText, 0, .Script
 
 .Script:
 	end_if_just_battled
-	opentext
-	writetext Bird_keeperPeterAfterText
-	waitbutton
-	closetext
-	end
+	jumptextfaceplayer Bird_keeperPeterAfterText
 
 FriedaScript:
-	faceplayer
-	opentext
 	checkevent EVENT_GOT_POISON_BARB_FROM_FRIEDA
-	iftrue .Friday
+	iftrue_jumptextfaceplayer FriedaFridayText
 	checkcode VAR_WEEKDAY
 	if_not_equal FRIDAY, .NotFriday
+	faceplayer
+	opentext
 	checkevent EVENT_MET_FRIEDA_OF_FRIDAY
 	iftrue .MetFrieda
 	writetext MeetFriedaText
@@ -579,60 +750,20 @@ FriedaScript:
 	writetext FriedaGivesGiftText
 	buttonsound
 	verbosegiveitem POISON_BARB
-	iffalse .Done
+	iffalse_endtext
 	setevent EVENT_GOT_POISON_BARB_FROM_FRIEDA
-	writetext FriedaGaveGiftText
-	waitbutton
-	closetext
-	end
-
-.Friday:
-	writetext FriedaFridayText
-	waitbutton
-.Done:
-	closetext
-	end
+	jumpopenedtext FriedaGaveGiftText
 
 .NotFriday:
-	writetext FriedaNotFridayText
-	waitbutton
-	closetext
-	end
-
-Route32GreatBall:
-	itemball GREAT_BALL
-
-Route32Repel:
-	itemball REPEL
-
-Route32CutTree:
-	jumpstd cuttree
-
-Route32Sign:
-	jumptext Route32SignText
-
-Route32RuinsSign:
-	jumptext Route32RuinsSignText
-
-Route32UnionCaveSign:
-	jumptext Route32UnionCaveSignText
-
-Route32HiddenGreatBall:
-	dwb EVENT_ROUTE_32_HIDDEN_GREAT_BALL, GREAT_BALL
-
-Route32HiddenSuperPotion:
-	dwb EVENT_ROUTE_32_HIDDEN_SUPER_POTION, SUPER_POTION
+	jumptextfaceplayer FriedaNotFridayText
 
 Movement_Route32CooltrainerMPushesYouBackToViolet:
 	step_up
 	step_up
 	step_end
 
-Movement_Route32CooltrainerMReset1:
+Movement_Route32CooltrainerMReset:
 	step_down
-	step_end
-
-Movement_Route32CooltrainerMReset2:
 	step_right
 	step_end
 
@@ -676,7 +807,7 @@ Text_MillionDollarSlowpokeTail:
 	line "SlowpokeTail?"
 
 	para "For you right now,"
-	line "just ¥1,000,000!"
+	line "just ¥10,000,000!"
 
 	para "You'll want this!"
 	done
@@ -940,42 +1071,3 @@ Route32UnionCaveSignText:
 	text "Union Cave"
 	line "Ahead"
 	done
-
-Route32_MapEventHeader:
-.Warps:
-	db 4
-	warp_def $49, $b, 1, ROUTE_32_POKECENTER_1F
-	warp_def $2, $4, 3, ROUTE_32_RUINS_OF_ALPH_GATE
-	warp_def $3, $4, 4, ROUTE_32_RUINS_OF_ALPH_GATE
-	warp_def $4f, $6, 4, UNION_CAVE_1F
-
-.XYTriggers:
-	db 2
-	xy_trigger 0, $8, $12, Route32CooltrainerMStopsYou
-	xy_trigger 1, $47, $7, Route32WannaBuyASlowpokeTailScript
-
-.Signposts:
-	db 5
-	signpost  5, 13, SIGNPOST_READ, Route32Sign
-	signpost  1,  9, SIGNPOST_READ, Route32RuinsSign
-	signpost 84, 10, SIGNPOST_READ, Route32UnionCaveSign
-	signpost 67, 12, SIGNPOST_ITEM, Route32HiddenGreatBall
-	signpost 40, 11, SIGNPOST_ITEM, Route32HiddenSuperPotion
-
-.PersonEvents:
-	db 15
-	person_event SPRITE_FISHER, 49, 8, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, -1, (1 << 3) | PAL_OW_GREEN, PERSONTYPE_TRAINER, 1, TrainerFisherJustin, -1
-	person_event SPRITE_FISHER, 56, 12, SPRITEMOVEDATA_STANDING_UP, 0, 0, -1, -1, (1 << 3) | PAL_OW_GREEN, PERSONTYPE_TRAINER, 3, TrainerFisherRalph1, -1
-	person_event SPRITE_FISHER, 48, 6, SPRITEMOVEDATA_STANDING_LEFT, 0, 0, -1, -1, (1 << 3) | PAL_OW_GREEN, PERSONTYPE_TRAINER, 1, TrainerFisherHenry, -1
-	person_event SPRITE_YOUNGSTER, 22, 12, SPRITEMOVEDATA_STANDING_RIGHT, 0, 0, -1, -1, (1 << 3) | PAL_OW_BLUE, PERSONTYPE_TRAINER, 3, TrainerYoungsterAlbert, -1
-	person_event SPRITE_YOUNGSTER, 63, 4, SPRITEMOVEDATA_SPINRANDOM_FAST, 0, 0, -1, -1, (1 << 3) | PAL_OW_BLUE, PERSONTYPE_TRAINER, 3, TrainerYoungsterGordon, -1
-	person_event SPRITE_YOUNGSTER, 45, 3, SPRITEMOVEDATA_STANDING_UP, 0, 0, -1, -1, (1 << 3) | PAL_OW_GREEN, PERSONTYPE_TRAINER, 3, TrainerCamperRoland, -1
-	person_event SPRITE_NEW_BARK_LYRA, 30, 10, SPRITEMOVEDATA_STANDING_LEFT, 0, 0, -1, -1, (1 << 3) | PAL_OW_GREEN, PERSONTYPE_TRAINER, 1, TrainerPicnickerLiz1, -1
-	person_event SPRITE_COOLTRAINER_M, 8, 19, SPRITEMOVEDATA_STANDING_LEFT, 0, 0, -1, -1, (1 << 3) | PAL_OW_RED, PERSONTYPE_SCRIPT, 0, Route32CooltrainerMScript, -1
-	person_event SPRITE_YOUNGSTER, 82, 11, SPRITEMOVEDATA_STANDING_UP, 0, 0, -1, -1, (1 << 3) | PAL_OW_BLUE, PERSONTYPE_TRAINER, 3, TrainerBird_keeperPeter, -1
-	person_event SPRITE_FISHER, 70, 7, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, -1, 0, PERSONTYPE_SCRIPT, 0, SlowpokeTailSalesmanScript, EVENT_SLOWPOKE_WELL_ROCKETS
-	person_event SPRITE_BALL_CUT_FRUIT, 53, 6, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, -1, (1 << 3) | PAL_OW_RED, PERSONTYPE_ITEMBALL, 0, Route32GreatBall, EVENT_ROUTE_32_GREAT_BALL
-	person_event SPRITE_FISHER, 13, 15, SPRITEMOVEDATA_STANDING_RIGHT, 0, 0, -1, -1, 0, PERSONTYPE_SCRIPT, 0, Route32RoarTMGuyScript, -1
-	person_event SPRITE_NEW_BARK_LYRA, 67, 12, SPRITEMOVEDATA_STANDING_LEFT, 0, 0, -1, -1, 0, PERSONTYPE_SCRIPT, 0, FriedaScript, EVENT_ROUTE_32_FRIEDA_OF_FRIDAY
-	person_event SPRITE_BALL_CUT_FRUIT, 28, 3, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, -1, (1 << 3) | PAL_OW_RED, PERSONTYPE_ITEMBALL, 0, Route32Repel, EVENT_ROUTE_32_REPEL
-	person_event SPRITE_BALL_CUT_FRUIT, 19, 10, SPRITEMOVEDATA_CUTTABLE_TREE, 0, 0, -1, -1, 0, PERSONTYPE_SCRIPT, 0, Route32CutTree, EVENT_ROUTE_32_CUT_TREE

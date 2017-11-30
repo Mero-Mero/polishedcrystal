@@ -128,7 +128,7 @@ CheckForSurfingPikachu:
 
 FieldMovePokepicScript:
 	copybytetovar Buffer6
-	refreshscreen $0
+	refreshscreen
 	pokepic 0, 1
 	cry 0
 	waitsfx
@@ -257,8 +257,7 @@ Script_CutFromMenu: ; c7fe
 	closetext
 	scall FieldMovePokepicScript
 	callasm CutDownGrass
-	closetext
-	end
+	endtext
 
 GetBuffer6:
 	ld a, [Buffer6]
@@ -324,52 +323,63 @@ CheckOverworldTileArrays: ; c840
 
 CutGrassBlockPointers: ; c862
 ; Which tileset are we in?
-	dbw TILESET_JOHTO_1, .johto1
-	dbw TILESET_JOHTO_2, .johto2
-	dbw TILESET_BATTLE_TOWER_OUT, .battle_tower_out
-	dbw TILESET_KANTO_1, .kanto1
+	dbw TILESET_JOHTO_TRADITIONAL, .johto_traditional
+	dbw TILESET_JOHTO_MODERN, .johto_modern
+	dbw TILESET_JOHTO_OVERCAST, .johto_overcast
+	dbw TILESET_KANTO, .kanto
+	dbw TILESET_INDIGO_PLATEAU, .indigo_plateau
 	dbw TILESET_PARK, .park
 	dbw TILESET_FOREST, .forest
 	dbw TILESET_SAFARI_ZONE, .safari_zone
+	dbw TILESET_SHAMOUTI_ISLAND, .shamouti_island
+	dbw TILESET_VALENCIA_ISLAND, .valencia_island
 	dbw TILESET_FARAWAY_ISLAND, .faraway_island
-	dbw TILESET_KANTO_2, .kanto2
 	db -1
 
-.johto1 ; Johto OW
 ; Which meta tile are we facing, which should we replace it with, and which animation?
+
+.shamouti_island
+	db $95, $4c, $01
+.johto_traditional
+.johto_modern
+.johto_overcast
+.valencia_island
 	db $03, $02, $01
 	db -1
 
-.johto2 ; Goldenrod area
-	db $03, $02, $01
-	db -1
-
-.kanto1 ; Kanto OW
+.kanto
+	db $94, $0a, $01
+	db $95, $0a, $01
+	db $96, $0a, $01
+	db $97, $0a, $01
+	db $98, $0a, $01
+	db $99, $0a, $01
+	db $9c, $0a, $01
+	db $9d, $0a, $01
+	db $a0, $0a, $01
+	db $a1, $0a, $01
+.indigo_plateau
 	db $0b, $0a, $01
 	db -1
 
-.battle_tower_out ; outside Battle Tower
-	db $03, $02, $01
-	db -1
-
-.park ; National Park
-	db $13, $03, $01
+.park
 	db $03, $04, $01
+	db $13, $03, $01
 	db -1
 
-.forest ; Ilex Forest + Yellow Forest
-	db $2e, $01, $01
-	db $2f, $2c, $01
-	db $30, $0e, $01
-	db $31, $0c, $01
-	db $51, $01, $01
-	db $52, $09, $01
-	db $53, $11, $01
-	db -1
-
-.safari_zone ; Safari Zone
+.forest
 	db $03, $01, $01
-	db $07, $01, $01
+	db $07, $05, $01
+	db $13, $11, $01
+	db $17, $19, $01
+	db $3b, $37, $01
+	db $4b, $47, $01
+	db $57, $0b, $01
+	db -1
+
+.safari_zone
+	db $03, $01, $01
+	db $07, $03, $01
 	db $24, $20, $01
 	db $25, $21, $01
 	db $26, $22, $01
@@ -378,13 +388,14 @@ CutGrassBlockPointers: ; c862
 	db $29, $0a, $01
 	db $2a, $0a, $01
 	db $2b, $0a, $01
-	db $2c, $0a, $01
-	db $2d, $0a, $01
-	db $2e, $0a, $01
-	db $2f, $0a, $01
+	db $2c, $28, $01
+	db $2d, $29, $01
+	db $2e, $2a, $01
+	db $2f, $2b, $01
+	db $4b, $27, $01
 	db -1
 
-.faraway_island ; Faraway Island
+.faraway_island
 	db $03, $02, $01
 	db $08, $74, $01
 	db $09, $75, $01
@@ -396,33 +407,30 @@ CutGrassBlockPointers: ; c862
 	db $0f, $02, $01
 	db -1
 
-.kanto2 ; Route 23
-	db -1
-
 WhirlpoolBlockPointers: ; c8a4
-	dbw TILESET_JOHTO_1, .johto1
-	dbw TILESET_JOHTO_2, .johto2
+	dbw TILESET_JOHTO_TRADITIONAL, .johto_traditional
+	dbw TILESET_JOHTO_MODERN, .johto_modern
+	dbw TILESET_JOHTO_OVERCAST, .johto_overcast
 	db -1
 
-.johto1
-	db $07, $36, $00
-	db $9f, $31, $00
+.johto_traditional
+.johto_overcast
+	db $07, $07, $00
 	db -1
 
-.johto2
-	db $83, $36, $00
+.johto_modern
+	db $83, $83, $00
 	db -1
 
 Script_CutTree:
 	callasm PrepareOverworldMove
 	writetext Text_UsedCut
 	closetext
-	special WaitSFX
+	waitsfx
 	scall FieldMovePokepicScript
 	disappear -2
 	callasm CutDownTree
-	closetext
-	end
+	endtext
 
 CutDownTree:
 	xor a
@@ -476,8 +484,7 @@ Script_UseFlash: ; 0xc8e6
 	opentext
 	writetext UnknownText_0xc8f3
 	callasm BlindingFlash
-	closetext
-	end
+	endtext
 
 UnknownText_0xc8f3: ; 0xc8f3
 	text_jump UnknownText_0x1c0609
@@ -542,7 +549,7 @@ SurfFunction: ; c909
 
 .DoSurf: ; c95f (3:495f)
 	call GetSurfType
-	ld [Buffer2], a ; wd1eb (aliases: MovementType)
+	ld [Buffer2], a
 	call GetPartyNick
 	ld hl, SurfFromMenuScript
 	call QueueScript
@@ -656,7 +663,7 @@ TrySurfOW:: ; c9e7
 ; Must be facing water.
 	ld a, [EngineBuffer1]
 	call GetTileCollision
-	cp 1 ; surfable
+	cp WATERTILE ; surfable
 	jr nz, .quit
 
 ; Check tile permissions.
@@ -676,7 +683,7 @@ TrySurfOW:: ; c9e7
 	jr nz, .quit
 
 	call GetSurfType
-	ld [MovementType], a
+	ld [Buffer2], a
 	call GetPartyNick
 
 	ld a, BANK(AskSurfScript)
@@ -695,8 +702,7 @@ AskSurfScript: ; ca2c
 	writetext AskSurfText
 	yesorno
 	iftrue UsedSurfScript
-	closetext
-	end
+	endtext
 
 AskSurfText: ; ca36
 	text_jump _AskSurfText ; The water is calm.
@@ -756,13 +762,18 @@ FlyFunction: ; ca3b
 	call CheckFlyAllowedOnMap
 	jr nz, .indoors
 
-; assumes all the Shamouti Island and Valencia Island maps are in their own group
 	ld a, [MapGroup]
 	cp GROUP_SHAMOUTI_ISLAND
 	jr z, .indoors
 	cp GROUP_VALENCIA_ISLAND
 	jr z, .indoors
+	cp GROUP_SHAMOUTI_SHRINE_RUINS
+	jr nz, .outdoors
+	ld a, [MapNumber]
+	cp MAP_SHAMOUTI_SHRINE_RUINS
+	jr z, .indoors
 
+.outdoors
 	xor a
 	ld [hMapAnims], a
 	call LoadStandardMenuDataHeader
@@ -774,7 +785,7 @@ FlyFunction: ; ca3b
 	cp NUM_SPAWNS
 	jr nc, .illegal
 
-	ld [wd001], a
+	ld [DefaultSpawnpoint], a
 	call CloseWindow
 	ld a, $1
 	ret
@@ -822,7 +833,7 @@ FlyFunction: ; ca3b
 	end
 
 .ReturnFromFly: ; cacb
-	farcall Function561d
+	farcall ReturnFromFly_SpawnOnlyPlayer
 	call DelayFrame
 	call ReplaceKrisSprite
 	jp LoadStandardFont
@@ -853,11 +864,14 @@ WaterfallFunction: ; cade
 
 CheckMapCanWaterfall: ; cb07
 	ld a, [PlayerDirection]
-	and $c
+	and FACE_UP | FACE_DOWN
 	cp FACE_UP
 	jr nz, .failed
+	ld a, [TilePermissions]
+	and FACE_UP
+	jr nz, .failed
 	ld a, [TileUp]
-	call CheckWaterfallTile
+	cp COLL_WATERFALL
 	jr nz, .failed
 	xor a
 	ret
@@ -887,7 +901,7 @@ Script_UsedWaterfall: ; 0xcb20
 	xor a
 	ld [ScriptVar], a
 	ld a, [PlayerStandingTile]
-	call CheckWaterfallTile
+	cp COLL_WATERFALL
 	ret z
 	ld a, $1
 	ld [ScriptVar], a
@@ -937,8 +951,7 @@ Script_AskWaterfall: ; 0xcb86
 	writetext .AskUseWaterfall
 	yesorno
 	iftrue Script_UsedWaterfall
-	closetext
-	end
+	endtext
 
 .AskUseWaterfall: ; 0xcb90
 	; Do you want to use WATERFALL?
@@ -1105,7 +1118,7 @@ TeleportFunction: ; cc61
 	farcall IsSpawnPoint
 	jr nc, .nope
 	ld a, c
-	ld [wd001], a
+	ld [DefaultSpawnpoint], a
 	ld a, $1
 	ret
 
@@ -1209,8 +1222,7 @@ Script_UsedStrength: ; 0xcd2d
 	scall FieldMovePokepicScript
 	opentext
 	writetext .StrengthAllowedItToMoveBoulders
-	closetext
-	end
+	endtext
 
 .UsedStrength: ; 0xcd41
 	text_jump UnknownText_0x1c0774
@@ -1237,8 +1249,7 @@ AskStrengthScript:
 	writetext UnknownText_0xcd69
 	yesorno
 	iftrue Script_UsedStrength
-	closetext
-	end
+	endtext
 
 UnknownText_0xcd69: ; 0xcd69
 	; A #MON may be able to move this. Want to use STRENGTH?
@@ -1277,7 +1288,7 @@ TryStrengthOW: ; cd78
 
 .already_using
 	xor a
-	jr .done
+	; fallthrough
 
 .done
 	ld [ScriptVar], a
@@ -1334,10 +1345,8 @@ Text_UsedWhirlpool: ; 0xcdd9
 TryWhirlpoolMenu: ; cdde
 	call GetFacingTileCoord
 	ld c, a
-	push de
-	call CheckWhirlpoolTile
-	pop de
-	jr c, .failed
+	cp COLL_WHIRLPOOL
+	jr nz, .failed
 	call GetBlockLocation
 	ld c, [hl]
 	push hl
@@ -1445,8 +1454,7 @@ Script_AskWhirlpoolOW: ; 0xce6e
 	writetext UnknownText_0xce78
 	yesorno
 	iftrue Script_UsedWhirlpool
-	closetext
-	end
+	endtext
 
 UnknownText_0xce78: ; 0xce78
 	text_jump UnknownText_0x1c0864
@@ -1460,7 +1468,7 @@ HeadbuttFunction: ; ce7d
 
 TryHeadbuttFromMenu: ; ce86
 	call GetFacingTileCoord
-	call CheckHeadbuttTreeTile
+	cp COLL_HEADBUTT_TREE
 	jr nz, .no_tree
 
 	ld hl, HeadbuttFromMenuScript
@@ -1507,15 +1515,10 @@ HeadbuttScript: ; 0xceab
 	iffalse .no_item
 	opentext
 	verbosegiveitem ITEM_FROM_MEM
-	closetext
-	end
+	endtext
 
 .no_item
-	opentext
-	writetext UnknownText_0xcea2
-	waitbutton
-	closetext
-	end
+	jumptext UnknownText_0xcea2
 
 TryHeadbuttOW:: ; cec9
 	ld d, HEADBUTT
@@ -1537,8 +1540,7 @@ AskHeadbuttScript: ; 0xcedc
 	writetext UnknownText_0xcee6
 	yesorno
 	iftrue HeadbuttScript
-	closetext
-	end
+	endtext
 
 UnknownText_0xcee6: ; 0xcee6
 	; A #MON could be in this tree. Want to HEADBUTT it?
@@ -1598,7 +1600,7 @@ RockSmashScript: ; cf32
 	callasm PrepareOverworldMove
 	writetext UnknownText_0xcf58
 	closetext
-	special WaitSFX
+	waitsfx
 	scall FieldMovePokepicScript
 	playsound SFX_STRENGTH
 	earthquake 84
@@ -1638,8 +1640,7 @@ AskRockSmashScript: ; 0xcf5d
 	writetext UnknownText_0xcf77
 	yesorno
 	iftrue RockSmashScript
-	closetext
-	end
+	endtext
 .no
 	jumptext UnknownText_0xcf72
 
@@ -1656,13 +1657,9 @@ UnknownText_0xcf77: ; 0xcf77
 HasRockSmash: ; cf7c
 	ld d, ROCK_SMASH
 	call CheckPartyMove
-	jr nc, .yes
-.no
 	ld a, 1
-	jr .done
-.yes
+	jr c, .done
 	xor a
-	jr .done
 .done
 	ld [ScriptVar], a
 	ret
@@ -1714,10 +1711,27 @@ FishFunction: ; cf8e
 	ld d, a
 	ld a, [Buffer2]
 	ld e, a
+
+	; Suction Cups and Sticky Hold boost bite rate. This is done
+	; by having these abilities result in 2 attempts being made
+	; for getting an encounter.
+	call GetLeadAbility
+	cp SUCTION_CUPS
+	jr z, .fish_attempt1
+	cp STICKY_HOLD
+	jr nz, .fish_attempt2
+.fish_attempt1
+	push de
 	farcall Fish
 	ld a, d
 	and a
-	jr nz, .gotabite
+	jr nz, .gotabite1
+	pop de
+.fish_attempt2
+	farcall Fish
+	ld a, d
+	and a
+	jr nz, .gotabite2
 	ld a, e
 	and a
 	jr z, .nonibble
@@ -1727,7 +1741,13 @@ FishFunction: ; cf8e
 	ld a, $5
 	ret
 
-.gotabite
+.gotabite1
+	ld [TempWildMonSpecies], a
+	ld a, e
+	pop de
+	ld e, a
+	ld a, [TempWildMonSpecies]
+.gotabite2
 	ld [TempWildMonSpecies], a
 	ld a, e
 	ld [CurPartyLevel], a
@@ -1781,8 +1801,7 @@ Script_NotEvenANibble: ; 0xd01e
 	writetext UnknownText_0xd0a9
 	loademote EMOTE_SHADOW
 	callasm PutTheRodAway
-	closetext
-	end
+	endtext
 
 Script_GotAnItem:
 	scall Script_FishCastRod
@@ -1797,8 +1816,7 @@ Script_GotAnItem:
 	callasm PutTheRodAway
 	callasm CurItemToScriptVar
 	verbosegiveitem ITEM_FROM_MEM
-	closetext
-	end
+	endtext
 
 Script_GotABite: ; 0xd035
 	scall Script_FishCastRod
@@ -1876,8 +1894,7 @@ PutTheRodAway: ; d095
 	ld a, $1
 	ld [PlayerAction], a
 	call UpdateSprites
-	call ReplaceKrisSprite
-	ret
+	jp ReplaceKrisSprite
 
 CurItemToScriptVar:
 	ld a, [CurItem]
@@ -1904,7 +1921,7 @@ BikeFunction: ; d0b3
 	call .CheckEnvironment
 	jr c, .CannotUseBike
 	ld a, [PlayerState]
-	cp PLAYER_NORMAL
+	and a ; cp PLAYER_NORMAL
 	jr z, .GetOnBike
 	cp PLAYER_BIKE
 	jr z, .GetOffBike
@@ -1921,15 +1938,7 @@ BikeFunction: ; d0b3
 	call PlayMusic
 	call DelayFrame
 	call MaxVolume
-	ld de, MUSIC_BICYCLE
-	ld a, [MapGroup]
-	cp GROUP_ROUTE_18_WEST
-	jr nz, .not_route_18_west
-	ld a, [MapNumber]
-	cp MAP_ROUTE_18_WEST
-	jr z, .not_route_18_west
-	ld de, MUSIC_BICYCLE_XY
-.not_route_18_west
+	call GetBikeMusic
 	ld a, e
 	ld [wMapMusic], a
 	call PlayMusic
@@ -1979,13 +1988,40 @@ BikeFunction: ; d0b3
 
 .ok
 	call GetPlayerStandingTile
-	and $f ; can't use our bike in a wall or on water
+	and $f ; cp LANDTILE ; can't use our bike in a wall or on water
 	jr nz, .nope
 	xor a
 	ret
 
 .nope
 	scf
+	ret
+
+GetBikeMusic::
+	ld de, MUSIC_BICYCLE_XY
+	ld a, [MapGroup]
+	cp GROUP_ROUTE_17 ; GROUP_ROUTE_18_WEST
+	jr nz, .not_cycling_road
+	ld a, [MapNumber]
+	cp MAP_ROUTE_17
+	ret z
+	cp MAP_ROUTE_18_WEST
+	ret z
+	ld a, [MapGroup]
+.not_cycling_road
+	ld de, MUSIC_NONE
+	cp GROUP_QUIET_CAVE_1F ; GROUP_QUIET_CAVE_B1F, GROUP_QUIET_CAVE_B2F, GROUP_QUIET_CAVE_B3F
+	jr nz, .not_quiet_cave
+	cp MAP_QUIET_CAVE_1F
+	ret z
+	cp MAP_QUIET_CAVE_B1F
+	ret z
+	cp MAP_QUIET_CAVE_B2F
+	ret z
+	cp MAP_QUIET_CAVE_B3F
+	ret z
+.not_quiet_cave
+	ld de, MUSIC_BICYCLE
 	ret
 
 Script_GetOnBike: ; 0xd13e
@@ -2023,9 +2059,7 @@ Script_GetOffBike_Register: ; 0xd16b
 
 Script_CantGetOffBike: ; 0xd171
 	writetext .CantGetOffBikeText
-	waitbutton
-	closetext
-	end
+	waitendtext
 
 .CantGetOffBikeText: ; 0xd177
 	; You can't get off here!
@@ -2069,8 +2103,8 @@ AskCutTreeScript: ; 0xd1a9
 	writetext UnknownText_0xd1c8
 	yesorno
 	iftrue Script_CutTree
-	closetext
-	end
+	endtext
+
 .no ; 0xd1cd
 	jumptext UnknownText_0xd1d0
 

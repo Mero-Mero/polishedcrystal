@@ -38,8 +38,8 @@ _TimeOfDayPals:: ; 8c011
 	ld [TimeOfDayPal], a
 
 
-; save bg palette 8
-	ld hl, UnknBGPals + 7 palettes
+; save bg palette 7
+	ld hl, UnknBGPals palette 7
 
 ; save wram bank
 	ld a, [rSVBK]
@@ -69,8 +69,8 @@ _TimeOfDayPals:: ; 8c011
 	call GetSGBLayout
 
 
-; restore bg palette 8
-	ld hl, UnknOBPals - 1 ; last byte in UnknBGPals
+; restore bg palette 7
+	ld hl, UnknBGPals palette 7 + 1 palettes - 1 ; last byte in UnknBGPals
 
 ; save wram bank
 	ld a, [rSVBK]
@@ -112,8 +112,7 @@ _TimeOfDayPals:: ; 8c011
 _UpdateTimePals:: ; 8c070
 	ld c, $9 ; normal
 	call GetTimePalFade
-	call DmgToCgbTimePals
-	ret
+	jp DmgToCgbTimePals
 ; 8c079
 
 FadeInPalettes:: ; 8c079
@@ -174,7 +173,7 @@ FillWhiteBGColor: ; 8c0c1
 	ld e, a
 	ld a, [hli]
 	ld d, a
-	ld hl, UnknBGPals + 1 palettes
+	ld hl, UnknBGPals palette 1
 	ld c, 6
 .loop
 	ld a, e

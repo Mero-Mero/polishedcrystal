@@ -1,38 +1,58 @@
-const_value set 2
-	const ROCKYBEACH_SIGHTSEER_M
-	const ROCKYBEACH_BEAUTY
-	const ROCKYBEACH_SIGHTSEER_F
-	const ROCKYBEACH_AROMA_LADY
-	const ROCKYBEACH_BREEDER
-	const ROCKYBEACH_SWIMMER_M
-	const ROCKYBEACH_YOUNGSTER
-	const ROCKYBEACH_POKE_BALL1
-	const ROCKYBEACH_POKE_BALL2
-	const ROCKYBEACH_FISHER1
-	const ROCKYBEACH_FISHER2
-
 RockyBeach_MapScriptHeader:
-.MapTriggers:
-	db 0
 
-.MapCallbacks:
-	db 1
-	dbw MAPCALLBACK_OBJECTS, .RebattleBreeder
+.MapTriggers: db 0
 
-.RebattleBreeder:
+.MapCallbacks: db 1
+	dbw MAPCALLBACK_OBJECTS, RockyBeachRebattleBreeder
+
+RockyBeach_MapEventHeader:
+
+.Warps: db 3
+	warp_def 20, 25, 1, ROCKY_BEACH_HOUSE
+	warp_def 10, 29, 1, NOISY_FOREST
+	warp_def 11, 29, 2, NOISY_FOREST
+
+.XYTriggers: db 0
+
+.Signposts: db 2
+	signpost 24, 22, SIGNPOST_JUMPTEXT, RockyBeachSign1Text
+	signpost 10, 24, SIGNPOST_JUMPTEXT, RockyBeachSign2Text
+
+.PersonEvents: db 11
+	person_event SPRITE_SIGHTSEER_M, 21, 21, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, -1, (1 << 3) | PAL_OW_RED, PERSONTYPE_TRAINER, 3, TrainerSightseermBlaise, -1
+	person_event SPRITE_BEAUTY, 22, 11, SPRITEMOVEDATA_SPINRANDOM_SLOW, 0, 0, -1, -1, (1 << 3) | PAL_OW_BLUE, PERSONTYPE_TRAINER, 1, TrainerBeautyIoana, -1
+	person_event SPRITE_LADY, 21, 2, SPRITEMOVEDATA_STANDING_RIGHT, 0, 0, -1, -1, (1 << 3) | PAL_OW_BLUE, PERSONTYPE_TRAINER, 4, TrainerSightseerfKamila, -1
+	person_event SPRITE_LADY, 18, 15, SPRITEMOVEDATA_SPINCLOCKWISE, 0, 0, -1, -1, (1 << 3) | PAL_OW_RED, PERSONTYPE_TRAINER, 3, TrainerAromaLadyHeather, -1
+	person_event SPRITE_BREEDER, 13, 15, SPRITEMOVEDATA_STANDING_LEFT, 0, 0, -1, -1, (1 << 3) | PAL_OW_GREEN, PERSONTYPE_TRAINER, 4, TrainerBreederBrenda, -1
+	person_event SPRITE_SWIMMER_GUY, 7, 14, SPRITEMOVEDATA_SPINCOUNTERCLOCKWISE, 0, 0, -1, -1, (1 << 3) | PAL_OW_RED, PERSONTYPE_TRAINER, 2, TrainerSwimmermEzra, -1
+	person_event SPRITE_YOUNGSTER, 10, 23, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, -1, (1 << 3) | PAL_OW_BLUE, PERSONTYPE_GENERICTRAINER, 1, RockyBeachYoungsterScript, EVENT_NOISY_FOREST_PIKABLU
+	itemball_event 5, 21, FULL_HEAL, 1, EVENT_ROCKY_BEACH_FULL_HEAL
+	itemball_event 3, 32, PEARL_STRING, 1, EVENT_ROCKY_BEACH_PEARL_STRING
+	person_event SPRITE_FISHER, 32, 20, SPRITEMOVEDATA_SPINCLOCKWISE, 0, 0, -1, (1 << DAY), (1 << 3) | PAL_OW_BROWN, PERSONTYPE_COMMAND, jumptextfaceplayer, ShamoutiIslandFisherText, -1
+	person_event SPRITE_FISHER, 32, 23, SPRITEMOVEDATA_SPINCOUNTERCLOCKWISE, 0, 0, -1, (1 << DAY), (1 << 3) | PAL_OW_BROWN, PERSONTYPE_COMMAND, jumptextfaceplayer, ShamoutiIslandFisherText, -1
+
+RockyBeachRebattleBreeder:
 	clearevent EVENT_BEAT_BREEDER_BRENDA
 	return
+
+RockyBeachSign1Text:
+	text "Rocky Beach"
+	done
+
+RockyBeachSign2Text:
+	text "Noisy Forest"
+	line "Ahead"
+
+	para "Thru to"
+	line "Shrine Ruins"
+	done
 
 TrainerSightseermBlaise:
 	trainer EVENT_BEAT_SIGHTSEERM_BLAISE, SIGHTSEERM, BLAISE, .SeenText, .BeatenText, 0, .Script
 
 .Script:
 	end_if_just_battled
-	opentext
-	writetext .AfterText
-	waitbutton
-	closetext
-	end
+	jumptextfaceplayer .AfterText
 
 .SeenText:
 	text "Allons-y!"
@@ -53,11 +73,7 @@ TrainerBeautyIoana:
 
 .Script:
 	end_if_just_battled
-	opentext
-	writetext .AfterText
-	waitbutton
-	closetext
-	end
+	jumptextfaceplayer .AfterText
 
 .SeenText:
 	text "I come here every"
@@ -84,11 +100,7 @@ TrainerSightseerfKamila:
 
 .Script:
 	end_if_just_battled
-	opentext
-	writetext .AfterText
-	waitbutton
-	closetext
-	end
+	jumptextfaceplayer .AfterText
 
 .SeenText:
 	text "Alola!"
@@ -117,11 +129,7 @@ TrainerAromaLadyHeather:
 
 .Script:
 	end_if_just_battled
-	opentext
-	writetext .AfterText
-	waitbutton
-	closetext
-	end
+	jumptextfaceplayer .AfterText
 
 .SeenText:
 	text "A deep red flower"
@@ -154,11 +162,7 @@ TrainerBreederBrenda:
 
 .Script:
 	end_if_just_battled
-	opentext
-	writetext .AfterText
-	waitbutton
-	closetext
-	end
+	jumptextfaceplayer .AfterText
 
 .SeenText:
 	text "The key to good"
@@ -190,11 +194,7 @@ TrainerSwimmermEzra:
 
 .Script:
 	end_if_just_battled
-	opentext
-	writetext .AfterText
-	waitbutton
-	closetext
-	end
+	jumptextfaceplayer .AfterText
 
 .SeenText:
 	text "Have you ever won-"
@@ -218,17 +218,9 @@ TrainerSwimmermEzra:
 	done
 
 RockyBeachYoungsterScript:
-	trainer EVENT_TOLD_ABOUT_PIKABLU, 0, 0, .Text1, 0, 0, .Script
+	generictrainer EVENT_TOLD_ABOUT_PIKABLU, 0, 0, .Text1, 0
 
-.Script:
-	end_if_just_battled
-	opentext
-	writetext .Text1
-	waitbutton
-	closetext
-	end
-
-.Text1:
+.Text1
 	text "Oh, no. Oh, no…"
 
 	para "My Pikablu is"
@@ -244,56 +236,3 @@ RockyBeachYoungsterScript:
 	para "Oh, what should I"
 	line "do…?"
 	done
-
-RockyBeachFullHeal:
-	itemball FULL_HEAL
-
-RockyBeachPearlString:
-	itemball PEARL_STRING
-
-RockyBeachSignpost1:
-	jumptext .Text
-
-.Text:
-	text "Rocky Beach"
-	done
-
-RockyBeachSignpost2:
-	jumptext .Text
-
-.Text:
-	text "Noisy Forest"
-	line "Ahead"
-
-	para "Thru to"
-	line "Shrine Ruins"
-	done
-
-RockyBeach_MapEventHeader:
-.Warps:
-	db 3
-	warp_def $14, $19, 1, ROCKY_BEACH_HOUSE
-	warp_def $a, $1d, 1, NOISY_FOREST
-	warp_def $b, $1d, 2, NOISY_FOREST
-
-.XYTriggers:
-	db 0
-
-.Signposts:
-	db 2
-	signpost 24, 22, SIGNPOST_READ, RockyBeachSignpost1
-	signpost 10, 24, SIGNPOST_READ, RockyBeachSignpost2
-
-.PersonEvents:
-	db 11
-	person_event SPRITE_SIGHTSEER_M, 21, 21, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, -1, (1 << 3) | PAL_OW_RED, PERSONTYPE_TRAINER, 3, TrainerSightseermBlaise, -1
-	person_event SPRITE_BEAUTY, 22, 11, SPRITEMOVEDATA_SPINRANDOM_SLOW, 0, 0, -1, -1, (1 << 3) | PAL_OW_BLUE, PERSONTYPE_TRAINER, 1, TrainerBeautyIoana, -1
-	person_event SPRITE_LADY, 21, 2, SPRITEMOVEDATA_STANDING_RIGHT, 0, 0, -1, -1, (1 << 3) | PAL_OW_BLUE, PERSONTYPE_TRAINER, 4, TrainerSightseerfKamila, -1
-	person_event SPRITE_LADY, 18, 15, SPRITEMOVEDATA_SPINCLOCKWISE, 0, 0, -1, -1, (1 << 3) | PAL_OW_RED, PERSONTYPE_TRAINER, 3, TrainerAromaLadyHeather, -1
-	person_event SPRITE_BREEDER, 13, 15, SPRITEMOVEDATA_STANDING_LEFT, 0, 0, -1, -1, (1 << 3) | PAL_OW_GREEN, PERSONTYPE_TRAINER, 4, TrainerBreederBrenda, -1
-	person_event SPRITE_SWIMMER_GUY, 7, 14, SPRITEMOVEDATA_SPINCOUNTERCLOCKWISE, 0, 0, -1, -1, (1 << 3) | PAL_OW_RED, PERSONTYPE_TRAINER, 2, TrainerSwimmermEzra, -1
-	person_event SPRITE_YOUNGSTER, 10, 23, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, -1, (1 << 3) | PAL_OW_BLUE, PERSONTYPE_TRAINER, 1, RockyBeachYoungsterScript, EVENT_NOISY_FOREST_PIKABLU
-	person_event SPRITE_BALL_CUT_FRUIT, 5, 21, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, -1, (1 << 3) | PAL_OW_RED, PERSONTYPE_ITEMBALL, 0, RockyBeachFullHeal, EVENT_ROCKY_BEACH_FULL_HEAL
-	person_event SPRITE_BALL_CUT_FRUIT, 3, 32, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, -1, (1 << 3) | PAL_OW_RED, PERSONTYPE_ITEMBALL, 0, RockyBeachPearlString, EVENT_ROCKY_BEACH_PEARL_STRING
-	person_event SPRITE_FISHER, 32, 20, SPRITEMOVEDATA_SPINCLOCKWISE, 0, 0, -1, (1 << DAY), (1 << 3) | PAL_OW_BROWN, PERSONTYPE_SCRIPT, 0, ShamoutiIslandFisherScript, -1
-	person_event SPRITE_FISHER, 32, 23, SPRITEMOVEDATA_SPINCOUNTERCLOCKWISE, 0, 0, -1, (1 << DAY), (1 << 3) | PAL_OW_BROWN, PERSONTYPE_SCRIPT, 0, ShamoutiIslandFisherScript, -1

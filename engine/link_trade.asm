@@ -9,18 +9,15 @@ __LoadTradeScreenBorder: ; 16d421
 	jp Get2bpp
 ; 16d42e
 
-Function16d42e: ; 16d42e
-	ld hl, Tilemap_16d465
+LoadMobileLinkTradeFullscreenTilemap: ; 16d42e
+	ld hl, MobileLinkTradeFullscreenTilemap
 	decoord 0, 0
 	ld bc, SCREEN_WIDTH * SCREEN_HEIGHT
 	jp CopyBytes
 ; 16d43b
 
-Tilemap_16d465:
+MobileLinkTradeFullscreenTilemap:
 INCBIN "gfx/link_trade/16d465.tilemap"
-
-Tilemap_16d5cd:
-INCBIN "gfx/link_trade/16d5cd.tilemap"
 
 Tilemap_16d5f5:
 INCBIN "gfx/link_trade/16d5f5.tilemap"
@@ -125,11 +122,7 @@ LinkComms_LoadPleaseWaitTextboxBorderGFX: ; 16d69a
 ; 16d6a7
 
 Function16d6ae: ; 16d6ae
-	call Function16d42e
-	ld hl, Tilemap_16d5cd
-	decoord 0, 0
-	ld bc, 2 * SCREEN_WIDTH
-	call CopyBytes
+	call LoadMobileLinkTradeFullscreenTilemap
 	ld hl, Tilemap_16d5f5
 	decoord 0, 16
 	ld bc, 2 * SCREEN_WIDTH
@@ -143,10 +136,9 @@ LinkTextbox: ; 16d6ca
 Function16d6ce: ; 16d6ce
 	call LoadStandardMenuDataHeader
 	call Function16d6e1
-	farcall WaitLinkTransfer
+	farcall Serial_SyncAndExchangeNybble
 	call Call_ExitMenu
-	call WaitBGMap2
-	ret
+	jp WaitBGMap2
 ; 16d6e1
 
 Function16d6e1: ; 16d6e1
@@ -167,11 +159,13 @@ Function16d6e1: ; 16d6e1
 ; 16d70c
 
 LinkTradeMenu: ; 16d70c
-	call .MenuAction
-	call .GetJoypad
-	ret
-; 16d713
-
+	ld hl, w2DMenuFlags2
+	res 7, [hl]
+	ld a, [hBGMapMode]
+	push af
+	call .loop
+	pop af
+	ld [hBGMapMode], a
 .GetJoypad: ; 16d713
 	push bc
 	push af
@@ -189,33 +183,21 @@ LinkTradeMenu: ; 16d70c
 	ret
 ; 16d725
 
-.MenuAction: ; 16d725
-	ld hl, w2DMenuFlags2
-	res 7, [hl]
-	ld a, [hBGMapMode]
-	push af
-	call .loop
-	pop af
-	ld [hBGMapMode], a
-	ret
-
 .loop
 	call .UpdateCursor
 	call .UpdateBGMapAndOAM
 	call .loop2
-	jr nc, .done
+	ret nc
 	farcall _2DMenuInterpretJoypad
-	jr c, .done
+	ret c
 	ld a, [w2DMenuFlags1]
 	bit 7, a
-	jr nz, .done
+	ret nz
 	call .GetJoypad
 	ld b, a
 	ld a, [wMenuJoypadFilter]
 	and b
 	jr z, .loop
-
-.done
 	ret
 ; 16d759
 

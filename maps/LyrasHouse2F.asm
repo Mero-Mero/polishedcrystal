@@ -1,24 +1,30 @@
-const_value set 2
+const_value set 3
 	const LYRASHOUSE2F_LYRA
-	const LYRASHOUSE2F_PIDGEOT
+	const LYRASHOUSE2F_AMPHAROS
+	const LYRASHOUSE2F_N64
 
 LyrasHouse2F_MapScriptHeader:
-.MapTriggers:
-	db 0
 
-.MapCallbacks:
-	db 0
+.MapTriggers: db 0
 
-LyrasHouseLyra:
-	jumptextfaceplayer LyrasHouseLyraText
+.MapCallbacks: db 0
 
-LyrasHousePidgeot:
-	opentext
-	writetext LyrasHousePidgeotText
-	cry PIDGEOT
-	waitbutton
-	closetext
-	end
+LyrasHouse2F_MapEventHeader:
+
+.Warps: db 1
+	warp_def 0, 0, 3, LYRAS_HOUSE_1F
+
+.XYTriggers: db 0
+
+.Signposts: db 3
+	signpost 1, 4, SIGNPOST_JUMPTEXT, LyrasHousePCText
+	signpost 1, 5, SIGNPOST_READ, LyrasHouseRadio
+	signpost 1, 7, SIGNPOST_READ, PokemonJournalProfElmScript
+
+.PersonEvents: db 3
+	person_event SPRITE_LYRA, 3, 2, SPRITEMOVEDATA_STANDING_RIGHT, 0, 0, -1, -1, (1 << 3) | PAL_OW_RED, PERSONTYPE_COMMAND, jumptextfaceplayer, LyrasHouseLyraText, EVENT_LYRA_IN_HER_ROOM
+	person_event SPRITE_AMPHAROS, 3, 3, SPRITEMOVEDATA_POKEMON, 0, 0, -1, -1, (1 << 3) | PAL_OW_RED, PERSONTYPE_POKEMON, AMPHAROS, LyrasHouseAmpharosText, EVENT_LYRA_IN_HER_ROOM
+	person_event SPRITE_N64, 2, 6, SPRITEMOVEDATA_DOLL, 0, 0, -1, -1, (1 << 3) | PAL_OW_ROCK, PERSONTYPE_COMMAND, jumptext, LyrasHouseN64Text, -1
 
 LyrasHouseRadio:
 	checkevent EVENT_GOT_A_POKEMON_FROM_ELM
@@ -47,14 +53,7 @@ LyrasHouseRadio:
 	opentext
 	writetext LyrasRadioText4
 	pause 45
-	closetext
-	end
-
-LyrasHousePC:
-	jumptext LyrasHousePCText
-
-LyrasHouseN64:
-	jumptext LyrasHouseN64Text
+	endtext
 
 LyrasHouseLyraText:
 	text "Lyra: Hi, <PLAYER>!"
@@ -66,8 +65,9 @@ LyrasHouseLyraText:
 	line "lately…"
 	done
 
-LyrasHousePidgeotText:
-	text "Pidgeot: Geot!"
+LyrasHouseAmpharosText:
+	text "Ampharos: Palu!"
+	line "Palulu!"
 	done
 
 LyrasRadioText1:
@@ -97,25 +97,7 @@ LyrasHousePCText:
 	done
 
 LyrasHouseN64Text:
-	text "It's an N64."
+	text "It's a limited-"
+	line "edition Pikachu"
+	cont "N64!"
 	done
-
-LyrasHouse2F_MapEventHeader:
-.Warps:
-	db 1
-	warp_def $0, $0, 3, LYRAS_HOUSE_1F
-
-.XYTriggers:
-	db 0
-
-.Signposts:
-	db 4
-	signpost 1, 4, SIGNPOST_READ, LyrasHousePC
-	signpost 1, 5, SIGNPOST_READ, LyrasHouseRadio
-	signpost 1, 7, SIGNPOST_READ, PokemonJournalProfElmScript
-	signpost 2, 6, SIGNPOST_READ, LyrasHouseN64
-
-.PersonEvents:
-	db 2
-	person_event SPRITE_LYRA, 3, 2, SPRITEMOVEDATA_STANDING_RIGHT, 0, 0, -1, -1, (1 << 3) | PAL_OW_RED, PERSONTYPE_SCRIPT, 0, LyrasHouseLyra, EVENT_LYRA_IN_HER_ROOM
-	person_event SPRITE_PIDGEOT, 3, 3, SPRITEMOVEDATA_POKEMON, 0, 0, -1, -1, (1 << 3) | PAL_OW_BROWN, PERSONTYPE_SCRIPT, 0, LyrasHousePidgeot, EVENT_LYRA_IN_HER_ROOM

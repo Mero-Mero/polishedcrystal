@@ -276,8 +276,7 @@ BattleAnimFunction_PokeBall: ; cd15c (33:515c)
 	dw .eleven
 .zero ; init
 	call GetBallAnimPal
-	call BattleAnim_IncAnonJumptableIndex
-	ret
+	jp BattleAnim_IncAnonJumptableIndex
 
 .one
 	call BattleAnimFunction_ThrowFromPlayerToEnemy
@@ -291,8 +290,7 @@ BattleAnimFunction_PokeBall: ; cd15c (33:515c)
 	ld [hl], a
 	ld a, BATTLEANIMFRAMESET_0B
 	call ReinitBattleAnimFrameset
-	call BattleAnim_IncAnonJumptableIndex
-	ret
+	jp BattleAnim_IncAnonJumptableIndex
 
 .three
 	call BattleAnim_IncAnonJumptableIndex
@@ -328,8 +326,7 @@ BattleAnimFunction_PokeBall: ; cd15c (33:515c)
 	ret nz
 	ld a, BATTLEANIMFRAMESET_0C
 	call ReinitBattleAnimFrameset
-	call BattleAnim_IncAnonJumptableIndex
-	ret
+	jp BattleAnim_IncAnonJumptableIndex
 
 .six
 	ld a, BATTLEANIMFRAMESET_0D
@@ -382,8 +379,7 @@ BattleAnimFunction_PokeBallBlocked: ; cd212 (33:5212)
 	dw .two
 .zero
 	call GetBallAnimPal
-	call BattleAnim_IncAnonJumptableIndex
-	ret
+	jp BattleAnim_IncAnonJumptableIndex
 
 .one
 	ld hl, BATTLEANIMSTRUCT_XCOORD
@@ -440,31 +436,31 @@ GetBallAnimPal: ; cd249 (33:5249)
 
 ; cd26c (33:526c)
 .balls
-	db POKE_BALL,    4 ; red
-	db GREAT_BALL,   6 ; blue
-	db ULTRA_BALL,   3 ; yellow
-	db MASTER_BALL,  5 ; green
-	db SAFARI_BALL,  7 ; brown
-	db LEVEL_BALL,   7 ; brown
-	db LURE_BALL,    6 ; blue
-	db MOON_BALL,    2 ; gray
-	db FRIEND_BALL,  5 ; green
-	db FAST_BALL,    4 ; red
-	db HEAVY_BALL,   2 ; gray
-	db LOVE_BALL,    4 ; red
-	db PARK_BALL,    3 ; yellow
-	db REPEAT_BALL,  3 ; yellow
-	db TIMER_BALL,   7 ; brown
-	db NEST_BALL,    7 ; brown
-	db NET_BALL,     6 ; blue
-	db DIVE_BALL,    6 ; blue
-	db LUXURY_BALL,  2 ; gray
-	db HEAL_BALL,    4 ; red
-	db QUICK_BALL,   6 ; blue
-	db DUSK_BALL,    5 ; green
-	db PREMIER_BALL, 2 ; gray
-	db CHERISH_BALL, 4 ; red
-	db -1,           2
+	db POKE_BALL,    PAL_BATTLE_OB_RED
+	db GREAT_BALL,   PAL_BATTLE_OB_BLUE
+	db ULTRA_BALL,   PAL_BATTLE_OB_YELLOW
+	db MASTER_BALL,  PAL_BATTLE_OB_GREEN
+	db SAFARI_BALL,  PAL_BATTLE_OB_BROWN
+	db LEVEL_BALL,   PAL_BATTLE_OB_BROWN
+	db LURE_BALL,    PAL_BATTLE_OB_BLUE
+	db MOON_BALL,    PAL_BATTLE_OB_GRAY
+	db FRIEND_BALL,  PAL_BATTLE_OB_GREEN
+	db FAST_BALL,    PAL_BATTLE_OB_RED
+	db HEAVY_BALL,   PAL_BATTLE_OB_GRAY
+	db LOVE_BALL,    PAL_BATTLE_OB_RED
+	db PARK_BALL,    PAL_BATTLE_OB_YELLOW
+	db REPEAT_BALL,  PAL_BATTLE_OB_YELLOW
+	db TIMER_BALL,   PAL_BATTLE_OB_BROWN
+	db NEST_BALL,    PAL_BATTLE_OB_BROWN
+	db NET_BALL,     PAL_BATTLE_OB_BLUE
+	db DIVE_BALL,    PAL_BATTLE_OB_BLUE
+	db LUXURY_BALL,  PAL_BATTLE_OB_GRAY
+	db HEAL_BALL,    PAL_BATTLE_OB_RED
+	db QUICK_BALL,   PAL_BATTLE_OB_BLUE
+	db DUSK_BALL,    PAL_BATTLE_OB_GREEN
+	db PREMIER_BALL, PAL_BATTLE_OB_GRAY
+	db CHERISH_BALL, PAL_BATTLE_OB_RED
+	db -1,           PAL_BATTLE_OB_GRAY
 ; cd284
 BattleAnimFunction_10: ; cd284 (33:5284)
 	call BattleAnim_AnonJumptable
@@ -632,11 +628,7 @@ BattleAnimFunction_08: ; cd306 (33:5306)
 	add hl, bc
 	ld a, [hl]
 	cp $b0
-	jr c, .retain
-	jp DeinitBattleAnimation
-
-.retain
-	jp .SetCoords
+	jp nc, DeinitBattleAnimation
 
 .SetCoords:
 	ld hl, BATTLEANIMSTRUCT_0B
@@ -1811,8 +1803,7 @@ BattleAnimFunction_LeechSeed: ; cda4d (33:5a4d)
 	ld [hl], $40
 	ld a, BATTLEANIMFRAMESET_57
 	call ReinitBattleAnimFrameset
-	call BattleAnim_IncAnonJumptableIndex
-	ret
+	jp BattleAnim_IncAnonJumptableIndex
 
 .two: ; cda7a (33:5a7a)
 	ld hl, BATTLEANIMSTRUCT_10
@@ -1821,14 +1812,13 @@ BattleAnimFunction_LeechSeed: ; cda4d (33:5a4d)
 	and a
 	jr z, .flutter
 	dec [hl]
+.three: ; cda8c (33:5a8c)
 	ret
 
 .flutter
 	call BattleAnim_IncAnonJumptableIndex
 	ld a, BATTLEANIMFRAMESET_58
-	call ReinitBattleAnimFrameset
-.three: ; cda8c (33:5a8c)
-	ret
+	jp ReinitBattleAnimFrameset
 
 Functioncda8d: ; cda8d (33:5a8d)
 	dec [hl]
@@ -2105,8 +2095,7 @@ Functioncdc1a: ; cdc1a (33:5c1a)
 Functioncdc1e: ; cdc1e (33:5c1e)
 	ld a, BATTLEANIMFRAMESET_4E
 	call ReinitBattleAnimFrameset
-	call BattleAnim_IncAnonJumptableIndex
-	ret
+	jp BattleAnim_IncAnonJumptableIndex
 
 Functioncdc27: ; cdc27 (33:5c27)
 	ld hl, BATTLEANIMSTRUCT_0F

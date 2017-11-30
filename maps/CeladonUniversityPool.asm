@@ -1,22 +1,34 @@
-const_value set 2
-	const CELADONUNIVERSITYPOOL_FERGUS
-	const CELADONUNIVERSITYPOOL_LASS
-	const CELADONUNIVERSITYPOOL_SWIMMER_GIRL
-	const CELADONUNIVERSITYPOOL_TEACHER
-	const CELADONUNIVERSITYPOOL_POKE_BALL
-
 CeladonUniversityPool_MapScriptHeader:
-.MapTriggers:
-	db 0
 
-.MapCallbacks:
-	db 0
+.MapTriggers: db 0
+
+.MapCallbacks: db 0
+
+CeladonUniversityPool_MapEventHeader:
+
+.Warps: db 2
+	warp_def 9, 6, 6, CELADON_UNIVERSITY_2F
+	warp_def 9, 7, 6, CELADON_UNIVERSITY_2F
+
+.XYTriggers: db 0
+
+.Signposts: db 0
+
+.PersonEvents: db 5
+	person_event SPRITE_SWIMMER_GUY, 5, 11, SPRITEMOVEDATA_SPINCLOCKWISE, 0, 0, -1, -1, (1 << 3) | PAL_OW_RED, PERSONTYPE_SCRIPT, 0, CeladonUniversityPoolFergusScript, -1
+	person_event SPRITE_LASS, 1, 9, SPRITEMOVEDATA_WALK_LEFT_RIGHT, 0, 2, -1, -1, (1 << 3) | PAL_OW_GREEN, PERSONTYPE_COMMAND, jumptextfaceplayer, CeladonUniversityPoolLassText, -1
+	person_event SPRITE_SWIMMER_GIRL, 4, 4, SPRITEMOVEDATA_SWIM_UP_DOWN, 1, 0, -1, -1, (1 << 3) | PAL_OW_GREEN, PERSONTYPE_COMMAND, jumptextfaceplayer, CeladonUniversityPoolSwimmer_girlText, -1
+	person_event SPRITE_TEACHER, 8, 3, SPRITEMOVEDATA_STANDING_UP, 0, 0, -1, -1, (1 << 3) | PAL_OW_BLUE, PERSONTYPE_COMMAND, jumptextfaceplayer, CeladonUniversityPoolTeacherText, -1
+	itemball_event 8, 12, WATER_STONE, 1, EVENT_CELADON_UNIVERSITY_POOL_WATER_STONE
+
+const_value set 1
+	const CELADONUNIVERSITYPOOL_FERGUS
 
 CeladonUniversityPoolFergusScript:
 	faceplayer
-	opentext
 	checkevent EVENT_BEAT_COOLTRAINERM_FERGUS
 	iftrue .Beaten
+	opentext
 	checkevent EVENT_INTRODUCED_CELADON_FOUR
 	iftrue .IntroducedCeladonFour1
 	writetext .IntroText1
@@ -25,7 +37,7 @@ CeladonUniversityPoolFergusScript:
 	writetext .IntroText2
 .AfterIntro
 	yesorno
-	iffalse .NoBattle
+	iffalse_jumpopenedtext .NoBattleText
 	writetext .SeenText
 	waitbutton
 	closetext
@@ -35,40 +47,23 @@ CeladonUniversityPoolFergusScript:
 	startbattle
 	reloadmapafterbattle
 	setevent EVENT_BEAT_COOLTRAINERM_FERGUS
-	opentext
 .Beaten
+	opentext
 	setevent EVENT_INTRODUCED_CELADON_FOUR
 	checkevent EVENT_BEAT_COOLTRAINERM_COREY
-	iffalse .NotFinished
+	iffalse_jumpopenedtext .AfterText1
 	checkevent EVENT_BEAT_COOLTRAINERM_RAYMOND
-	iffalse .NotFinished
+	iffalse_jumpopenedtext .AfterText1
 	checkevent EVENT_BEAT_COOLTRAINERF_NEESHA
-	iffalse .NotFinished
+	iffalse_jumpopenedtext .AfterText1
 	checkevent EVENT_GOT_CHOICE_BAND_FROM_CELADON_FOUR
-	iftrue .GotItem
+	iftrue_jumpopenedtext .FinalText
 	writetext .AfterText2
 	buttonsound
 	verbosegiveitem CHOICE_BAND
-	iffalse .Done
+	iffalse_endtext
 	setevent EVENT_GOT_CHOICE_BAND_FROM_CELADON_FOUR
-.GotItem:
-	writetext .FinalText
-	waitbutton
-.Done:
-	closetext
-	end
-
-.NoBattle:
-	writetext .NoBattleText
-	waitbutton
-	closetext
-	end
-
-.NotFinished:
-	writetext .AfterText1
-	waitbutton
-	closetext
-	end
+	jumpopenedtext .FinalText
 
 .IntroText1:
 	text "The name's Fergus!"
@@ -146,20 +141,14 @@ CeladonUniversityPoolFergusScript:
 	para "Keep it up!"
 	done
 
-CeladonUniversityPoolLassScript:
-	jumptextfaceplayer .Text
-
-.Text:
+CeladonUniversityPoolLassText:
 	text "Ouch!"
 
 	para "I'm working out a"
 	line "cramp in my leg."
 	done
 
-CeladonUniversityPoolSwimmer_girlScript:
-	jumptextfaceplayer .Text
-
-.Text:
+CeladonUniversityPoolSwimmer_girlText:
 	text "I applied for a"
 	line "special program to"
 
@@ -171,33 +160,8 @@ CeladonUniversityPoolSwimmer_girlScript:
 	cont "swimming."
 	done
 
-CeladonUniversityPoolTeacherScript:
-	jumptextfaceplayer .Text
-
-.Text:
+CeladonUniversityPoolTeacherText:
 	text "OK, five more"
 	line "laps!"
 	done
 
-CeladonUniversityPoolWaterStone:
-	itemball WATER_STONE
-
-CeladonUniversityPool_MapEventHeader:
-.Warps:
-	db 2
-	warp_def $9, $6, 6, CELADON_UNIVERSITY_2F
-	warp_def $9, $7, 6, CELADON_UNIVERSITY_2F
-
-.XYTriggers:
-	db 0
-
-.Signposts:
-	db 0
-
-.PersonEvents:
-	db 5
-	person_event SPRITE_SWIMMER_GUY, 5, 11, SPRITEMOVEDATA_SPINCLOCKWISE, 0, 0, -1, -1, (1 << 3) | PAL_OW_RED, PERSONTYPE_SCRIPT, 0, CeladonUniversityPoolFergusScript, -1
-	person_event SPRITE_LASS, 1, 9, SPRITEMOVEDATA_WALK_LEFT_RIGHT, 0, 2, -1, -1, (1 << 3) | PAL_OW_GREEN, PERSONTYPE_SCRIPT, 0, CeladonUniversityPoolLassScript, -1
-	person_event SPRITE_SWIMMER_GIRL, 4, 4, SPRITEMOVEDATA_SWIM_UP_DOWN, 1, 0, -1, -1, (1 << 3) | PAL_OW_GREEN, PERSONTYPE_SCRIPT, 0, CeladonUniversityPoolSwimmer_girlScript, -1
-	person_event SPRITE_TEACHER, 8, 3, SPRITEMOVEDATA_STANDING_UP, 0, 0, -1, -1, (1 << 3) | PAL_OW_BLUE, PERSONTYPE_SCRIPT, 0, CeladonUniversityPoolTeacherScript, -1
-	person_event SPRITE_BALL_CUT_FRUIT, 8, 12, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, -1, (1 << 3) | PAL_OW_RED, PERSONTYPE_ITEMBALL, 0, CeladonUniversityPoolWaterStone, EVENT_CELADON_UNIVERSITY_POOL_WATER_STONE

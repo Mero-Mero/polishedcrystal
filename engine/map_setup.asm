@@ -230,7 +230,7 @@ endr
 .go
 	ld a, b
 	and $7f
-	rst FarCall
+	call FarCall_hl
 
 	pop hl
 	jr .loop
@@ -308,8 +308,7 @@ LoadObjectsRunCallback_02: ; 154d7
 	ld a, MAPCALLBACK_OBJECTS
 	call RunMapCallback
 	farcall LoadObjectMasks
-	farcall InitializeVisibleSprites
-	ret
+	farjp InitializeVisibleSprites
 ; 154ea (5:54ea)
 
 DelayClearingOldSprites: ; 154eb
@@ -347,7 +346,7 @@ CheckReplaceKrisSprite: ; 154f7
 
 .CheckSurfing2: ; 1551a (5:551a)
 	ld a, [PlayerState]
-	cp PLAYER_NORMAL
+	and a ; cp PLAYER_NORMAL
 	jr z, .nope
 	cp PLAYER_SLIP
 	jr z, .nope
@@ -401,8 +400,7 @@ FadeOldMapMusic: ; 15567
 ; 1556d
 
 RetainOldPalettes: ; 1556d
-	farcall _UpdateTimePals
-	ret
+	farjp _UpdateTimePals
 
 RotatePalettesRightMapAndMusic: ; 15574
 	ld e, 0

@@ -5,12 +5,12 @@ InitIntroGradient::
 	ld a, $70
 	call ByteFill
 	; middle stripe
-	hlcoord 0, 1
+	; hlcoord 0, 1
 	ld bc, SCREEN_WIDTH
 	ld a, $71
 	call ByteFill
 	; bottom stripe
-	hlcoord 0, 2
+	; hlcoord 0, 2
 	ld bc, SCREEN_WIDTH
 	ld a, $72
 	call ByteFill
@@ -70,18 +70,25 @@ NewGame_ClearTileMapEtc: ; 5b44
 	call ClearTileMap
 	call LoadFontsExtra
 	call LoadStandardFont
-	call ClearWindowData
-	ret
+	jp ClearWindowData
 ; 5b54
 
 OptionsMenu: ; 5b64
-	farcall _OptionsMenu
-	ret
+	farjp _OptionsMenu
 ; 5b6b
+
+NewGamePlus:
+	xor a
+	ld [hBGMapMode], a
+	farcall TryLoadSaveFile
+	ret c
+	jr _NewGame_FinishSetup
 
 NewGame: ; 5b6b
 	xor a
-	ld [wMonStatusFlags], a
+	ld [hBGMapMode], a
+	call ResetWRAM_NotPlus
+_NewGame_FinishSetup:
 	call ResetWRAM
 	call NewGame_ClearTileMapEtc
 	call SetInitialOptions
@@ -98,26 +105,58 @@ NewGame: ; 5b6b
 	jp FinishContinueFunction
 ; 5b8f
 
-ResetWRAM: ; 5ba7
+ResetWRAM_NotPlus:
 	xor a
-	ld [hBGMapMode], a
-	jp _ResetWRAM
-; 5bae
+	ld [wSaveFileExists], a
+	ld [wSavedAtLeastOnce], a
 
-_ResetWRAM: ; 5bae
+	ld [BattlePoints], a
 
+	ld [wCurBox], a
+
+	call SetDefaultBoxNames
+
+	ld a, BANK(sBoxCount)
+	call GetSRAMBank
+	ld hl, sBoxCount
+	call _ResetWRAM_InitList
+	call CloseSRAM
+
+START_MONEY EQU 3000
+	ld hl, Money
+	ld [hl], START_MONEY / $10000
+	inc hl
+	ld [hl], START_MONEY / $100 % $100
+	inc hl
+	ld [hl], START_MONEY % $100
+	ret
+
+ResetWRAM: ; 5ba7
 	ld hl, Sprites
 	ld bc, Options1 - Sprites
 	xor a
 	call ByteFill
 
-	ld hl, wd000
-	ld bc, wGameData - wd000
+	ld hl, wRAM1Start
+	ld bc, wGameData - wRAM1Start
 	xor a
 	call ByteFill
 
+	; erase wGameData, but keep Money, wCurBox, wBoxNames, and BattlePoints
 	ld hl, wGameData
-	ld bc, wGameDataEnd - wGameData
+	ld bc, Money - wGameData
+	xor a
+	call ByteFill
+	ld hl, MoneyEnd
+	ld bc, wCurBox - MoneyEnd
+	xor a
+	call ByteFill
+	ld hl, wBoxNamesEnd
+	ld bc, BattlePoints - wBoxNamesEnd
+	xor a
+	call ByteFill
+	ld hl, BattlePoints + 1
+	ld bc, wGameDataEnd - (BattlePoints + 1)
 	xor a
 	call ByteFill
 
@@ -140,38 +179,30 @@ _ResetWRAM: ; 5bae
 	ld [wSecretID + 1], a
 
 	ld hl, PartyCount
-	call .InitList
+	call _ResetWRAM_InitList
 
 	xor a
-	ld [wCurBox], a
-	ld [wSavedAtLeastOnce], a
+	ld [wMonStatusFlags], a
+
 	ld [PlayerGender], a
 
-	call SetDefaultBoxNames
-
-	ld a, BANK(sBoxCount)
-	call GetSRAMBank
-	ld hl, sBoxCount
-	call .InitList
-	call CloseSRAM
-
 	ld hl, NumItems
-	call .InitList
+	call _ResetWRAM_InitList
 
 	ld hl, NumMedicine
-	call .InitList
+	call _ResetWRAM_InitList
 
 	ld hl, NumBalls
-	call .InitList
+	call _ResetWRAM_InitList
 
 	ld hl, NumBerries
-	call .InitList
+	call _ResetWRAM_InitList
 
 	ld hl, NumKeyItems
-	call .InitList
+	call _ResetWRAM_InitList
 
 	ld hl, PCItems
-	call .InitList
+	call _ResetWRAM_InitList
 
 	ld hl, TMsHMs
 	xor a
@@ -203,30 +234,17 @@ endr
 	ld [Coins], a
 	ld [Coins + 1], a
 
-	ld [BattlePoints], a
-
 	ld [RegisteredItem], a
 
-START_MONEY EQU 3000
-
-IF START_MONEY / $10000
-	ld a, START_MONEY / $10000
-ENDC
-	ld [Money], a
-	ld a, START_MONEY / $100 % $100
-	ld [Money + 1], a
-	ld a, START_MONEY % $100
-	ld [Money + 2], a
-
-	xor a
 	ld [wWhichMomItem], a
 
+START_ITEM_TRIGGER_BALANCE EQU 2300
 	ld hl, MomItemTriggerBalance
-	ld [hl], 2300 / $10000
+	ld [hl], START_ITEM_TRIGGER_BALANCE / $10000
 	inc hl
-	ld [hl], 2300 / $100 % $100
+	ld [hl], START_ITEM_TRIGGER_BALANCE / $100 % $100
 	inc hl
-	ld [hl], 2300 % $100
+	ld [hl], START_ITEM_TRIGGER_BALANCE % $100
 
 	call InitializeNPCNames
 
@@ -237,7 +255,7 @@ ENDC
 	jp ResetGameTime
 ; 5ca1
 
-.InitList: ; 5ca1
+_ResetWRAM_InitList: ; 5ca1
 ; Loads 0 in the count and -1 in the first item or mon slot.
 	xor a
 	ld [hli], a
@@ -298,8 +316,8 @@ InitializeNPCNames: ; 5ce9
 	ld de, RivalName
 	call .Copy
 
-	ld hl, .Extra
-	ld de, ExtraName
+	ld hl, .Backup
+	ld de, BackupName
 	call .Copy
 
 	ld hl, .Trendy
@@ -310,15 +328,14 @@ InitializeNPCNames: ; 5ce9
 	jp CopyBytes
 
 .Rival:
-.Extra:  db "???@"
-.Trendy: db "Rainbow@"
+.Backup: db "???@"
+.Trendy: db "Prism@"
 ; 5d23
 
 InitializeWorld: ; 5d23
 	call ShrinkPlayer
 	farcall SpawnPlayer
-	farcall _InitializeStartDay
-	ret
+	farjp _InitializeStartDay
 ; 5d33
 
 LoadOrRegenerateLuckyIDNumber: ; 5d33
@@ -350,7 +367,8 @@ LoadOrRegenerateLuckyIDNumber: ; 5d33
 
 Continue: ; 5d65
 	farcall TryLoadSaveFile
-	jr c, .FailToLoad
+	ret c
+
 	call LoadStandardMenuDataHeader
 	call DisplaySaveInfoOnContinue
 	ld a, $1
@@ -359,20 +377,17 @@ Continue: ; 5d65
 	call DelayFrames
 	call ConfirmContinue
 	jr nc, .Check1Pass
-	call CloseWindow
-	jr .FailToLoad
+	jp CloseWindow
 
 .Check1Pass:
 	call Continue_CheckRTC_RestartClock
 	jr nc, .Check2Pass
-	call CloseWindow
-	jr .FailToLoad
+	jp CloseWindow
 
 .Check2Pass:
 	call Continue_CheckEGO_ResetInitialOptions
 ;	jr nc, .Check3Pass
-;	call CloseWindow
-;	jr .FailToLoad
+;	jp CloseWindow
 
 ;.Check3Pass:
 	ld a, $8
@@ -394,9 +409,6 @@ Continue: ; 5d65
 	ld a, MAPSETUP_CONTINUE
 	ld [hMapEntryMethod], a
 	jp FinishContinueFunction
-
-.FailToLoad:
-	ret
 
 .SpawnAfterE4:
 	ld a, SPAWN_NEW_BARK
@@ -424,13 +436,10 @@ ConfirmContinue: ; 5e34
 	call GetJoypad
 	ld hl, hJoyPressed
 	bit A_BUTTON_F, [hl]
-	jr nz, .PressA
+	ret nz
 	bit B_BUTTON_F, [hl]
 	jr z, .loop
 	scf
-	ret
-
-.PressA:
 	ret
 ; 5e48
 
@@ -485,16 +494,16 @@ DisplaySaveInfoOnContinue: ; 5e85
 	and %10000000
 	jr z, .clock_ok
 	lb de, 4, 8
-	jp DisplayContinueDataWithRTCError
+	jr DisplayContinueDataWithRTCError
 
 .clock_ok
 	lb de, 4, 8
-	jp DisplayNormalContinueData
+	jr DisplayNormalContinueData
 ; 5e9a
 
 DisplaySaveInfoOnSave: ; 5e9a
 	lb de, 0, 0
-	jr DisplayNormalContinueData
+	; fallthrough
 ; 5e9f
 
 DisplayNormalContinueData: ; 5e9f
@@ -909,8 +918,7 @@ ShrinkPlayer: ; 610f
 	call DelayFrames
 
 	call RotateThreePalettesRight
-	call ClearTileMap
-	ret
+	jp ClearTileMap
 ; 616a
 
 Intro_RotatePalettesLeftFrontpic: ; 616a
@@ -942,7 +950,7 @@ DrawIntroPlayerPic:
 	ld a, [PlayerGender]
 	bit 0, a
 	jr z, .male
-	ld a, KAY
+	ld a, CARRIE
 	jr .ok
 .male
 	ld a, CAL
@@ -1024,7 +1032,7 @@ StartTitleScreen: ; 6219
 	ld a, $5
 	ld [rSVBK], a
 
-	call .TitleScreen
+	farcall _TitleScreen
 	call DelayFrame
 .loop
 	call RunTitleScreen
@@ -1051,7 +1059,7 @@ StartTitleScreen: ; 6219
 	ld b, SCGB_DIPLOMA
 	call GetSGBLayout
 	call UpdateTimePals
-	ld a, [wcf64]
+	ld a, [wIntroSceneFrameCounter]
 	cp $6
 	jr c, .ok
 	xor a
@@ -1076,11 +1084,6 @@ StartTitleScreen: ; 6219
 	dw ResetInitialOptions
 ; 6274
 
-
-.TitleScreen: ; 6274
-	farcall _TitleScreen
-	ret
-; 627b
 
 RunTitleScreen: ; 627b
 	ld a, [wJumptableIndex]
@@ -1147,8 +1150,7 @@ TitleScreenEntrance: ; 62bc
 	dec b
 	jr nz, .loop
 
-	farcall AnimateTitleCrystal
-	ret
+	farjp AnimateTitleCrystal
 
 .done
 ; Next scene
@@ -1260,7 +1262,7 @@ TitleScreenMain: ; 6304
 	ret
 
 .done
-	ld [wcf64], a
+	ld [wIntroSceneFrameCounter], a
 ; Return to the intro sequence.
 	ld hl, wJumptableIndex
 	set 7, [hl]
@@ -1312,7 +1314,7 @@ TitleScreenEnd: ; 6375
 	ret nz
 
 	ld a, 2
-	ld [wcf64], a
+	ld [wIntroSceneFrameCounter], a
 
 ; Back to the intro.
 	ld hl, wJumptableIndex

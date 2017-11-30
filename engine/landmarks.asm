@@ -3,9 +3,8 @@ GetLandmarkCoords: ; 0x1ca896
 	push hl
 	ld l, e
 	ld h, 0
-rept 2
 	add hl, hl
-endr
+	add hl, hl
 	ld de, Landmarks
 	add hl, de
 	ld a, [hli]
@@ -24,9 +23,8 @@ GetLandmarkName:: ; 0x1ca8a5
 
 	ld l, e
 	ld h, 0
-rept 2
 	add hl, hl
-endr
+	add hl, hl
 	ld de, Landmarks + 2
 	add hl, de
 	ld a, [hli]
@@ -65,9 +63,10 @@ ENDM
 	landmark 104,  76, Route31Name
 	landmark  92,  76, VioletCityName
 	landmark  94,  74, SproutTowerName
+	landmark  92,  68, VioletOutskirtsName
+	landmark  84,  92, RuinsOfAlphName
 	landmark  92, 108, Route32Name
 	landmark 100, 128, Route32CoastName
-	landmark  84,  92, RuinsOfAlphName
 	landmark  92, 140, UnionCaveName
 	landmark  84, 140, Route33Name
 	landmark  76, 140, AzaleaTownName
@@ -80,6 +79,7 @@ ENDM
 	landmark  60, 108, GoldenrodCityName
 	landmark  58, 108, RadioTowerName
 	landmark  52, 108, GoldenrodHarborName
+	landmark  76, 108, MagnetTunnelName
 	landmark  60,  92, Route35Name
 	landmark  52,  92, Route35CoastName
 	landmark  60,  76, NationalParkName
@@ -118,8 +118,8 @@ ENDM
 	landmark 132, 104, Route46Name
 	landmark 152,  76, SilverCaveName
 	landmark 110, 140, FastShipName
-	landmark 132,  38, SinjohRuinsName
-	landmark 132,  34, MystriStageName
+	landmark 128,  44, SinjohRuinsName
+	landmark 128,  44, MystriStageName
 	landmark  60, 116, PalletTownName
 	landmark  60, 104, Route1Name
 	landmark  60,  92, ViridianCityName
@@ -151,6 +151,7 @@ ENDM
 	landmark 150,  78, SoulHouseName
 	landmark  92,  76, CeladonCityName
 	landmark  90,  78, CeladonUniversityName
+	landmark 104,  72, CeladonOutskirtsName
 	landmark 116,  76, SaffronCityName
 	landmark 132,  92, Route11Name
 	landmark 148,  92, Route12Name
@@ -212,6 +213,7 @@ BlackthornCityName:    db "Blackthorn¯City@"
 LakeOfRageName:        db "Lake of¯Rage@"
 SilverCaveName:        db "Silver Cave@"
 SproutTowerName:       db "Sprout¯Tower@"
+VioletOutskirtsName:   db "Violet¯Outskirts@"
 RuinsOfAlphName:       db "Ruins¯of Alph@"
 UnionCaveName:         db "Union Cave@"
 SlowpokeWellName:      db "Slowpoke¯Well@"
@@ -243,6 +245,7 @@ RockTunnelName:        db "Rock Tunnel@"
 LavRadioTowerName:     db "Lav.Radio¯Tower@"
 SoulHouseName:         db "House of¯Memories@"
 CeladonUniversityName: db "Celadon¯University@"
+CeladonOutskirtsName:  db "Celadon¯Outskirts@"
 SafariZoneName:        db "Safari Zone@"
 SeafoamIslandsName:    db "Seafoam¯Islands@"
 PokemonMansionName:    db "Pokémon¯Mansion@"
@@ -313,6 +316,7 @@ YellowForestName:      db "Yellow¯Forest@"
 QuietCaveName:         db "Quiet Cave@"
 CherrygroveBayName:    db "Cherrygrove¯Bay@"
 GoldenrodHarborName:   db "Goldenrod¯Harbor@"
+MagnetTunnelName:      db "Magnet¯Tunnel@"
 Route32CoastName:      db "Route 32¯Coast@"
 Route34CoastName:      db "Route 34¯Coast@"
 Route35CoastName:      db "Route 35¯Coast@"

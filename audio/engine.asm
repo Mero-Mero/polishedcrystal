@@ -245,6 +245,8 @@ UpdateChannels: ; e8125
 
 .Channel1:
 	ld a, [Danger]
+	cp 255
+	jr z, .Channel5
 	bit 7, a
 	ret nz
 .Channel5:
@@ -406,51 +408,7 @@ UpdateChannels: ; e8125
 
 .asm_e8268
 	push hl
-	ld a, [wCurTrackIntensity]
-	and $f ; only 0-9 are valid (+10 for rby lavender town)
-	ld l, a
-	ld h, 0
-	; hl << 4
-	; each wavepattern is $f bytes long
-	; so seeking is done in $10s
-rept 4
-	add hl, hl
-endr
-	ld de, WaveSamples
-	add hl, de
-	; load wavepattern into rWave_0-rWave_f
-	ld a, [hli]
-	ld [rWave_0], a
-	ld a, [hli]
-	ld [rWave_1], a
-	ld a, [hli]
-	ld [rWave_2], a
-	ld a, [hli]
-	ld [rWave_3], a
-	ld a, [hli]
-	ld [rWave_4], a
-	ld a, [hli]
-	ld [rWave_5], a
-	ld a, [hli]
-	ld [rWave_6], a
-	ld a, [hli]
-	ld [rWave_7], a
-	ld a, [hli]
-	ld [rWave_8], a
-	ld a, [hli]
-	ld [rWave_9], a
-	ld a, [hli]
-	ld [rWave_a], a
-	ld a, [hli]
-	ld [rWave_b], a
-	ld a, [hli]
-	ld [rWave_c], a
-	ld a, [hli]
-	ld [rWave_d], a
-	ld a, [hli]
-	ld [rWave_e], a
-	ld a, [hli]
-	ld [rWave_f], a
+	call ReloadWaveform
 	pop hl
 	ld a, [wCurTrackIntensity]
 	and $f0
@@ -708,11 +666,17 @@ LoadNote: ; e83d1
 	ld hl, Channel1NoteDuration - Channel1
 	add hl, bc
 	ld a, [hl]
+	; prevent 0-duration notes causing infinite loops
+	; (possible with tempo adjustment)
+	and a
+	jr nz, .ok1
+	ld a, 1
+.ok1
 	ld hl, wCurNoteDuration
 	sub [hl]
-	jr nc, .ok
+	jr nc, .ok2
 	ld a, 1
-.ok
+.ok2
 	ld [hl], a
 	; get frequency
 	ld hl, Channel1Frequency - Channel1
@@ -863,7 +827,7 @@ HandleTrackVibrato: ; e8466
 	ld hl, Channel1Flags2 - Channel1
 	add hl, bc
 	bit SOUND_VIBRATO, [hl] ; vibrato
-	jr z, .quit
+	ret z
 	; is vibrato active for this note yet?
 	; is the delay over?
 	ld hl, Channel1VibratoDelayCount - Channel1
@@ -876,7 +840,7 @@ HandleTrackVibrato: ; e8466
 	add hl, bc
 	ld a, [hl]
 	and a
-	jr z, .quit
+	ret z
 	; save it for later
 	ld d, a
 	; is it time to toggle vibrato up/down?
@@ -887,7 +851,7 @@ HandleTrackVibrato: ; e8466
 	jr z, .toggle
 .subexit
 	dec [hl]
-	jr .quit
+	ret
 
 .toggle
 	; refresh count
@@ -934,7 +898,6 @@ HandleTrackVibrato: ; e8466
 	ld hl, Channel1NoteFlags - Channel1
 	add hl, bc
 	set NOTE_VIBRATO_OVERRIDE, [hl]
-.quit
 	ret
 
 ; e84f9
@@ -1018,7 +981,7 @@ ApplyPitchWheel: ; e84f9
 	ld e, a
 	ld a, d
 	sbc a, 0
-	ld d,a
+	ld d, a
 	; Compare the dw at [Channel*PitchWheelTarget] to de.
 	; If frequency is lower, we're finished.
 	; Otherwise, load the frequency and set two flags.
@@ -1100,13 +1063,13 @@ ReadNoiseSample: ; e85af
 	; is it empty?
 	ld a, e
 	or d
-	jr z, .quit
+	ret z
 
 	ld a, [de]
 	inc de
 
 	cp $ff
-	jr z, .quit
+	ret z
 
 	and $f
 	inc a
@@ -1129,10 +1092,6 @@ ReadNoiseSample: ; e85af
 	add hl, bc
 	set NOTE_NOISE_SAMPLING, [hl]
 	ret
-
-.quit
-	ret
-
 ; e85e1
 
 ParseMusic: ; e85e1
@@ -1148,6 +1107,15 @@ ParseMusic: ; e85e1
 	jr ParseMusic ; start over
 
 .readnote
+	ld a, [CurChannel]
+	cp CHAN4
+	jr nz, .notnoise
+	ld a, [wChannelSelectorSwitches+3]
+	and a
+	jr nz, .notnoise
+	ld a, 1
+	ld [wNoiseHit], a
+.notnoise
 ; CurMusicByte contains current note
 ; special notes
 	ld hl, Channel1Flags - Channel1
@@ -1164,6 +1132,21 @@ ParseMusic: ; e85e1
 	and $f
 	call SetNoteDuration
 	; get note pitch (top nybble)
+
+	ld a, [CurChannel]
+	cp CHAN5
+	jr nc, .notMuted
+	ld e, a
+	ld d, 0
+	ld hl, wChannelSelectorSwitches
+	add hl, de
+	ld a, [hl]
+	and a
+	jr z, .notMuted
+	xor a
+	jr .rest
+
+.notMuted
 	ld a, [CurMusicByte]
 	swap a
 	and $f
@@ -1316,24 +1299,24 @@ GetNoiseSample: ; e86c5
 	; check current channel
 	ld a, [CurChannel]
 	bit 2, a ; are we in a sfx channel?
-	jr nz, .sfx
+	ld a, [SFXNoiseSampleSet]
+	jr nz, .next
+	; check wChannelSelectorSwitches
+	ld a, [wChannelSelectorSwitches+3]
+	and a
+	ret nz
 	ld hl, Channel8Flags
 	bit SOUND_CHANNEL_ON, [hl] ; is ch8 on? (noise)
 	ret nz
 	ld a, [MusicNoiseSampleSet]
-	jr .next
-
-.sfx
-	ld a, [SFXNoiseSampleSet]
 .next
 	; load noise sample set id into de
 	ld e, a
 	ld d, 0
 	; load ptr to noise sample set in hl
 	ld hl, Drumkits
-rept 2
 	add hl, de
-endr
+	add hl, de
 	ld a, [hli]
 	ld h, [hl]
 	ld l, a
@@ -1346,9 +1329,8 @@ endr
 	; use 'pitch' to seek noise sample set
 	ld e, a
 	ld d, 0
-rept 2
 	add hl, de
-endr
+	add hl, de
 	; load sample pointer into NoiseSampleAddress
 	ld a, [hli]
 	ld [NoiseSampleAddressLo], a
@@ -1370,9 +1352,8 @@ ParseMusicCommand: ; e870f
 	ld d, 0
 	; seek command pointer
 	ld hl, MusicCommands
-rept 2
 	add hl, de
-endr
+	add hl, de
 	; jump to the new pointer
 	ld a, [hli]
 	ld h, [hl]
@@ -1627,9 +1608,8 @@ Music_JumpIf: ; e8817
 	inc hl
 	ld d, [hl]
 	; skip pointer
-rept 2
 	inc de
-endr
+	inc de
 	; update address
 	ld [hl], d
 	dec hl
@@ -1910,6 +1890,23 @@ Music_Tempo: ; e899a
 	ld d, a
 	call GetMusicByte
 	ld e, a
+	ld a, [CurChannel]
+	cp CHAN5
+	jp nc, SetGlobalTempo
+	push hl
+	ld a, [wTempoAdjustment]
+	ld l, a
+	bit 7, a
+	jr nz, .negative
+	ld h, 0
+	jr .ok
+.negative
+	ld h, $ff
+.ok
+	add hl, de
+	push hl
+	pop de
+	pop hl
 	jp SetGlobalTempo
 
 ; e89a6
@@ -2126,6 +2123,30 @@ GetFrequency: ; e8a5d
 ; 	de: frequency
 
 ; get octave
+	ld a, [wPitchTransposition]
+	bit 7, a
+	jr nz, .negative
+	add e
+	ld e, a
+	cp 13
+	jr c, .added
+	sub 12
+	ld e, a
+	dec d
+	jr .added
+.negative
+	dec e
+	add e
+	jr c, .c
+	inc a
+	add 12
+	ld e, a
+	inc d
+	jr .added
+.c
+	inc a
+	ld e, a
+.added
 	; get starting octave
 	ld hl, Channel1PitchOffset - Channel1
 	add hl, bc
@@ -2321,7 +2342,7 @@ _PlayMusic:: ; e8b30
 	ld hl, MusicID
 	ld [hl], e ; song number
 	inc hl
-	ld [hl], d ; MusicIDHi (always $)
+	ld [hl], d ; MusicIDHi (always 0)
 	ld hl, Music
 	add hl, de ; three
 	add hl, de ; byte
@@ -2687,9 +2708,8 @@ LoadChannel: ; e8d1b
 	ld c, a
 	ld b, 0
 	ld hl, ChannelPointers
-rept 2
 	add hl, bc
-endr
+	add hl, bc
 	ld c, [hl]
 	inc hl
 	ld b, [hl] ; bc = channel pointer
@@ -2766,6 +2786,55 @@ LoadMusicByte:: ; e8d76
 
 ; e8d80
 
+ReloadWaveform::
+    ; called from the music player
+	ld a, [wCurTrackIntensity]
+	and $f ; only NUM_WAVEFORMS are valid
+	ld l, a
+	ld h, 0
+	; hl << 4
+	; each wavepattern is $f bytes long
+	; so seeking is done in $10s
+rept 4
+	add hl, hl
+endr
+	ld de, WaveSamples
+	add hl, de
+	; load wavepattern into rWave_0-rWave_f
+	ld a, [hli]
+	ld [rWave_0], a
+	ld a, [hli]
+	ld [rWave_1], a
+	ld a, [hli]
+	ld [rWave_2], a
+	ld a, [hli]
+	ld [rWave_3], a
+	ld a, [hli]
+	ld [rWave_4], a
+	ld a, [hli]
+	ld [rWave_5], a
+	ld a, [hli]
+	ld [rWave_6], a
+	ld a, [hli]
+	ld [rWave_7], a
+	ld a, [hli]
+	ld [rWave_8], a
+	ld a, [hli]
+	ld [rWave_9], a
+	ld a, [hli]
+	ld [rWave_a], a
+	ld a, [hli]
+	ld [rWave_b], a
+	ld a, [hli]
+	ld [rWave_c], a
+	ld a, [hli]
+	ld [rWave_d], a
+	ld a, [hli]
+	ld [rWave_e], a
+	ld a, [hli]
+	ld [rWave_f], a
+	ret
+
 FrequencyTable: ; e8d80
 	dw 0     ; __
 	dw $f82c ; C_
@@ -2794,9 +2863,8 @@ FrequencyTable: ; e8d80
 	dw $fded ; B_
 ; e8db2
 
-WaveSamples: ; e8db2
+WaveSamples:: ; e8db2
 	; these are streams of 32 4-bit values used as wavepatterns
-	; nothing interesting here!
 	dn 0, 2, 4, 6, 8, 10, 12, 14, 15, 15, 15, 14, 14, 13, 13, 12, 12, 11, 10, 9, 8, 7, 6, 5, 4, 4, 3, 3, 2, 2, 1, 1
 	dn 0, 2, 4, 6, 8, 10, 12, 14, 14, 15, 15, 15, 15, 14, 14, 14, 13, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 2, 1, 1
 	dn 1, 3, 6, 9, 11, 13, 14, 14, 14, 14, 15, 15, 15, 15, 14, 13, 13, 14, 15, 15, 15, 15, 14, 14, 14, 14, 13, 11, 9, 6, 3, 1
@@ -2807,7 +2875,8 @@ WaveSamples: ; e8db2
 	dn 12, 0, 10, 9, 8, 7, 15, 5, 15, 15, 15, 14, 14, 13, 13, 12, 4, 4, 3, 3, 2, 2, 15, 1, 0, 2, 4, 6, 8, 10, 12, 14
 	dn 4, 4, 3, 3, 2, 2, 1, 15, 0, 0, 4, 6, 8, 10, 12, 14, 15, 8, 15, 14, 14, 13, 13, 12, 12, 11, 10, 9, 8, 7, 6, 5
 	dn 1, 1, 0, 0, 0, 0, 0, 8, 0, 0, 1, 3, 5, 7, 9, 10, 11, 4, 11, 10, 10, 9, 9, 8, 8, 7, 6, 5, 4, 3, 2, 1
-	dn 15, 3, 2, 1, 14, 2, 3, 3, 2, 8, 14, 1, 2, 2, 15, 15, 2, 2, 15, 7, 2, 4, 2, 2, 15, 7, 3, 4, 2, 4, 15, 7, 4, 4 ; rby lavender town + pokemon tower
+	dn 15, 3, 2, 1, 14, 2, 3, 3, 2, 8, 14, 1, 2, 2, 15, 15, 2, 2, 15, 7, 2, 4, 2, 2, 15, 7, 3, 4, 2, 4, 15, 7, 4, 4 ; RBY Lavender Town + Pokémon Tower
+	; room for 5 more
 ; e8e52
 
 Drumkits: ; e8e52

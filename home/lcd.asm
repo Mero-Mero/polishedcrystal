@@ -1,5 +1,8 @@
 LCD:: ; 552
 	push af
+	ld a, [hMPState]
+	and a
+	jr nz, .musicplayer
 	ld a, [hLCDCPointer]
 	and a
 	jr z, .done
@@ -18,6 +21,56 @@ LCD:: ; 552
 	pop bc
 
 .done
+	pop af
+	reti
+
+.musicplayer
+	ld a, [rLY]
+	cp PIANO_ROLL_HEIGHT_PX
+	jr nc, .donemp
+
+	push hl
+
+	ld l, a
+	add SCREEN_HEIGHT - 1
+	ld [$fe00+4*0], a ; OAM 0 y
+	ld [$fe00+4*1], a ; OAM 1 y
+	ld [$fe00+4*2], a ; OAM 2 y
+
+	ld a, [hMPState]
+	inc a
+	add l
+	jr nc, .ok
+	sub SCREEN_HEIGHT_PX
+.ok
+
+	ld h, 0
+	ld l, a
+	add hl, hl
+	add hl, hl
+
+if 0 ; if wMPNotes % $100
+	ld a, l
+	add wMPNotes % $100
+	ld l, a
+	ld a, h
+	adc wMPNotes / $100
+	ld h, a
+else
+	ld a, h
+	add wMPNotes / $100
+	ld h, a
+endc
+
+	ld a, [hli]
+	ld [$fe00+4*0+1], a ; OAM 0 x
+	ld a, [hli]
+	ld [$fe00+4*1+1], a ; OAM 1 x
+	ld a, [hli]
+	ld [$fe00+4*2+1], a ; OAM 2 x
+	pop hl
+
+.donemp
 	pop af
 	reti
 ; 568

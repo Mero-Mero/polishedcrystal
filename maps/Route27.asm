@@ -1,27 +1,43 @@
-const_value set 2
-	const ROUTE27_BATTLE_GIRL
-	const ROUTE27_COOLTRAINER_M1
-	const ROUTE27_COOLTRAINER_M2
-	const ROUTE27_COOLTRAINER_F1
-	const ROUTE27_COOLTRAINER_F2
-	const ROUTE27_COOLTRAINER_F3
-	const ROUTE27_YOUNGSTER1
-	const ROUTE27_YOUNGSTER2
-	const ROUTE27_POKE_BALL1
-	const ROUTE27_POKE_BALL2
-	const ROUTE27_POKE_BALL3
-	const ROUTE27_FISHER
-	const ROUTE27_FRUIT_TREE
-
 Route27_MapScriptHeader:
-.MapTriggers:
-	db 0
 
-.MapCallbacks:
-	db 1
-	dbw MAPCALLBACK_SPRITES, .DragonTamerSprite
+.MapTriggers: db 0
 
-.DragonTamerSprite:
+.MapCallbacks: db 1
+	dbw MAPCALLBACK_SPRITES, Route27DragonTamerSprite
+
+Route27_MapEventHeader:
+
+.Warps: db 3
+	warp_def 7, 33, 1, ROUTE_27_REST_HOUSE
+	warp_def 5, 26, 1, TOHJO_FALLS
+	warp_def 5, 36, 2, TOHJO_FALLS
+
+.XYTriggers: db 2
+	xy_trigger 0, 10, 18, UnknownScript_0x1a0873
+	xy_trigger 0, 10, 19, UnknownScript_0x1a0881
+
+.Signposts: db 1
+	signpost 7, 25, SIGNPOST_JUMPTEXT, TohjoFallsSignText
+
+.PersonEvents: db 12
+	person_event SPRITE_VETERAN_F, 12, 48, SPRITEMOVEDATA_STANDING_RIGHT, 0, 0, -1, -1, (1 << 3) | PAL_OW_BROWN, PERSONTYPE_SCRIPT, 0, Route27VeteranfScript, -1
+	person_event SPRITE_FISHER, 10, 21, SPRITEMOVEDATA_SPINRANDOM_SLOW, 0, 0, -1, -1, 0, PERSONTYPE_COMMAND, jumptextfaceplayer, UnknownText_0x1a0a71, -1
+	person_event SPRITE_COOLTRAINER_M, 7, 48, SPRITEMOVEDATA_STANDING_UP, 0, 0, -1, -1, (1 << 3) | PAL_OW_RED, PERSONTYPE_TRAINER, 3, TrainerCooltrainermBlake, -1
+	person_event SPRITE_COOLTRAINER_M, 6, 58, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, -1, (1 << 3) | PAL_OW_RED, PERSONTYPE_TRAINER, 1, TrainerAceDuoJakeandbri1, -1
+	person_event SPRITE_COOLTRAINER_F, 6, 59, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, -1, (1 << 3) | PAL_OW_RED, PERSONTYPE_TRAINER, 1, TrainerAceDuoJakeandbri2, -1
+	person_event SPRITE_COOLTRAINER_F, 10, 72, SPRITEMOVEDATA_STANDING_UP, 0, 0, -1, -1, (1 << 3) | PAL_OW_RED, PERSONTYPE_TRAINER, 4, TrainerCooltrainerfReena, -1
+	person_event SPRITE_COOLTRAINER_F, 6, 37, SPRITEMOVEDATA_SPINCLOCKWISE, 0, 0, -1, -1, (1 << 3) | PAL_OW_RED, PERSONTYPE_TRAINER, 2, TrainerCooltrainerfMegan, -1
+	person_event SPRITE_YOUNGSTER, 7, 65, SPRITEMOVEDATA_STANDING_LEFT, 0, 0, -1, -1, (1 << 3) | PAL_OW_PURPLE, PERSONTYPE_TRAINER, 3, TrainerPsychicGilbert, -1
+	person_event SPRITE_YOUNGSTER, 13, 58, SPRITEMOVEDATA_STANDING_RIGHT, 0, 0, -1, -1, (1 << 3) | PAL_OW_BLUE, PERSONTYPE_TRAINER, 3, TrainerBird_keeperJose1, -1
+	itemball_event 12, 53, RARE_CANDY, 1, EVENT_ROUTE_27_RARE_CANDY
+	itemball_event 4, 71, DESTINY_KNOT, 1, EVENT_ROUTE_27_DESTINY_KNOT
+	fruittree_event 12, 60, FRUITTREE_ROUTE_27, LUM_BERRY
+
+const_value set 1
+	const ROUTE27_VETERAN_F
+	const ROUTE27_FISHER
+
+Route27DragonTamerSprite:
 	variablesprite SPRITE_GUIDE_GENT, SPRITE_DRAGON_TAMER
 	return
 
@@ -34,7 +50,7 @@ UnknownScript_0x1a0873:
 UnknownScript_0x1a0881:
 	spriteface ROUTE27_FISHER, LEFT
 	showemote EMOTE_SHOCK, ROUTE27_FISHER, 15
-	applymovement ROUTE27_FISHER, MovementData_0x1a0a69
+	applyonemovement ROUTE27_FISHER, step_left
 UnknownScript_0x1a088c:
 	spriteface PLAYER, RIGHT
 	opentext
@@ -46,40 +62,139 @@ UnknownScript_0x1a088c:
 	dotrigger $1
 	end
 
-FisherScript_0x1a089c:
-	jumptextfaceplayer UnknownText_0x1a0a71
-
-FruitTreeScript_Route27LumBerry:
-	fruittree FRUITTREE_ROUTE_27
-
-TrainerBattleGirlRonda:
-	trainer EVENT_BEAT_BATTLE_GIRL_RONDA, BATTLE_GIRL, RONDA, BattleGirlRondaSeenText, BattleGirlRondaBeatenText, 0, BattleGirlRondaScript
-
-BattleGirlRondaScript:
-	end_if_just_battled
+Route27VeteranfScript:
+	checkevent EVENT_GOT_CHOICE_SPECS_FROM_ROUTE_27_LEADER
+	iftrue_jumptextfaceplayer .AfterText2
+	faceplayer
+	checkevent EVENT_BEAT_VETERANF_LITVYAK
+	iftrue .Beaten
+	checkevent EVENT_BEAT_PSYCHIC_GILBERT
+	iffalse_jumptext .IntroText
+	checkevent EVENT_BEAT_BIRD_KEEPER_JOSE
+	iffalse_jumptext .IntroText
+	checkevent EVENT_BEAT_COOLTRAINERM_BLAKE
+	iffalse_jumptext .IntroText
+	checkevent EVENT_BEAT_ACE_DUO_JAKE_AND_BRI
+	iffalse_jumptext .IntroText
+	checkevent EVENT_BEAT_COOLTRAINERF_REENA
+	iffalse_jumptext .IntroText
+	checkevent EVENT_BEAT_COOLTRAINERF_MEGAN
+	iffalse_jumptext .IntroText
+	checkevent EVENT_BEAT_DRAGON_TAMER_KAZU
+	iffalse_jumptext .IntroText
+	checkevent EVENT_BEAT_COOLTRAINERM_GAVEN
+	iffalse_jumptext .IntroText
+	checkevent EVENT_BEAT_COOLTRAINERF_JOYCE
+	iffalse_jumptext .IntroText
+	checkevent EVENT_BEAT_COOLTRAINERF_BETH
+	iffalse_jumptext .IntroText
+	checkevent EVENT_BEAT_PSYCHIC_RICHARD
+	iffalse_jumptext .IntroText
+	checkevent EVENT_BEAT_BATTLE_GIRL_RONDA
+	iffalse_jumptext .IntroText
+	checkevent EVENT_BEAT_FISHER_SCOTT
+	iffalse_jumptext .IntroText
+	checkevent EVENT_BEAT_DRAGON_TAMER_ERICK
+	iffalse_jumptext .IntroText
 	opentext
-	writetext BattleGirlRondaAfterText
+	writetext .QuestionText
+	yesorno
+	iffalse_jumpopenedtext .RefusedText
+	writetext .SeenText
 	waitbutton
 	closetext
-	end
+	winlosstext .BeatenText, 0
+	setlasttalked ROUTE27_VETERAN_F
+	loadtrainer VETERANF, LITVYAK
+	startbattle
+	reloadmapafterbattle
+	setevent EVENT_BEAT_VETERANF_LITVYAK
+.Beaten:
+	opentext
+	writetext .AfterText1
+	buttonsound
+	verbosegiveitem CHOICE_SPECS
+	iffalse_endtext
+	setevent EVENT_GOT_CHOICE_SPECS_FROM_ROUTE_27_LEADER
+	thisopenedtext
+
+.AfterText2:
+	text "Good luck! Say"
+	line "hello to Lance"
+	cont "for me."
+	done
+
+.IntroText:
+	text "Hm! If you're here,"
+	line "then you must be"
+
+	para "heading for the"
+	line "#mon League."
+
+	para "Want to train"
+	line "with me?"
+
+	para "Then beat everyone"
+	line "else on Routes 26"
+	cont "and 27."
+
+	para "I'll wait for you"
+	line "here."
+	done
+
+.QuestionText:
+	text "Hm. You beat the"
+	line "rest faster than"
+	cont "I expected."
+
+	para "Let's train."
+	done
+
+.RefusedText:
+	text "It's okay."
+	line "I can wait."
+	done
+
+.SeenText:
+	text "My #mon are"
+	line "all wearing"
+	cont "Choice Specs."
+
+	para "They may look"
+	line "weird, but they"
+	cont "are powerful."
+	done
+
+.BeatenText:
+	text "You're ready for"
+	line "the #mon"
+	cont "League, I'm sure!"
+	done
+
+.AfterText1:
+	text "Choice Specs will"
+	line "boost a #mon's"
+	cont "Special Attack,"
+
+	para "but it can only"
+	line "use one move."
+
+	para "Take a pair"
+	line "yourself."
+	done
 
 TrainerPsychicGilbert:
 	trainer EVENT_BEAT_PSYCHIC_GILBERT, PSYCHIC_T, GILBERT, PsychicGilbertSeenText, PsychicGilbertBeatenText, 0, PsychicGilbertScript
 
 PsychicGilbertScript:
 	end_if_just_battled
-	opentext
-	writetext UnknownText_0x1a0dd2
-	waitbutton
-	closetext
-	end
+	jumptextfaceplayer UnknownText_0x1a0dd2
 
 TrainerBird_keeperJose1:
 	trainer EVENT_BEAT_BIRD_KEEPER_JOSE, BIRD_KEEPER, JOSE1, Bird_keeperJose1SeenText, Bird_keeperJose1BeatenText, 0, Bird_keeperJose1Script
 
 Bird_keeperJose1Script:
 	writecode VAR_CALLERID, PHONE_BIRDKEEPER_JOSE
-	end_if_just_battled
 	opentext
 	checkflag ENGINE_JOSE
 	iftrue UnknownScript_0x1a08ff
@@ -192,40 +307,27 @@ TrainerCooltrainermBlake:
 
 CooltrainermBlakeScript:
 	end_if_just_battled
-	opentext
-	writetext UnknownText_0x1a0b0b
-	waitbutton
-	closetext
-	end
+	jumptextfaceplayer UnknownText_0x1a0b0b
 
 TrainerAceDuoJakeandbri1:
 	trainer EVENT_BEAT_ACE_DUO_JAKE_AND_BRI, ACE_DUO, JAKEANDBRI1, AceDuoJakeandbri1SeenText, AceDuoJakeandbri1BeatenText, 0, AceDuoJakeandbri1Script
 
 AceDuoJakeandbri1Script:
 	end_if_just_battled
-	opentext
-	writetext AceDuoJakeandbri1AfterText
-	waitbutton
-	closetext
-	end
+	jumptextfaceplayer AceDuoJakeandbri1AfterText
 
 TrainerAceDuoJakeandbri2:
 	trainer EVENT_BEAT_ACE_DUO_JAKE_AND_BRI, ACE_DUO, JAKEANDBRI2, AceDuoJakeandbri2SeenText, AceDuoJakeandbri2BeatenText, 0, AceDuoJakeandbri2Script
 
 AceDuoJakeandbri2Script:
 	end_if_just_battled
-	opentext
-	writetext AceDuoJakeandbri2AfterText
-	waitbutton
-	closetext
-	end
+	jumptextfaceplayer AceDuoJakeandbri2AfterText
 
 TrainerCooltrainerfReena:
 	trainer EVENT_BEAT_COOLTRAINERF_REENA, COOLTRAINERF, REENA1, CooltrainerfReena1SeenText, CooltrainerfReena1BeatenText, 0, CooltrainerfReena1Script
 
 CooltrainerfReena1Script:
 	writecode VAR_CALLERID, PHONE_COOLTRAINERF_REENA
-	end_if_just_battled
 	opentext
 	checkflag ENGINE_REENA
 	iftrue UnknownScript_0x1a09e9
@@ -318,30 +420,10 @@ TrainerCooltrainerfMegan:
 
 CooltrainerfMeganScript:
 	end_if_just_battled
-	opentext
-	writetext UnknownText_0x1a0cce
-	waitbutton
-	closetext
-	end
-
-TohjoFallsSign:
-	jumptext TohjoFallsSignText
-
-Route27TMDragonClaw:
-	tmhmball TM_DRAGON_CLAW
-
-Route27RareCandy:
-	itemball RARE_CANDY
-
-Route27DestinyKnot:
-	itemball DESTINY_KNOT
+	jumptextfaceplayer UnknownText_0x1a0cce
 
 MovementData_0x1a0a66:
 	step_left
-	step_left
-	step_end
-
-MovementData_0x1a0a69:
 	step_left
 	step_end
 
@@ -359,26 +441,6 @@ UnknownText_0x1a0a71:
 
 	para "Check your #-"
 	line "gear Map and see."
-	done
-
-BattleGirlRondaSeenText:
-	text "Stop! I challenge"
-	line "you to a duel!"
-	done
-
-BattleGirlRondaBeatenText:
-	text "Victory is yours!"
-	done
-
-BattleGirlRondaAfterText:
-	text "You see some of"
-	line "the world's str-"
-
-	para "ongest trainers"
-	line "come through here."
-
-	para "And I get to fight"
-	line "them all!"
 	done
 
 CooltrainermBlakeSeenText:
@@ -537,35 +599,3 @@ TohjoFallsSignText:
 	para "The Link Between"
 	line "Kanto and Johto"
 	done
-
-Route27_MapEventHeader:
-.Warps:
-	db 3
-	warp_def $7, $21, 1, ROUTE_27_REST_HOUSE
-	warp_def $5, $1a, 1, TOHJO_FALLS
-	warp_def $5, $24, 2, TOHJO_FALLS
-
-.XYTriggers:
-	db 2
-	xy_trigger 0, $a, $12, UnknownScript_0x1a0873
-	xy_trigger 0, $a, $13, UnknownScript_0x1a0881
-
-.Signposts:
-	db 1
-	signpost 7, 25, SIGNPOST_READ, TohjoFallsSign
-
-.PersonEvents:
-	db 13
-	person_event SPRITE_COOLTRAINER_F, 12, 48, SPRITEMOVEDATA_STANDING_RIGHT, 0, 0, -1, -1, (1 << 3) | PAL_OW_BLUE, PERSONTYPE_TRAINER, 4, TrainerBattleGirlRonda, -1
-	person_event SPRITE_COOLTRAINER_M, 7, 48, SPRITEMOVEDATA_STANDING_UP, 0, 0, -1, -1, (1 << 3) | PAL_OW_RED, PERSONTYPE_TRAINER, 3, TrainerCooltrainermBlake, -1
-	person_event SPRITE_COOLTRAINER_M, 6, 58, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, -1, (1 << 3) | PAL_OW_RED, PERSONTYPE_TRAINER, 1, TrainerAceDuoJakeandbri1, -1
-	person_event SPRITE_COOLTRAINER_F, 6, 59, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, -1, (1 << 3) | PAL_OW_RED, PERSONTYPE_TRAINER, 1, TrainerAceDuoJakeandbri2, -1
-	person_event SPRITE_COOLTRAINER_F, 10, 72, SPRITEMOVEDATA_STANDING_UP, 0, 0, -1, -1, (1 << 3) | PAL_OW_RED, PERSONTYPE_TRAINER, 4, TrainerCooltrainerfReena, -1
-	person_event SPRITE_COOLTRAINER_F, 6, 37, SPRITEMOVEDATA_SPINCLOCKWISE, 0, 0, -1, -1, (1 << 3) | PAL_OW_RED, PERSONTYPE_TRAINER, 2, TrainerCooltrainerfMegan, -1
-	person_event SPRITE_YOUNGSTER, 7, 65, SPRITEMOVEDATA_STANDING_LEFT, 0, 0, -1, -1, (1 << 3) | PAL_OW_PURPLE, PERSONTYPE_TRAINER, 3, TrainerPsychicGilbert, -1
-	person_event SPRITE_YOUNGSTER, 13, 58, SPRITEMOVEDATA_STANDING_RIGHT, 0, 0, -1, -1, (1 << 3) | PAL_OW_BLUE, PERSONTYPE_TRAINER, 3, TrainerBird_keeperJose1, -1
-	person_event SPRITE_BALL_CUT_FRUIT, 12, 58, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, -1, (1 << 3) | PAL_OW_BLUE, PERSONTYPE_TMHMBALL, 0, Route27TMDragonClaw, EVENT_ROUTE_27_TM_DRAGON_CLAW
-	person_event SPRITE_BALL_CUT_FRUIT, 12, 53, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, -1, (1 << 3) | PAL_OW_RED, PERSONTYPE_ITEMBALL, 0, Route27RareCandy, EVENT_ROUTE_27_RARE_CANDY
-	person_event SPRITE_BALL_CUT_FRUIT, 4, 71, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, -1, (1 << 3) | PAL_OW_RED, PERSONTYPE_ITEMBALL, 0, Route27DestinyKnot, EVENT_ROUTE_27_DESTINY_KNOT
-	person_event SPRITE_FISHER, 10, 21, SPRITEMOVEDATA_SPINRANDOM_SLOW, 0, 0, -1, -1, 0, PERSONTYPE_SCRIPT, 3, FisherScript_0x1a089c, -1
-	person_event SPRITE_BALL_CUT_FRUIT, 12, 60, SPRITEMOVEDATA_STANDING_LEFT, 0, 0, -1, -1, 0, PERSONTYPE_SCRIPT, 0, FruitTreeScript_Route27LumBerry, -1

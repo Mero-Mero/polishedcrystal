@@ -90,6 +90,34 @@ OpenAndCloseMenu_HDMATransferTileMapAndAttrMap:: ; 104110
 	ret
 ; 104148
 
+BridgeTransition_HDMATransferTileMapAndAttrMap::
+	ld hl, .Function
+	jp CallInSafeGFXMode
+
+.Function:
+	decoord 0, 0, AttrMap
+	ld hl, wScratchAttrMap
+	call CutAndPasteAttrMap
+	decoord 0, 0
+	ld hl, wScratchTileMap
+	call CutAndPasteTilemap
+
+	di
+	ld a, [rVBK]
+	push af
+	ld a, $1
+	ld [rVBK], a
+	ld hl, wScratchAttrMap
+	call HDMATransfer_Wait123Scanlines_toBGMap
+	ld a, $0
+	ld [rVBK], a
+	ld hl, wScratchTileMap
+	call HDMATransfer_Wait123Scanlines_toBGMap
+	pop af
+	ld [rVBK], a
+	ei
+	ret
+
 CallInSafeGFXMode: ; 104177
 	ld a, [hBGMapMode]
 	push af
@@ -153,8 +181,7 @@ HDMATransfer_Wait123Scanlines_toBGMap: ; 1041b7 (41:41b7)
 	ld d, a
 	ld a, [hBGMapAddress]
 	ld e, a
-	ld c, 2 * SCREEN_HEIGHT
-	ld b, $7b
+	lb bc, $7b, 2 * SCREEN_HEIGHT
 	jr _continue_HDMATransfer
 ; 1041c1 (41:41c1)
 
@@ -441,6 +468,7 @@ SleepEmote:      INCBIN "gfx/emotes/sleep.2bpp"
 FishEmote:       INCBIN "gfx/emotes/fish.2bpp"
 
 JumpShadowGFX:   INCBIN "gfx/ow_fx/shadow.2bpp"
-FishingRodGFX2:  INCBIN "gfx/ow_fx/fishing2.2bpp"
+FishingRodGFX:   INCBIN "gfx/ow_fx/fishing2.2bpp"
 BoulderDustGFX:  INCBIN "gfx/ow_fx/boulderdust.2bpp"
 ShakingGrassGFX: INCBIN "gfx/ow_fx/shaking_grass.2bpp"
+PuddleSplashGFX: INCBIN "gfx/ow_fx/puddle_splash.2bpp"

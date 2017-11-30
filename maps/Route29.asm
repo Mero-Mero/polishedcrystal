@@ -1,24 +1,40 @@
-const_value set 2
-	const ROUTE29_LYRA
-	const ROUTE29_YOUNGSTER
-	const ROUTE29_TEACHER1
-	const ROUTE29_CUT_TREE1
-	const ROUTE29_CUT_TREE2
-	const ROUTE29_FRUIT_TREE
-	const ROUTE29_FISHER
-	const ROUTE29_COOLTRAINER_M
-	const ROUTE29_TUSCANY
-	const ROUTE29_POKE_BALL
-
 Route29_MapScriptHeader:
-.MapTriggers:
-	db 0
 
-.MapCallbacks:
-	db 1
-	dbw MAPCALLBACK_OBJECTS, .Tuscany
+.MapTriggers: db 0
 
-.Tuscany:
+.MapCallbacks: db 1
+	dbw MAPCALLBACK_OBJECTS, Route29Tuscany
+
+Route29_MapEventHeader:
+
+.Warps: db 1
+	warp_def 1, 27, 3, ROUTE_29_46_GATE
+
+.XYTriggers: db 2
+	xy_trigger 1, 8, 53, Route29Tutorial1
+	xy_trigger 1, 9, 53, Route29Tutorial2
+
+.Signposts: db 2
+	signpost 7, 51, SIGNPOST_JUMPTEXT, Route29Sign1Text
+	signpost 5, 3, SIGNPOST_JUMPTEXT, Route29Sign2Text
+
+.PersonEvents: db 10
+	person_event SPRITE_NEW_BARK_LYRA, 12, 50, SPRITEMOVEDATA_SPINRANDOM_SLOW, 0, 0, -1, -1, (1 << 3) | PAL_OW_RED, PERSONTYPE_SCRIPT, 0, ObjectEvent, EVENT_LYRA_ROUTE_29
+	person_event SPRITE_TEACHER, 12, 29, SPRITEMOVEDATA_SPINRANDOM_SLOW, 0, 0, -1, -1, 0, PERSONTYPE_SCRIPT, 0, TuscanyScript, EVENT_ROUTE_29_TUSCANY_OF_TUESDAY
+	person_event SPRITE_YOUNGSTER, 16, 27, SPRITEMOVEDATA_WALK_UP_DOWN, 1, 0, -1, -1, (1 << 3) | PAL_OW_GREEN, PERSONTYPE_COMMAND, jumptextfaceplayer, Route29YoungsterText, -1
+	person_event SPRITE_TEACHER, 11, 15, SPRITEMOVEDATA_WALK_LEFT_RIGHT, 0, 1, -1, -1, (1 << 3) | PAL_OW_GREEN, PERSONTYPE_COMMAND, jumptextfaceplayer, Route29TeacherText, -1
+	cuttree_event 9, 30, EVENT_ROUTE_29_CUT_TREE_1
+	cuttree_event 11, 21, EVENT_ROUTE_29_CUT_TREE_2
+	fruittree_event 2, 12, FRUITTREE_ROUTE_29, ORAN_BERRY
+	person_event SPRITE_FISHER, 3, 25, SPRITEMOVEDATA_STANDING_UP, 0, 0, -1, -1, (1 << 3) | PAL_OW_BLUE, PERSONTYPE_COMMAND, jumptextfaceplayer, Route29FisherText, -1
+	person_event SPRITE_COOLTRAINER_M, 4, 13, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, -1, (1 << 3) | PAL_OW_RED, PERSONTYPE_SCRIPT, 0, CooltrainerMScript_0x1a1031, -1
+	itemball_event 2, 48, POTION, 1, EVENT_ROUTE_29_POTION
+
+const_value set 1
+	const ROUTE29_LYRA
+	const ROUTE29_TUSCANY
+
+Route29Tuscany:
 	checkflag ENGINE_ZEPHYRBADGE
 	iftrue .DoesTuscanyAppear
 
@@ -36,16 +52,35 @@ Route29Tutorial1:
 	spriteface ROUTE29_LYRA, UP
 	showemote EMOTE_SHOCK, ROUTE29_LYRA, 15
 	special Special_FadeOutMusic
+	playmusic MUSIC_LYRA_ENCOUNTER_HGSS
 	pause 15
 	applymovement ROUTE29_LYRA, LyraMovementData1a
 	spriteface PLAYER, LEFT
-	playmusic MUSIC_LYRA_ENCOUNTER_HGSS
 	opentext
 	writetext CatchingTutorialIntroText
-	waitbutton
+	yesorno
+	iffalse Route29RefusedTutorial
 	closetext
 	follow ROUTE29_LYRA, PLAYER
 	applymovement ROUTE29_LYRA, LyraMovementData1b
+	jump Route29TutorialScript
+
+Route29Tutorial2:
+	spriteface ROUTE29_LYRA, UP
+	showemote EMOTE_SHOCK, ROUTE29_LYRA, 15
+	special Special_FadeOutMusic
+	playmusic MUSIC_LYRA_ENCOUNTER_HGSS
+	pause 15
+	applymovement ROUTE29_LYRA, LyraMovementData2a
+	spriteface PLAYER, LEFT
+	opentext
+	writetext CatchingTutorialIntroText
+	yesorno
+	iffalse Route29RefusedTutorial
+	closetext
+	follow ROUTE29_LYRA, PLAYER
+	applymovement ROUTE29_LYRA, LyraMovementData2b
+Route29TutorialScript:
 	stopfollow
 	loadwildmon PIDGEY, 5
 	catchtutorial BATTLETYPE_TUTORIAL
@@ -54,9 +89,10 @@ Route29Tutorial1:
 	spriteface ROUTE29_LYRA, UP
 	opentext
 	writetext CatchingTutorialDebriefText
+Route29FinishTutorial:
 	buttonsound
 	itemtotext POKE_BALL, $1
-	scall LyraScript_ReceiveTheBalls
+	callstd receiveitem
 	giveitem POKE_BALL, 5
 	itemnotify
 	writetext CatchingTutorialGoodbyeText
@@ -66,83 +102,26 @@ Route29Tutorial1:
 	disappear ROUTE29_LYRA
 	dotrigger $0
 	variablesprite SPRITE_NEW_BARK_LYRA, SPRITE_LASS
-	special RunCallback_04
+	special MapCallbackSprites_LoadUsedSpritesGFX
 	setevent EVENT_LEARNED_TO_CATCH_POKEMON
-	playmapmusic
+	playmusic MUSIC_ROUTE_29
 	end
 
-Route29Tutorial2:
-	spriteface ROUTE29_LYRA, UP
-	showemote EMOTE_SHOCK, ROUTE29_LYRA, 15
-	special Special_FadeOutMusic
-	pause 15
-	applymovement ROUTE29_LYRA, LyraMovementData2a
-	spriteface PLAYER, LEFT
-	playmusic MUSIC_LYRA_ENCOUNTER_HGSS
-	opentext
-	writetext CatchingTutorialIntroText
-	waitbutton
-	closetext
-	follow ROUTE29_LYRA, PLAYER
-	applymovement ROUTE29_LYRA, LyraMovementData2b
-	stopfollow
-	loadwildmon SENTRET, 5
-	catchtutorial BATTLETYPE_TUTORIAL
-	playmusic MUSIC_LYRA_DEPARTURE_HGSS
-	spriteface ROUTE29_LYRA, UP
-	opentext
-	writetext CatchingTutorialDebriefText
-	buttonsound
-	itemtotext POKE_BALL, $1
-	scall LyraScript_ReceiveTheBalls
-	giveitem POKE_BALL, 5
-	itemnotify
-	writetext CatchingTutorialGoodbyeText
-	waitbutton
-	closetext
-	applymovement ROUTE29_LYRA, LyraMovementData3
-	disappear ROUTE29_LYRA
-	dotrigger $0
-	variablesprite SPRITE_NEW_BARK_LYRA, SPRITE_LASS
-	special RunCallback_04
-	setevent EVENT_LEARNED_TO_CATCH_POKEMON
-	playmapmusic
-	end
-
-LyraScript_ReceiveTheBalls:
-	jumpstd receiveitem
-	end
-
-Route29YoungsterScript:
-	jumptextfaceplayer Route29YoungsterText
-
-Route29TeacherScript:
-	jumptextfaceplayer Route29TeacherText
-
-Route29FisherScript:
-	jumptextfaceplayer Route29FisherText
+Route29RefusedTutorial:
+	setevent EVENT_NEVER_LEARNED_TO_CATCH_POKEMON
+	writetext CatchingTutorialRefusedText
+	jump Route29FinishTutorial
 
 CooltrainerMScript_0x1a1031:
-	faceplayer
-	opentext
 	checknite
-	iftrue .nite
-	writetext Text_WaitingForNight
-	waitbutton
-	closetext
-	end
-
-.nite
-	writetext Text_WaitingForMorning
-	waitbutton
-	closetext
-	end
+	iftrue_jumptextfaceplayer Text_WaitingForMorning
+	jumptextfaceplayer Text_WaitingForNight
 
 TuscanyScript:
 	faceplayer
 	opentext
 	checkevent EVENT_GOT_SILK_SCARF_FROM_TUSCANY
-	iftrue TuscanyTuesdayScript
+	iftrue_jumpopenedtext TuscanyTuesdayText
 	checkcode VAR_WEEKDAY
 	if_not_equal TUESDAY, TuscanyNotTuesdayScript
 	checkevent EVENT_MET_TUSCANY_OF_TUESDAY
@@ -154,50 +133,15 @@ TuscanyScript:
 	writetext TuscanyGivesGiftText
 	buttonsound
 	verbosegiveitem SILK_SCARF
-	iffalse TuscanyDoneScript
+	iffalse_endtext
 	setevent EVENT_GOT_SILK_SCARF_FROM_TUSCANY
-	writetext TuscanyGaveGiftText
-	waitbutton
-	closetext
-	end
-
-TuscanyTuesdayScript:
-	writetext TuscanyTuesdayText
-	waitbutton
-TuscanyDoneScript:
-	closetext
-	end
+	jumpopenedtext TuscanyGaveGiftText
 
 TuscanyNotTuesdayScript:
-	writetext TuscanyNotTuesdayText
-	waitbutton
-	closetext
-	end
-
-Route29Sign1:
-	jumptext Route29Sign1Text
-
-Route29Sign2:
-	jumptext Route29Sign2Text
-
-Route29CutTree:
-	jumpstd cuttree
-
-Route29FruitTree:
-	fruittree FRUITTREE_ROUTE_29
-
-Route29Potion:
-	itemball POTION
+	jumpopenedtext TuscanyNotTuesdayText
 
 LyraMovementData1a:
 	step_up
-	step_up
-	step_up
-	step_up
-	step_right
-	step_right
-	step_end
-
 LyraMovementData2a:
 	step_up
 	step_up
@@ -242,8 +186,8 @@ CatchingTutorialIntroText:
 	done
 
 CatchingTutorialDebriefText:
-	text "See? Just like"
-	line "that!"
+	text "Lyra: See? Just"
+	line "like that!"
 
 	para "If you weaken them"
 	line "first, #mon are"
@@ -251,6 +195,17 @@ CatchingTutorialDebriefText:
 
 	para "I'll give you"
 	line "these. Good luck!"
+	done
+
+CatchingTutorialRefusedText:
+	text "Aww… I wanted to"
+	line "show off my cap-"
+	cont "turing skills a"
+	cont "little…"
+
+	para "Anyway, I'll give"
+	line "you these."
+	cont "Good luck!"
 	done
 
 CatchingTutorialGoodbyeText:
@@ -369,31 +324,3 @@ Route29Sign2Text:
 	para "Cherrygrove City -"
 	line "New Bark Town"
 	done
-
-Route29_MapEventHeader:
-.Warps:
-	db 1
-	warp_def $1, $1b, 3, ROUTE_29_46_GATE
-
-.XYTriggers:
-	db 2
-	xy_trigger 1, $8, $35, Route29Tutorial1
-	xy_trigger 1, $9, $35, Route29Tutorial2
-
-.Signposts:
-	db 2
-	signpost 7, 51, SIGNPOST_READ, Route29Sign1
-	signpost 5, 3, SIGNPOST_READ, Route29Sign2
-
-.PersonEvents:
-	db 10
-	person_event SPRITE_NEW_BARK_LYRA, 12, 50, SPRITEMOVEDATA_SPINRANDOM_SLOW, 0, 0, -1, -1, (1 << 3) | PAL_OW_RED, PERSONTYPE_SCRIPT, 0, ObjectEvent, EVENT_LYRA_ROUTE_29
-	person_event SPRITE_YOUNGSTER, 16, 27, SPRITEMOVEDATA_WALK_UP_DOWN, 1, 0, -1, -1, (1 << 3) | PAL_OW_GREEN, PERSONTYPE_SCRIPT, 0, Route29YoungsterScript, -1
-	person_event SPRITE_TEACHER, 11, 15, SPRITEMOVEDATA_WALK_LEFT_RIGHT, 0, 1, -1, -1, (1 << 3) | PAL_OW_GREEN, PERSONTYPE_SCRIPT, 0, Route29TeacherScript, -1
-	person_event SPRITE_BALL_CUT_FRUIT, 9, 30, SPRITEMOVEDATA_CUTTABLE_TREE, 0, 0, -1, -1, 0, PERSONTYPE_SCRIPT, 0, Route29CutTree, EVENT_ROUTE_29_CUT_TREE_1
-	person_event SPRITE_BALL_CUT_FRUIT, 11, 21, SPRITEMOVEDATA_CUTTABLE_TREE, 0, 0, -1, -1, 0, PERSONTYPE_SCRIPT, 0, Route29CutTree, EVENT_ROUTE_29_CUT_TREE_2
-	person_event SPRITE_BALL_CUT_FRUIT, 2, 12, SPRITEMOVEDATA_STANDING_LEFT, 0, 0, -1, -1, 0, PERSONTYPE_SCRIPT, 0, Route29FruitTree, -1
-	person_event SPRITE_FISHER, 3, 25, SPRITEMOVEDATA_STANDING_UP, 0, 0, -1, -1, (1 << 3) | PAL_OW_BLUE, PERSONTYPE_SCRIPT, 0, Route29FisherScript, -1
-	person_event SPRITE_COOLTRAINER_M, 4, 13, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, -1, (1 << 3) | PAL_OW_RED, PERSONTYPE_SCRIPT, 0, CooltrainerMScript_0x1a1031, -1
-	person_event SPRITE_TEACHER, 12, 29, SPRITEMOVEDATA_SPINRANDOM_SLOW, 0, 0, -1, -1, 0, PERSONTYPE_SCRIPT, 0, TuscanyScript, EVENT_ROUTE_29_TUSCANY_OF_TUESDAY
-	person_event SPRITE_BALL_CUT_FRUIT, 2, 48, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, -1, (1 << 3) | PAL_OW_RED, PERSONTYPE_ITEMBALL, 0, Route29Potion, EVENT_ROUTE_29_POTION

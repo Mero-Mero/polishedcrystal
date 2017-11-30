@@ -1,23 +1,39 @@
-const_value set 2
+MahoganyMart1F_MapScriptHeader:
+
+.MapTriggers: db 2
+	dw MahoganyMart1FTrigger0
+	dw MahoganyMart1FTrigger1
+
+.MapCallbacks: db 1
+	dbw MAPCALLBACK_TILES, UnknownScript_0x6c35b
+
+MahoganyMart1F_MapEventHeader:
+
+.Warps: db 3
+	warp_def 7, 3, 1, MAHOGANY_TOWN
+	warp_def 7, 4, 1, MAHOGANY_TOWN
+	warp_def 3, 7, 1, TEAM_ROCKET_BASE_B1F
+
+.XYTriggers: db 0
+
+.Signposts: db 0
+
+.PersonEvents: db 5
+	person_event SPRITE_PHARMACIST, 3, 4, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, -1, 0, PERSONTYPE_SCRIPT, 0, PharmacistScript_0x6c367, EVENT_TEAM_ROCKET_BASE_POPULATION
+	person_event SPRITE_BLACK_BELT, 6, 1, SPRITEMOVEDATA_SPINRANDOM_SLOW, 0, 0, -1, -1, 0, PERSONTYPE_SCRIPT, 0, BlackBeltScript_0x6c37b, EVENT_TEAM_ROCKET_BASE_POPULATION
+	person_event SPRITE_LANCE, 6, 4, SPRITEMOVEDATA_STANDING_LEFT, 0, 0, -1, -1, 0, PERSONTYPE_SCRIPT, 0, ObjectEvent, EVENT_MAHOGANY_MART_LANCE_AND_DRAGONITE
+	person_event SPRITE_DRAGONITE, 6, 3, SPRITEMOVEDATA_STANDING_LEFT, 0, 0, -1, -1, 0, PERSONTYPE_SCRIPT, 0, ObjectEvent, EVENT_MAHOGANY_MART_LANCE_AND_DRAGONITE
+	person_event SPRITE_GRANNY, 3, 1, SPRITEMOVEDATA_STANDING_RIGHT, 0, 0, -1, -1, 0, PERSONTYPE_COMMAND, pokemart, MARTTYPE_STANDARD, MART_MAHOGANY_2, EVENT_MAHOGANY_MART_OWNERS
+
+const_value set 1
 	const MAHOGANYMART1F_PHARMACIST
 	const MAHOGANYMART1F_BLACK_BELT
 	const MAHOGANYMART1F_LANCE
 	const MAHOGANYMART1F_DRAGONITE
-	const MAHOGANYMART1F_GRANNY
 
-MahoganyMart1F_MapScriptHeader:
-.MapTriggers:
-	db 2
-	dw .Trigger0
-	dw .Trigger1
-
-.MapCallbacks:
-	db 1
-	dbw MAPCALLBACK_TILES, UnknownScript_0x6c35b
-
-.Trigger1:
+MahoganyMart1FTrigger1:
 	priorityjump UnknownScript_0x6c38f
-.Trigger0:
+MahoganyMart1FTrigger0:
 	end
 
 UnknownScript_0x6c35b:
@@ -26,39 +42,18 @@ UnknownScript_0x6c35b:
 	return
 
 UnknownScript_0x6c362:
-	changeblock $6, $2, $1e
+	changeblock 6, 2, $1e
 	return
 
 PharmacistScript_0x6c367:
-	faceplayer
-	opentext
 	checkevent EVENT_DECIDED_TO_HELP_LANCE
-	iftrue UnknownScript_0x6c375
+	iftrue_jumptextfaceplayer UnknownText_0x6c46b
 	pokemart MARTTYPE_STANDARD, MART_MAHOGANY_1
-	closetext
-	end
-
-UnknownScript_0x6c375:
-	writetext UnknownText_0x6c46b
-	waitbutton
-	closetext
-	end
 
 BlackBeltScript_0x6c37b:
-	faceplayer
-	opentext
 	checkevent EVENT_DECIDED_TO_HELP_LANCE
-	iftrue UnknownScript_0x6c389
-	writetext UnknownText_0x6c494
-	waitbutton
-	closetext
-	end
-
-UnknownScript_0x6c389:
-	writetext UnknownText_0x6c501
-	waitbutton
-	closetext
-	end
+	iftrue_jumptextfaceplayer UnknownText_0x6c501
+	jumptextfaceplayer UnknownText_0x6c494
 
 UnknownScript_0x6c38f:
 	pause 15
@@ -73,10 +68,7 @@ UnknownScript_0x6c38f:
 	disappear MAHOGANYMART1F_DRAGONITE
 	pause 15
 	applymovement MAHOGANYMART1F_LANCE, MovementData_0x6c407
-	opentext
-	writetext UnknownText_0x6c549
-	waitbutton
-	closetext
+	showtext UnknownText_0x6c549
 	follow MAHOGANYMART1F_LANCE, PLAYER
 	applymovement MAHOGANYMART1F_LANCE, MovementData_0x6c40a
 	applymovement MAHOGANYMART1F_PHARMACIST, MovementData_0x6c403
@@ -87,27 +79,17 @@ UnknownScript_0x6c38f:
 	waitbutton
 	showemote EMOTE_SHOCK, MAHOGANYMART1F_PHARMACIST, 10
 	playsound SFX_FAINT
-	changeblock $6, $2, $1e
+	changeblock 6, 2, $1e
 	reloadmappart
 	closetext
 	setevent EVENT_UNCOVERED_STAIRCASE_IN_MAHOGANY_MART
 	spriteface MAHOGANYMART1F_LANCE, LEFT
-	opentext
-	writetext UnknownText_0x6c5ba
-	waitbutton
-	closetext
-	applymovement MAHOGANYMART1F_LANCE, MovementData_0x6c412
+	showtext UnknownText_0x6c5ba
+	applyonemovement MAHOGANYMART1F_LANCE, slow_step_right
 	playsound SFX_EXIT_BUILDING
 	disappear MAHOGANYMART1F_LANCE
 	dotrigger $0
 	waitsfx
-	end
-
-GrannyScript_0x6c3ee:
-	faceplayer
-	opentext
-	pokemart MARTTYPE_STANDARD, MART_MAHOGANY_2
-	closetext
 	end
 
 MovementData_0x6c3f6:
@@ -147,10 +129,6 @@ MovementData_0x6c40a:
 MovementData_0x6c40e:
 	slow_step_up
 	slow_step_right
-	slow_step_right
-	step_end
-
-MovementData_0x6c412:
 	slow_step_right
 	step_end
 
@@ -207,24 +185,3 @@ UnknownText_0x6c5ba:
 	para "check this place."
 	line "I'll go first."
 	done
-
-MahoganyMart1F_MapEventHeader:
-.Warps:
-	db 3
-	warp_def $7, $3, 1, MAHOGANY_TOWN
-	warp_def $7, $4, 1, MAHOGANY_TOWN
-	warp_def $3, $7, 1, TEAM_ROCKET_BASE_B1F
-
-.XYTriggers:
-	db 0
-
-.Signposts:
-	db 0
-
-.PersonEvents:
-	db 5
-	person_event SPRITE_PHARMACIST, 3, 4, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, -1, 0, PERSONTYPE_SCRIPT, 0, PharmacistScript_0x6c367, EVENT_TEAM_ROCKET_BASE_POPULATION
-	person_event SPRITE_BLACK_BELT, 6, 1, SPRITEMOVEDATA_SPINRANDOM_SLOW, 0, 0, -1, -1, 0, PERSONTYPE_SCRIPT, 0, BlackBeltScript_0x6c37b, EVENT_TEAM_ROCKET_BASE_POPULATION
-	person_event SPRITE_LANCE, 6, 4, SPRITEMOVEDATA_STANDING_LEFT, 0, 0, -1, -1, 0, PERSONTYPE_SCRIPT, 0, ObjectEvent, EVENT_MAHOGANY_MART_LANCE_AND_DRAGONITE
-	person_event SPRITE_DRAGONITE, 6, 3, SPRITEMOVEDATA_STANDING_LEFT, 0, 0, -1, -1, 0, PERSONTYPE_SCRIPT, 0, ObjectEvent, EVENT_MAHOGANY_MART_LANCE_AND_DRAGONITE
-	person_event SPRITE_GRANNY, 3, 1, SPRITEMOVEDATA_STANDING_RIGHT, 0, 0, -1, -1, 0, PERSONTYPE_SCRIPT, 0, GrannyScript_0x6c3ee, EVENT_MAHOGANY_MART_OWNERS

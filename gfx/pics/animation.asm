@@ -640,7 +640,7 @@ PokeAnim_ConvertAndApplyBitmask: ; d036b
 	ld e, a
 	ld d, 0
 	add hl, de
-	jr .skip2
+	ret
 
 .go
 	ld a, [wPokeAnimBitmaskCurCol]
@@ -651,8 +651,6 @@ PokeAnim_ConvertAndApplyBitmask: ; d036b
 	ld a, h
 	sbc 0
 	ld h, a
-
-.skip2
 	ret
 ; d03f4
 
@@ -1010,39 +1008,32 @@ GetMonFramesPointer: ; d05ce
 	jr z, .egg
 
 	call PokeAnim_IsPikachu
-	ld b, BANK(PikachuFramesPointers)
-	ld c, BANK(PikachusFrames)
+	lb bc, BANK(PikachuFramesPointers), BANK(PikachusFrames)
 	ld hl, PikachuFramesPointers
 	jr z, .got_frames
 	call PokeAnim_IsPichu
-	ld b, BANK(PichuFramesPointers)
-	ld c, BANK(PichusFrames)
+	lb bc, BANK(PichuFramesPointers), BANK(PichusFrames)
 	ld hl, PichuFramesPointers
 	jr z, .got_frames
 	call PokeAnim_IsArbok
-	ld b, BANK(ArbokFramesPointers)
-	ld c, BANK(ArboksFrames)
+	lb bc, BANK(ArbokFramesPointers), BANK(ArboksFrames)
 	ld hl, ArbokFramesPointers
 	jr z, .got_frames
 	call PokeAnim_IsMagikarp
-	ld b, BANK(MagikarpFramesPointers)
-	ld c, BANK(MagikarpsFrames)
+	lb bc, BANK(MagikarpFramesPointers), BANK(MagikarpsFrames)
 	ld hl, MagikarpFramesPointers
 	jr z, .got_frames
 	call PokeAnim_IsUnown
-	ld b, BANK(UnownFramesPointers)
-	ld c, BANK(UnownsFrames)
+	lb bc, BANK(UnownFramesPointers), BANK(UnownsFrames)
 	ld hl, UnownFramesPointers
 	jr z, .got_frames
 	call PokeAnim_IsMewtwo
-	ld b, BANK(MewtwoFramesPointers)
-	ld c, BANK(MewtwosFrames)
+	lb bc, BANK(MewtwoFramesPointers), BANK(MewtwosFrames)
 	ld hl, MewtwoFramesPointers
 	jr z, .got_frames
 	ld a, [wPokeAnimSpecies]
 	cp CHIKORITA
-	ld b, BANK(FramesPointers)
-	ld c, BANK(KantoFrames)
+	lb bc, BANK(FramesPointers), BANK(KantoFrames)
 	ld hl, FramesPointers
 	jr c, .got_frames
 	ld c, BANK(JohtoFrames)

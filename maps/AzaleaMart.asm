@@ -1,32 +1,27 @@
-const_value set 2
-	const AZALEAMART_CLERK
-	const AZALEAMART_COOLTRAINER_M
-	const AZALEAMART_BUG_CATCHER
-	const AZALEAMART_LADY
-
 AzaleaMart_MapScriptHeader:
-.MapTriggers:
-	db 0
 
-.MapCallbacks:
-	db 0
+.MapTriggers: db 0
 
-ClerkScript_0x18e040:
-	opentext
-	pokemart MARTTYPE_STANDARD, MART_AZALEA
-	closetext
-	end
+.MapCallbacks: db 0
 
-CooltrainerMScript_0x18e047:
-	jumptextfaceplayer UnknownText_0x18e04d
+AzaleaMart_MapEventHeader:
 
-BugCatcherScript_0x18e04a:
-	jumptextfaceplayer UnknownText_0x18e0b6
+.Warps: db 2
+	warp_def 7, 2, 3, AZALEA_TOWN
+	warp_def 7, 3, 3, AZALEA_TOWN
 
-AzaleaMartLadyScript:
-	jumptextfaceplayer AzaleaMartLadyText
+.XYTriggers: db 0
 
-UnknownText_0x18e04d:
+.Signposts: db 0
+
+.PersonEvents: db 5
+	mart_clerk_event 3, 1, MARTTYPE_STANDARD, MART_AZALEA
+	person_event SPRITE_COOLTRAINER_M, 5, 2, SPRITEMOVEDATA_STANDING_UP, 0, 0, -1, -1, 0, PERSONTYPE_COMMAND, jumptextfaceplayer, AzaleaMartCooltrainermText, -1
+	person_event SPRITE_BUG_CATCHER, 2, 7, SPRITEMOVEDATA_WALK_LEFT_RIGHT, 0, 2, -1, -1, (1 << 3) | PAL_OW_RED, PERSONTYPE_COMMAND, jumptextfaceplayer, AzaleaMartBugCatcherText, -1
+	person_event SPRITE_LADY, 6, 8, SPRITEMOVEDATA_STANDING_UP, 0, 0, -1, (1 << MORN) | (1 << DAY), (1 << 3) | PAL_OW_GREEN, PERSONTYPE_COMMAND, jumptextfaceplayer, AzaleaMartLadyText, -1
+	person_event SPRITE_ROCKER, 6, 8, SPRITEMOVEDATA_WALK_LEFT_RIGHT, 0, 1, -1, (1 << NITE), (1 << 3) | PAL_OW_PURPLE, PERSONTYPE_COMMAND, jumptextfaceplayer, AzaleaMartRockerText, -1
+
+AzaleaMartCooltrainermText:
 	text "There's no Great"
 	line "Ball here. #"
 
@@ -38,7 +33,7 @@ UnknownText_0x18e04d:
 	cont "his custom Balls."
 	done
 
-UnknownText_0x18e0b6:
+AzaleaMartBugCatcherText:
 	text "A Great Ball is"
 	line "better for catch-"
 	cont "ing #mon than a"
@@ -61,21 +56,24 @@ AzaleaMartLadyText:
 	line "Azalea's Charcoal!"
 	done
 
-AzaleaMart_MapEventHeader:
-.Warps:
-	db 2
-	warp_def $7, $2, 3, AZALEA_TOWN
-	warp_def $7, $3, 3, AZALEA_TOWN
+AzaleaMartRockerText:
+	text "The prototype"
+	line "versions of"
 
-.XYTriggers:
-	db 0
+	para "Kurt's balls had"
+	line "some problems."
 
-.Signposts:
-	db 0
+	para "Love Balls used"
+	line "to catch same-"
+	cont "gender #mon,"
 
-.PersonEvents:
-	db 4
-	person_event SPRITE_CLERK, 3, 1, SPRITEMOVEDATA_STANDING_RIGHT, 0, 0, -1, -1, 0, PERSONTYPE_SCRIPT, 0, ClerkScript_0x18e040, -1
-	person_event SPRITE_COOLTRAINER_M, 5, 2, SPRITEMOVEDATA_STANDING_UP, 0, 0, -1, -1, 0, PERSONTYPE_SCRIPT, 0, CooltrainerMScript_0x18e047, -1
-	person_event SPRITE_BUG_CATCHER, 2, 7, SPRITEMOVEDATA_WALK_LEFT_RIGHT, 0, 2, -1, -1, (1 << 3) | PAL_OW_RED, PERSONTYPE_SCRIPT, 0, BugCatcherScript_0x18e04a, -1
-	person_event SPRITE_LADY, 6, 8, SPRITEMOVEDATA_STANDING_UP, 0, 0, -1, -1, (1 << 3) | PAL_OW_GREEN, PERSONTYPE_SCRIPT, 0, AzaleaMartLadyScript, -1
+	para "and Fast Balls"
+	line "only worked for"
+
+	para "three different"
+	line "#mon species."
+
+	para "Thank goodness"
+	line "those problems"
+	cont "were fixed!"
+	done

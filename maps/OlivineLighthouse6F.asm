@@ -1,14 +1,29 @@
-const_value set 2
+OlivineLighthouse6F_MapScriptHeader:
+
+.MapTriggers: db 0
+
+.MapCallbacks: db 0
+
+OlivineLighthouse6F_MapEventHeader:
+
+.Warps: db 4
+	warp_def 15, 9, 1, OLIVINE_LIGHTHOUSE_5F
+	warp_def 5, 16, 6, OLIVINE_LIGHTHOUSE_5F
+	warp_def 5, 17, 7, OLIVINE_LIGHTHOUSE_5F
+	warp_def 3, 9, 1, OLIVINE_LIGHTHOUSE_ROOF
+
+.XYTriggers: db 0
+
+.Signposts: db 0
+
+.PersonEvents: db 3
+	person_event SPRITE_JASMINE, 8, 8, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, -1, (1 << 3) | PAL_OW_RED, PERSONTYPE_SCRIPT, 0, JasmineScript_0x60b91, EVENT_OLIVINE_LIGHTHOUSE_JASMINE
+	person_event SPRITE_AMPHAROS, 8, 9, SPRITEMOVEDATA_POKEMON, 0, 0, -1, -1, (1 << 3) | PAL_OW_BROWN, PERSONTYPE_SCRIPT, 0, MonsterScript_0x60c3a, -1
+	itemball_event 4, 3, SUPER_POTION, 1, EVENT_OLIVINE_LIGHTHOUSE_6F_SUPER_POTION
+
+const_value set 1
 	const OLIVINELIGHTHOUSE6F_JASMINE
 	const OLIVINELIGHTHOUSE6F_AMPHAROS
-	const OLIVINELIGHTHOUSE6F_POKE_BALL
-
-OlivineLighthouse6F_MapScriptHeader:
-.MapTriggers:
-	db 0
-
-.MapCallbacks:
-	db 0
 
 JasmineScript_0x60b91:
 	faceplayer
@@ -21,10 +36,7 @@ JasmineScript_0x60b91:
 	buttonsound
 	setevent EVENT_JASMINE_EXPLAINED_AMPHYS_SICKNESS
 UnknownScript_0x60ba5:
-	writetext UnknownText_0x60d64
-	waitbutton
-	closetext
-	end
+	jumpopenedtext UnknownText_0x60d64
 
 UnknownScript_0x60bab:
 	writetext UnknownText_0x60d99
@@ -38,7 +50,6 @@ UnknownScript_0x60bab:
 	closetext
 	spriteface OLIVINELIGHTHOUSE6F_JASMINE, RIGHT
 	pause 15
-	spriteface OLIVINELIGHTHOUSE6F_AMPHAROS, LEFT
 	opentext
 	playmusic MUSIC_HEAL
 	writetext UnknownText_0x60e44
@@ -50,16 +61,9 @@ UnknownScript_0x60bab:
 	special FadeOutPalettes
 	pause 10
 	special FadeInPalettes
-	opentext
-	writetext UnknownText_0x60f3d
-	waitbutton
-	closetext
+	showtext UnknownText_0x60f3d
 	showemote EMOTE_BOLT, OLIVINELIGHTHOUSE6F_AMPHAROS, 15
-	faceplayer
-	opentext
-	writetext UnknownText_0x60e6c
-	waitbutton
-	closetext
+	showtextfaceplayer UnknownText_0x60e6c
 	setevent EVENT_JASMINE_RETURNED_TO_GYM
 	clearevent EVENT_OLIVINE_GYM_JASMINE
 	checkcode VAR_FACING
@@ -85,40 +89,26 @@ UnknownScript_0x60c25:
 	closetext
 	spriteface OLIVINELIGHTHOUSE6F_JASMINE, RIGHT
 	pause 15
-	spriteface OLIVINELIGHTHOUSE6F_AMPHAROS, LEFT
-	opentext
-	writetext UnknownText_0x60ef1
-	waitbutton
-	closetext
-	end
+	jumptext UnknownText_0x60ef1
 
 MonsterScript_0x60c3a:
-	faceplayer
-	opentext
 	checkevent EVENT_JASMINE_RETURNED_TO_GYM
 	iftrue UnknownScript_0x60c51
+	faceplayer
+	opentext
 	writetext UnknownText_0x60f03
 	writebyte AMPHAROS
 	special PlaySlowCry
 	buttonsound
-	writetext UnknownText_0x60f19
-	waitbutton
-	closetext
-	end
+	jumpopenedtext UnknownText_0x60f19
 
 UnknownScript_0x60c51:
-	writetext UnknownText_0x60f3d
-	cry AMPHAROS
-	waitbutton
-	closetext
+	showcrytext UnknownText_0x60f3d, AMPHAROS
 	special FadeOutPalettes
 	special FadeInPalettes
 	special FadeOutPalettes
 	special FadeInPalettes
 	end
-
-OlivineLighthouse6FSuperPotion:
-	itemball SUPER_POTION
 
 MovementData_0x60c68:
 	slow_step_up
@@ -246,23 +236,3 @@ UnknownText_0x60f3d:
 	text "Amphy: Palu!"
 	line "Palulu!"
 	done
-
-OlivineLighthouse6F_MapEventHeader:
-.Warps:
-	db 4
-	warp_def $f, $9, 1, OLIVINE_LIGHTHOUSE_5F
-	warp_def $5, $10, 6, OLIVINE_LIGHTHOUSE_5F
-	warp_def $5, $11, 7, OLIVINE_LIGHTHOUSE_5F
-	warp_def $3, $9, 1, OLIVINE_LIGHTHOUSE_ROOF
-
-.XYTriggers:
-	db 0
-
-.Signposts:
-	db 0
-
-.PersonEvents:
-	db 3
-	person_event SPRITE_JASMINE, 8, 8, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, -1, (1 << 3) | PAL_OW_RED, PERSONTYPE_SCRIPT, 0, JasmineScript_0x60b91, EVENT_OLIVINE_LIGHTHOUSE_JASMINE
-	person_event SPRITE_AMPHAROS, 8, 9, SPRITEMOVEDATA_POKEMON, 0, 0, -1, -1, (1 << 3) | PAL_OW_BROWN, PERSONTYPE_SCRIPT, 0, MonsterScript_0x60c3a, -1
-	person_event SPRITE_BALL_CUT_FRUIT, 4, 3, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, -1, (1 << 3) | PAL_OW_RED, PERSONTYPE_ITEMBALL, 0, OlivineLighthouse6FSuperPotion, EVENT_OLIVINE_LIGHTHOUSE_6F_SUPER_POTION

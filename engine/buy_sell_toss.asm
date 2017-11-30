@@ -31,14 +31,17 @@ CalculateMaximumQuantity:
 	ld a, b
 	jr nc, .loop
 .done
+	and a
+	jr nz, .ok
+	inc a
+.ok
 	ld [wItemQuantityBuffer], a
 	ret
 
 SelectQuantityToToss: ; 24fbf
 	ld hl, TossItem_MenuDataHeader
 	call LoadMenuDataHeader
-	call Toss_Sell_Loop
-	ret
+	jr Toss_Sell_Loop
 ; 24fc9
 
 SelectQuantityToBuy: ; 24fc9
@@ -51,9 +54,13 @@ RooftopSale_SelectQuantityToBuy: ; 24fcf
 	call CalculateMaximumQuantity
 	ld hl, BuyItem_MenuDataHeader
 	call LoadMenuDataHeader
-	call Toss_Sell_Loop
-	ret
+	jr Toss_Sell_Loop
 ; 24fe1
+
+BT_SelectQuantityToBuy:
+	ld hl, BTBuyItem_MenuDataHeader
+	call LoadMenuDataHeader
+	jr Toss_Sell_Loop
 
 SelectQuantityToSell: ; 24fe1
 	farcall GetItemPrice
@@ -63,9 +70,7 @@ SelectQuantityToSell: ; 24fe1
 	ld [Buffer2], a
 	ld hl, SellItem_MenuDataHeader
 	call LoadMenuDataHeader
-	call Toss_Sell_Loop
-	ret
-; 24ff9
+	; fallthrough
 
 Toss_Sell_Loop: ; 24ff9
 	ld a, 1
@@ -190,8 +195,7 @@ ret_25097: ; 25097
 
 DisplayPurchasePrice: ; 25098
 	call BuySell_MultiplyPrice
-	call BuySell_DisplaySubtotal
-	ret
+	jp BuySell_DisplaySubtotal
 ; 2509f
 
 DisplaySellingPrice: ; 2509f
@@ -232,6 +236,25 @@ Sell_HalvePrice: ; 250c1
 ; 250d1
 
 BuySell_DisplaySubtotal: ; 250d1
+	call DisplayPurchasePriceCommon
+	lb bc, PRINTNUM_MONEY | 3, 7
+	call PrintNum
+	jp WaitBGMap
+; 250ed
+
+BTDisplayPurchaseCost:
+	call BuySell_MultiplyPrice
+	call DisplayPurchasePriceCommon
+	lb bc, 3, 4
+	call PrintNum
+	ld de, .BPString
+	call PlaceString
+	jp WaitBGMap
+
+.BPString:
+	db " BP@"
+
+DisplayPurchasePriceCommon:
 	push hl
 	ld hl, hMoneyTemp
 	ld a, [hProduct + 1]
@@ -243,11 +266,7 @@ BuySell_DisplaySubtotal: ; 250d1
 	pop hl
 	inc hl
 	ld de, hMoneyTemp
-	lb bc, PRINTNUM_MONEY | 3, 7
-	call PrintNum
-	call WaitBGMap
 	ret
-; 250ed
 
 TossItem_MenuDataHeader: ; 0x250ed
 	db $40 ; flags
@@ -272,3 +291,10 @@ SellItem_MenuDataHeader: ; 0x250fd
 	dw DisplaySellingPrice
 	db 0 ; default option
 ; 0x25105
+
+BTBuyItem_MenuDataHeader:
+	db $40 ; flags
+	db 15, 08 ; start coords
+	db 17, 19 ; end coords
+	dw BTDisplayPurchaseCost
+	db -1 ; default option

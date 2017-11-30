@@ -58,46 +58,39 @@ CheckFacingTileEvent:: ; 97c5f
 	jr c, .done
 
 	ld a, [EngineBuffer1]
-	call CheckWhirlpoolTile
-	jr nz, .waterfall
-	farcall TryWhirlpoolOW
-	jr .done
-
-.waterfall
-	ld a, [EngineBuffer1]
-	call CheckWaterfallTile
-	jr nz, .headbutt
-	farcall TryWaterfallOW
-	jr .done
-
-.headbutt
-	ld a, [EngineBuffer1]
-	call CheckHeadbuttTreeTile
-	jr nz, .surf
-	farcall TryHeadbuttOW
-	jr c, .done
-	jr .noevent
-
-.surf
+	cp COLL_WHIRLPOOL
+	jr z, .whirlpool
+	cp COLL_WATERFALL
+	jr z, .waterfall
+	cp COLL_HEADBUTT_TREE
+	jr z, .headbutt
 	farcall TrySurfOW
 	jr nc, .noevent
-	jr .done
-
-.noevent
-	xor a
-	ret
-
 .done
 	call PlayClickSFX
 	ld a, $ff
 	scf
+	ret
+
+.whirlpool
+	farcall TryWhirlpoolOW
+	jr .done
+
+.waterfall
+	farcall TryWaterfallOW
+	jr .done
+
+.headbutt
+	farcall TryHeadbuttOW
+	jr c, .done
+.noevent
+	xor a
 	ret
 ; 97cc0
 
 
 RandomEncounter:: ; 97cc0
 ; Random encounter
-
 	call CheckWildEncounterCooldown
 	jr c, .nope
 	call CanUseSweetScent
@@ -107,31 +100,24 @@ RandomEncounter:: ; 97cc0
 	jr nz, .bug_contest
 	farcall TryWildEncounter
 	jr nz, .nope
-	jr .ok
+.ok
+	ld a, BANK(WildBattleScript)
+	ld hl, WildBattleScript
+.done
+	call CallScript
+	scf
+	ret
 
 .bug_contest
 	call _TryWildEncounter_BugContest
 	jr nc, .nope
-	jr .ok_bug_contest
-
-.nope
-	ld a, 1
-	and a
-	ret
-
-.ok
-	ld a, BANK(WildBattleScript)
-	ld hl, WildBattleScript
-	jr .done
-
-.ok_bug_contest
 	ld a, BANK(BugCatchingContestBattleScript)
 	ld hl, BugCatchingContestBattleScript
 	jr .done
 
-.done
-	call CallScript
-	scf
+.nope
+	ld a, 1
+	and a
 	ret
 ; 97cf9
 
@@ -156,7 +142,7 @@ CanUseSweetScent:: ; 97cfd
 
 .ice_check
 	ld a, [PlayerStandingTile]
-	call CheckIceTile
+	cp COLL_ICE
 	jr z, .no
 	scf
 	ret
@@ -170,8 +156,7 @@ _TryWildEncounter_BugContest: ; 97d23
 	call TryWildEncounter_BugContest
 	ret nc
 	call ChooseWildEncounter_BugContest
-	farcall CheckRepelEffect
-	ret
+	farjp CheckRepelEffect
 ; 97d31
 
 ChooseWildEncounter_BugContest:: ; 97d31
@@ -230,7 +215,7 @@ ChooseWildEncounter_BugContest:: ; 97d31
 
 TryWildEncounter_BugContest: ; 97d64
 	ld a, [PlayerStandingTile]
-	call CheckSuperTallGrassTile
+	cp COLL_LONG_GRASS
 	ld b, 40 percent
 	jr z, .ok
 	ld b, 20 percent
@@ -328,10 +313,12 @@ DoBikeStep:: ; 97db3
 	ret
 ; 97df9
 
+; TODO: simplify command queue engine to just handle stone tables
+
 ClearCmdQueue:: ; 97df9
 	ld hl, wCmdQueue
-	ld de, 6
-	ld c, 4
+	ld de, CMDQUEUE_ENTRY_SIZE
+	ld c, CMDQUEUE_CAPACITY
 	xor a
 .loop
 	ld [hl], a
@@ -424,170 +411,7 @@ DelCmdQueue:: ; 97e5c
 	ret
 ; 97e72
 
-_DelCmdQueue: ; 97e72
-	ld hl, CMDQUEUE_TYPE
-	add hl, bc
-	ld [hl], 0
-	ret
-; 97e79
-
-HandleQueuedCommand: ; 97e79
-	ld hl, CMDQUEUE_TYPE
-	add hl, bc
-	ld a, [hl]
-	cp 5
-	jr c, .okay
-	xor a
-
-.okay
-	ld e, a
-	ld d, 0
-	ld hl, .Jumptable_ba
-rept 3
-	add hl, de
-endr
-	ld a, [hli]
-	push af
-	ld a, [hli]
-	ld h, [hl]
-	ld l, a
-	pop af
-	rst FarCall
-	ret
-; 97e94
-
-.Jumptable_ba: ; 97e94
-	dba CmdQueue_Null
-	dba CmdQueue_Null
-	dba CmdQueue_StoneTable
-	dba CmdQueue_Type3
-	dba CmdQueue_Type4
-; 97ea3
-
-CmdQueueAnonymousJumptable: ; 97ea3
-	ld hl, CMDQUEUE_05
-	add hl, bc
-	ld a, [hl]
-	pop hl
-	rst JumpTable
-	ret
-; 97eab
-
-CmdQueueAnonJT_Increment: ; 97eab
-	ld hl, CMDQUEUE_05
-	add hl, bc
-	inc [hl]
-	ret
-; 97eb1
-
-CmdQueueAnonJT_Decrement: ; 97eb1
-	ld hl, CMDQUEUE_05
-	add hl, bc
-	dec [hl]
-CmdQueue_Null: ; 97eb7
-	ret
-; 97eb7
-
-CmdQueue_Type4: ; 97ebc
-	call CmdQueueAnonymousJumptable
-	; anonymous dw
-	dw .zero
-	dw .one
-; 97ec3
-
-.zero ; 97ec3
-	ld a, [hSCY]
-	ld hl, 4
-	add hl, bc
-	ld [hl], a
-	call CmdQueueAnonJT_Increment
-.one ; 97ecd
-	ld hl, 1
-	add hl, bc
-	ld a, [hl]
-	dec a
-	ld [hl], a
-	jr z, .finish
-	and $1
-	jr z, .add
-	ld hl, 2
-	add hl, bc
-	ld a, [hSCY]
-	sub [hl]
-	ld [hSCY], a
-	ret
-
-.add
-	ld hl, 2
-	add hl, bc
-	ld a, [hSCY]
-	add [hl]
-	ld [hSCY], a
-	ret
-
-.finish
-	ld hl, 4
-	add hl, bc
-	ld a, [hl]
-	ld [hSCY], a
-	jp _DelCmdQueue
-; 97ef9
-
-CmdQueue_Type3: ; 97ef9
-	call CmdQueueAnonymousJumptable
-	; anonymous dw
-	dw .zero
-	dw .one
-	dw .two
-; 97f02
-
-.zero ; 97f02
-	call .IsPlayerFacingDown
-	jr z, .PlayerNotFacingDown
-	call CmdQueueAnonJT_Increment
-.one ; 97f0a
-	call .IsPlayerFacingDown
-	jr z, .PlayerNotFacingDown
-	call CmdQueueAnonJT_Increment
-
-	ld hl, 2
-	add hl, bc
-	ld a, [hl]
-	ld [wd173], a
-	ret
-; 97f1b
-
-.two ; 97f1b
-	call .IsPlayerFacingDown
-	jr z, .PlayerNotFacingDown
-	call CmdQueueAnonJT_Decrement
-
-	ld hl, 3
-	add hl, bc
-	ld a, [hl]
-	ld [wd173], a
-	ret
-; 97f2c
-
-.PlayerNotFacingDown: ; 97f2c
-	ld a, $7f
-	ld [wd173], a
-	ld hl, 5
-	add hl, bc
-	ld [hl], 0
-	ret
-; 97f38
-
-.IsPlayerFacingDown: ; 97f38
-	push bc
-	ld bc, PlayerStruct
-	call GetSpriteDirection
-	and a
-	pop bc
-	ret
-; 97f42
-
-CmdQueue_StoneTable: ; 97f42
+HandleQueuedCommand: ; 97f42
 	ld de, PlayerStruct
 	ld a, NUM_OBJECT_STRUCTS
 .loop
@@ -602,13 +426,13 @@ CmdQueue_StoneTable: ; 97f42
 	ld hl, OBJECT_MOVEMENTTYPE
 	add hl, de
 	ld a, [hl]
-	cp STEP_TYPE_SKYFALL_TOP
+	cp SPRITEMOVEDATA_STRENGTH_BOULDER
 	jr nz, .next
 
 	ld hl, OBJECT_NEXT_TILE
 	add hl, de
 	ld a, [hl]
-	call CheckPitTile
+	cp COLL_HOLE
 	jr nz, .next
 
 	ld hl, OBJECT_DIRECTION_WALKING
@@ -633,4 +457,4 @@ CmdQueue_StoneTable: ; 97f42
 .fall_down_hole
 	pop af
 	ret
-; 97f7e
+; 97ea3

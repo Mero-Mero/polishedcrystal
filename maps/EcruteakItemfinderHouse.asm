@@ -1,13 +1,23 @@
-const_value set 2
-	const ECRUTEAKITEMFINDERHOUSE_COOLTRAINER_M
-	const ECRUTEAKITEMFINDERHOUSE_BOOK
-
 EcruteakItemfinderHouse_MapScriptHeader:
-.MapTriggers:
-	db 0
 
-.MapCallbacks:
-	db 0
+.MapTriggers: db 0
+
+.MapCallbacks: db 0
+
+EcruteakItemfinderHouse_MapEventHeader:
+
+.Warps: db 2
+	warp_def 7, 3, 11, ECRUTEAK_CITY
+	warp_def 7, 4, 11, ECRUTEAK_CITY
+
+.XYTriggers: db 0
+
+.Signposts: db 1
+	signpost 1, 2, SIGNPOST_JUMPSTD, radio2
+
+.PersonEvents: db 2
+	person_event SPRITE_COOLTRAINER_M, 3, 2, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, -1, (1 << 3) | PAL_OW_RED, PERSONTYPE_SCRIPT, 0, CooltrainerMScript_0x9a5fb, -1
+	person_event SPRITE_BOOK, 3, 3, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, -1, (1 << 3) | PAL_OW_BROWN, PERSONTYPE_SCRIPT, 0, BookScript_0x9a620, -1
 
 CooltrainerMScript_0x9a5fb:
 	faceplayer
@@ -22,40 +32,26 @@ CooltrainerMScript_0x9a5fb:
 	verbosegiveitem ITEMFINDER
 	setevent EVENT_GOT_ITEMFINDER
 UnknownScript_0x9a614:
-	writetext UnknownText_0x9a70e
-	waitbutton
-	closetext
-	end
+	jumpopenedtext UnknownText_0x9a70e
 
 UnknownScript_0x9a61a:
-	writetext UnknownText_0x9a805
-	waitbutton
-	closetext
-	end
+	jumpopenedtext UnknownText_0x9a805
 
 BookScript_0x9a620:
 	opentext
 	writetext UnknownText_0x9a826
 	yesorno
 	iftrue UnknownScript_0x9a62a
-	closetext
-	end
+	endtext
 
 UnknownScript_0x9a62a:
 	writetext UnknownText_0x9a84c
 	yesorno
 	iftrue UnknownScript_0x9a633
-	closetext
-	end
+	endtext
 
 UnknownScript_0x9a633:
-	writetext UnknownText_0x9a902
-	waitbutton
-	closetext
-	end
-
-ItemFinderHouseRadio:
-	jumpstd radio2
+	jumpopenedtext UnknownText_0x9a902
 
 UnknownText_0x9a63c:
 	text "Ah. You're on an"
@@ -161,21 +157,3 @@ UnknownText_0x9a902:
 	para "wind off into the"
 	line "grassland."
 	done
-
-EcruteakItemfinderHouse_MapEventHeader:
-.Warps:
-	db 2
-	warp_def $7, $3, 11, ECRUTEAK_CITY
-	warp_def $7, $4, 11, ECRUTEAK_CITY
-
-.XYTriggers:
-	db 0
-
-.Signposts:
-	db 1
-	signpost 1, 2, SIGNPOST_READ, ItemFinderHouseRadio
-
-.PersonEvents:
-	db 2
-	person_event SPRITE_COOLTRAINER_M, 3, 2, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, -1, (1 << 3) | PAL_OW_RED, PERSONTYPE_SCRIPT, 0, CooltrainerMScript_0x9a5fb, -1
-	person_event SPRITE_BOOK_UNOWN_R, 3, 3, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, -1, (1 << 3) | PAL_OW_BROWN, PERSONTYPE_SCRIPT, 0, BookScript_0x9a620, -1

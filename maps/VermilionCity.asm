@@ -1,41 +1,67 @@
-const_value set 2
-	const VERMILIONCITY_COOLTRAINERF
-	const VERMILIONCITY_GRAMPS
-	const VERMILIONCITY_MACHOP
-	const VERMILIONCITY_ROCKER
-	const VERMILIONCITY_SUPER_NERD
-	const VERMILIONCITY_SAILOR
-	const VERMILIONCITY_BIG_SNORLAX
-	const VERMILIONCITY_POKEFAN_M
-	const VERMILIONCITY_LAWRENCE
-	const VERMILIONCITY_CUT_TREE
-	const VERMILIONCITY_ENGINEER
-	const VERMILIONCITY_ROCK1
-	const VERMILIONCITY_ROCK2
-	const VERMILIONCITY_ROCK3
-	const VERMILIONCITY_ROCK4
-
 VermilionCity_MapScriptHeader:
-.MapTriggers:
-	db 0
 
-.MapCallbacks:
-	db 1
-	dbw MAPCALLBACK_NEWMAP, .FlyPoint
+.MapTriggers: db 0
 
-.FlyPoint:
-	setflag ENGINE_FLYPOINT_VERMILION
-	return
+.MapCallbacks: db 0
+
+VermilionCity_MapEventHeader:
+
+.Warps: db 14
+	warp_def 5, 5, 1, VERMILION_HOUSE_FISHING_SPEECH_HOUSE
+	warp_def 5, 9, 1, VERMILION_POKECENTER_1F
+	warp_def 17, 7, 1, POKEMON_FAN_CLUB
+	warp_def 17, 13, 1, VERMILION_MAGNET_TRAIN_SPEECH_HOUSE
+	warp_def 17, 21, 2, VERMILION_MART
+	warp_def 21, 21, 1, VERMILION_HOUSE_DIGLETTS_CAVE_SPEECH_HOUSE
+	warp_def 23, 10, 1, VERMILION_GYM
+	warp_def 35, 17, 1, VERMILION_PORT_PASSAGE
+	warp_def 35, 18, 2, VERMILION_PORT_PASSAGE
+	warp_def 17, 36, 1, DIGLETTS_CAVE
+	warp_def 35, 29, 1, SEAGALLOP_FERRY_VERMILION_GATE
+	warp_def 35, 30, 1, SEAGALLOP_FERRY_VERMILION_GATE
+	warp_def 5, 13, 1, VERMILION_POLLUTION_SPEECH_HOUSE
+	warp_def 5, 19, 1, VERMILION_S_S_ANNE_SPEECH_HOUSE
+
+.XYTriggers: db 2
+	xy_trigger 0, 32, 18, LawrenceLeftIntroScript
+	xy_trigger 0, 32, 19, LawrenceRightIntroScript
+
+.Signposts: db 8
+	signpost 5, 25, SIGNPOST_JUMPTEXT, VermilionCitySignText
+	signpost 23, 5, SIGNPOST_JUMPTEXT, VermilionGymSignText
+	signpost 17, 5, SIGNPOST_JUMPTEXT, PokemonFanClubSignText
+	signpost 17, 33, SIGNPOST_JUMPTEXT, VermilionCityDiglettsCaveSignText
+	signpost 19, 27, SIGNPOST_JUMPTEXT, VermilionCityPortSignText
+	signpost 13, 28, SIGNPOST_JUMPTEXT, VermilionCityTruckText
+	signpost 13, 29, SIGNPOST_JUMPTEXT, VermilionCityTruckText
+	signpost 23, 12, SIGNPOST_ITEM + FULL_HEAL, EVENT_VERMILION_CITY_HIDDEN_FULL_HEAL
+
+.PersonEvents: db 14
+	person_event SPRITE_BIG_SNORLAX, 18, 35, SPRITEMOVEDATA_SNORLAX, 0, 0, -1, -1, 0, PERSONTYPE_SCRIPT, 0, VermilionSnorlax, EVENT_VERMILION_CITY_SNORLAX
+	person_event SPRITE_LAWRENCE, 28, 19, SPRITEMOVEDATA_STANDING_UP, 0, 0, -1, -1, (1 << 3) | PAL_OW_GREEN, PERSONTYPE_SCRIPT, 0, ObjectEvent, EVENT_LAWRENCE_VERMILION_CITY
+	person_event SPRITE_COOLTRAINER_F, 13, 18, SPRITEMOVEDATA_WANDER, 1, 1, -1, -1, (1 << 3) | PAL_OW_RED, PERSONTYPE_COMMAND, jumptextfaceplayer, UnknownText_0x1aaa15, -1
+	person_event SPRITE_GRAMPS, 10, 23, SPRITEMOVEDATA_STANDING_RIGHT, 0, 0, -1, -1, 0, PERSONTYPE_COMMAND, jumptextfaceplayer, VermilionMachopOwnerText, -1
+	person_event SPRITE_MACHOP, 11, 26, SPRITEMOVEDATA_POKEMON, 0, 0, -1, -1, (1 << 3) | PAL_OW_BLUE, PERSONTYPE_SCRIPT, 0, VermilionMachop, -1
+	person_event SPRITE_ROCKER, 20, 14, SPRITEMOVEDATA_WANDER, 1, 1, -1, -1, (1 << 3) | PAL_OW_GREEN, PERSONTYPE_COMMAND, jumptextfaceplayer, UnknownText_0x1aab1a, -1
+	person_event SPRITE_SUPER_NERD, 16, 25, SPRITEMOVEDATA_STANDING_UP, 0, 0, -1, -1, (1 << 3) | PAL_OW_GREEN, PERSONTYPE_COMMAND, jumptextfaceplayer, VermilionCitySuperNerdText, -1
+	person_event SPRITE_SAILOR, 9, 10, SPRITEMOVEDATA_WALK_LEFT_RIGHT, 0, 2, -1, -1, (1 << 3) | PAL_OW_BLUE, PERSONTYPE_COMMAND, jumptextfaceplayer, VermilionCitySailorText, -1
+	person_event SPRITE_POKEFAN_M, 16, 31, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, -1, (1 << 3) | PAL_OW_PURPLE, PERSONTYPE_SCRIPT, 0, VermilionGymBadgeGuy, -1
+	cuttree_event 23, 13, EVENT_VERMILION_CITY_CUT_TREE
+	smashrock_event 14, 26
+	smashrock_event 12, 23
+	smashrock_event 7, 28
+	smashrock_event 9, 29
+
+const_value set 1
+	const VERMILIONCITY_BIG_SNORLAX
+	const VERMILIONCITY_LAWRENCE
 
 LawrenceLeftIntroScript:
 	spriteface PLAYER, UP
 	showemote EMOTE_SHOCK, PLAYER, 15
 	special Special_FadeOutMusic
 	pause 15
-	opentext
-	writetext LawrenceOverheardText
-	waitbutton
-	closetext
+	showtext LawrenceOverheardText
 	applymovement VERMILIONCITY_LAWRENCE, LawrenceApproachLeftMovementData
 	playsound SFX_TACKLE
 	applymovement VERMILIONCITY_LAWRENCE, LawrenceBumpLeftMovementData
@@ -44,16 +70,13 @@ LawrenceLeftIntroScript:
 	applymovement VERMILIONCITY_LAWRENCE, LawrenceWalkAroundLeftMovementData
 	spriteface PLAYER, RIGHT
 	playmusic MUSIC_ZINNIA_ENCOUNTER_ORAS
-	opentext
-	writetext LawrenceIntroText
-	waitbutton
-	closetext
+	showtext LawrenceIntroText
 	spriteface PLAYER, DOWN
 	applymovement VERMILIONCITY_LAWRENCE, LawrenceDepartLeftMovementData
 	playsound SFX_EXIT_BUILDING
 	disappear VERMILIONCITY_LAWRENCE
-	variablesprite SPRITE_VERMILION_LAWRENCE, SPRITE_ROCKER
 	dotrigger $1
+	setflag ENGINE_FLYPOINT_VERMILION
 	special RestartMapMusic
 	end
 
@@ -62,10 +85,7 @@ LawrenceRightIntroScript:
 	showemote EMOTE_SHOCK, PLAYER, 15
 	special Special_FadeOutMusic
 	pause 15
-	opentext
-	writetext LawrenceOverheardText
-	waitbutton
-	closetext
+	showtext LawrenceOverheardText
 	applymovement VERMILIONCITY_LAWRENCE, LawrenceApproachRightMovementData
 	playsound SFX_TACKLE
 	applymovement VERMILIONCITY_LAWRENCE, LawrenceBumpRightMovementData
@@ -74,16 +94,13 @@ LawrenceRightIntroScript:
 	applymovement VERMILIONCITY_LAWRENCE, LawrenceWalkAroundRightMovementData
 	spriteface PLAYER, LEFT
 	playmusic MUSIC_ZINNIA_ENCOUNTER_ORAS
-	opentext
-	writetext LawrenceIntroText
-	waitbutton
-	closetext
+	showtext LawrenceIntroText
 	spriteface PLAYER, DOWN
 	applymovement VERMILIONCITY_LAWRENCE, LawrenceDepartRightMovementData
 	playsound SFX_EXIT_BUILDING
 	disappear VERMILIONCITY_LAWRENCE
-	variablesprite SPRITE_VERMILION_LAWRENCE, SPRITE_ROCKER
 	dotrigger $1
+	setflag ENGINE_FLYPOINT_VERMILION
 	special RestartMapMusic
 	end
 
@@ -131,42 +148,16 @@ LawrenceDepartRightMovementData:
 	step_down
 	step_end
 
-CooltrainerFScript_0x1aa983:
-	jumptextfaceplayer UnknownText_0x1aaa15
-
-VermilionMachopOwner:
-	jumptextfaceplayer VermilionMachopOwnerText
-
 VermilionMachop:
-	opentext
-	writetext VermilionMachopText1
-	cry MACHOP
-	waitbutton
-	closetext
+	showcrytext VermilionMachopText1, MACHOP
 	earthquake 30
-	opentext
-	writetext VermilionMachopText2
-	waitbutton
-	closetext
-	end
-
-RockerScript_0x1aa99b:
-	jumptextfaceplayer UnknownText_0x1aab1a
-
-VermilionCitySuperNerdScript:
-	jumptextfaceplayer VermilionCitySuperNerdText
-
-VermilionCitySailorScript:
-	jumptextfaceplayer VermilionCitySailorText
+	jumptext VermilionMachopText2
 
 VermilionSnorlax:
 	opentext
 	special SpecialSnorlaxAwake
 	iftrue UnknownScript_0x1aa9ab
-	writetext UnknownText_0x1aab64
-	waitbutton
-	closetext
-	end
+	jumpopenedtext UnknownText_0x1aab64
 
 UnknownScript_0x1aa9ab:
 	writetext UnknownText_0x1aab84
@@ -182,108 +173,30 @@ UnknownScript_0x1aa9ab:
 	end
 
 VermilionGymBadgeGuy:
-	faceplayer
-	opentext
 	checkevent EVENT_GOT_BOTTLE_CAP_FROM_VERMILION_GUY
-	iftrue .AlreadyGotItem
+	iftrue_jumptextfaceplayer UnknownText_0x1aad4a
 	checkcode VAR_BADGES
 	if_equal 16, .AllBadges
 	if_greater_than 13, .MostBadges
 	if_greater_than 9, .SomeBadges
-	writetext UnknownText_0x1aabc8
-	waitbutton
-	closetext
-	end
+	jumptextfaceplayer UnknownText_0x1aabc8
 
 .SomeBadges:
-	writetext UnknownText_0x1aac2b
-	waitbutton
-	closetext
-	end
+	jumptextfaceplayer UnknownText_0x1aac2b
 
 .MostBadges:
-	writetext UnknownText_0x1aac88
-	waitbutton
-	closetext
-	end
+	jumptextfaceplayer UnknownText_0x1aac88
 
 .AllBadges:
+	faceplayer
+	opentext
 	writetext UnknownText_0x1aacf3
 	buttonsound
 	verbosegiveitem BOTTLE_CAP
-	iffalse .Done
+	iffalse_endtext
 	setevent EVENT_GOT_BOTTLE_CAP_FROM_VERMILION_GUY
 .AlreadyGotItem:
-	writetext UnknownText_0x1aad4a
-	waitbutton
-.Done:
-	closetext
-	end
-
-VermilionCityEngineerScript:
-	faceplayer
-	opentext
-	checkevent EVENT_LISTENED_TO_VOLT_SWITCH_INTRO
-	iftrue VermilionCityTutorVoltSwitchScript
-	writetext VermilionCityCooltrainerMText
-	waitbutton
-	setevent EVENT_LISTENED_TO_VOLT_SWITCH_INTRO
-VermilionCityTutorVoltSwitchScript:
-	writetext Text_VermilionCityTutorVoltSwitchQuestion
-	checkitem SILVER_LEAF
-	iffalse .NoSilverLeaf
-	yesorno
-	iffalse .TutorRefused
-	writebyte VOLT_SWITCH
-	writetext Text_VermilionCityTutorClear
-	special Special_MoveTutor
-	if_equal $0, .TeachMove
-.TutorRefused
-	writetext Text_VermilionCityTutorRefused
-	waitbutton
-	closetext
-	end
-
-.NoSilverLeaf
-	waitbutton
-	writetext Text_VermilionCityTutorNoSilverLeaf
-	waitbutton
-	closetext
-	end
-
-.TeachMove
-	takeitem SILVER_LEAF
-	writetext Text_VermilionCityTutorTaught
-	waitbutton
-	closetext
-	end
-
-VermilionCityRock:
-	jumpstd smashrock
-
-VermilionCitySign:
-	jumptext VermilionCitySignText
-
-VermilionGymSign:
-	jumptext VermilionGymSignText
-
-PokemonFanClubSign:
-	jumptext PokemonFanClubSignText
-
-VermilionCityDiglettsCaveSign:
-	jumptext VermilionCityDiglettsCaveSignText
-
-VermilionCityPortSign:
-	jumptext VermilionCityPortSignText
-
-VermilionCityTruckScript:
-	jumptext VermilionCityTruckText
-
-VermilionCityCutTree:
-	jumpstd cuttree
-
-VermilionCityHiddenFullHeal:
-	dwb EVENT_VERMILION_CITY_HIDDEN_FULL_HEAL, FULL_HEAL
+	jumpopenedtext UnknownText_0x1aad4a
 
 LawrenceOverheardText:
 	text "…So the legendary"
@@ -461,46 +374,6 @@ UnknownText_0x1aad4a:
 	cont "help you."
 	done
 
-VermilionCityCooltrainerMText:
-	text "Lt.Surge's Gym re-"
-	line "quires you to find"
-	cont "hidden switches."
-
-	para "It reminds me of a"
-	line "move I know…"
-	done
-
-Text_VermilionCityTutorVoltSwitchQuestion:
-	text "Do you want me to"
-	line "teach your #mon"
-
-	para "Volt Switch for a"
-	line "Silver Leaf?"
-	done
-
-Text_VermilionCityTutorNoSilverLeaf:
-	text "Oh, but you don't"
-	line "have any…"
-	done
-
-Text_VermilionCityTutorRefused:
-	text "Oh, never mind"
-	line "then."
-	done
-
-Text_VermilionCityTutorClear:
-	text ""
-	done
-
-Text_VermilionCityTutorTaught:
-	text "Volt Switch hits"
-	line "the foe, then"
-	cont "switches out."
-
-	para "It requires stra-"
-	line "tegy to use well."
-	done
-
 VermilionCitySignText:
 	text "Vermilion City"
 
@@ -542,55 +415,3 @@ VermilionCityTruckText:
 	line "there's…"
 	cont "nothing!"
 	done
-
-VermilionCity_MapEventHeader:
-.Warps:
-	db 14
-	warp_def $5, $5, 1, VERMILION_HOUSE_FISHING_SPEECH_HOUSE
-	warp_def $5, $9, 1, VERMILION_POKECENTER_1F
-	warp_def $11, $7, 1, POKEMON_FAN_CLUB
-	warp_def $11, $d, 1, VERMILION_MAGNET_TRAIN_SPEECH_HOUSE
-	warp_def $11, $15, 2, VERMILION_MART
-	warp_def $15, $15, 1, VERMILION_HOUSE_DIGLETTS_CAVE_SPEECH_HOUSE
-	warp_def $17, $a, 1, VERMILION_GYM
-	warp_def $23, $11, 1, VERMILION_PORT_PASSAGE
-	warp_def $23, $12, 2, VERMILION_PORT_PASSAGE
-	warp_def $11, $24, 1, DIGLETTS_CAVE
-	warp_def $23, $1d, 1, SEAGALLOP_FERRY_VERMILION_GATE
-	warp_def $23, $1e, 1, SEAGALLOP_FERRY_VERMILION_GATE
-	warp_def $5, $d, 1, VERMILION_POLLUTION_SPEECH_HOUSE
-	warp_def $5, $13, 1, VERMILION_S_S_ANNE_SPEECH_HOUSE
-
-.XYTriggers:
-	db 2
-	xy_trigger 0, $20, $12, LawrenceLeftIntroScript
-	xy_trigger 0, $20, $13, LawrenceRightIntroScript
-
-.Signposts:
-	db 8
-	signpost 5, 25, SIGNPOST_READ, VermilionCitySign
-	signpost 23, 5, SIGNPOST_READ, VermilionGymSign
-	signpost 17, 5, SIGNPOST_READ, PokemonFanClubSign
-	signpost 17, 33, SIGNPOST_READ, VermilionCityDiglettsCaveSign
-	signpost 19, 27, SIGNPOST_READ, VermilionCityPortSign
-	signpost 13, 28, SIGNPOST_READ, VermilionCityTruckScript
-	signpost 13, 29, SIGNPOST_READ, VermilionCityTruckScript
-	signpost 23, 12, SIGNPOST_ITEM, VermilionCityHiddenFullHeal
-
-.PersonEvents:
-	db 15
-	person_event SPRITE_COOLTRAINER_F, 13, 18, SPRITEMOVEDATA_WANDER, 1, 1, -1, -1, (1 << 3) | PAL_OW_RED, PERSONTYPE_SCRIPT, 0, CooltrainerFScript_0x1aa983, -1
-	person_event SPRITE_GRAMPS, 10, 23, SPRITEMOVEDATA_STANDING_RIGHT, 0, 0, -1, -1, 0, PERSONTYPE_SCRIPT, 0, VermilionMachopOwner, -1
-	person_event SPRITE_MACHOP, 11, 26, SPRITEMOVEDATA_POKEMON, 0, 0, -1, -1, (1 << 3) | PAL_OW_BLUE, PERSONTYPE_SCRIPT, 0, VermilionMachop, -1
-	person_event SPRITE_ROCKER, 20, 14, SPRITEMOVEDATA_WANDER, 1, 1, -1, -1, (1 << 3) | PAL_OW_GREEN, PERSONTYPE_SCRIPT, 0, RockerScript_0x1aa99b, -1
-	person_event SPRITE_SUPER_NERD, 16, 25, SPRITEMOVEDATA_STANDING_UP, 0, 0, -1, -1, (1 << 3) | PAL_OW_GREEN, PERSONTYPE_SCRIPT, 0, VermilionCitySuperNerdScript, -1
-	person_event SPRITE_SAILOR, 9, 10, SPRITEMOVEDATA_WALK_LEFT_RIGHT, 0, 2, -1, -1, (1 << 3) | PAL_OW_BLUE, PERSONTYPE_SCRIPT, 0, VermilionCitySailorScript, -1
-	person_event SPRITE_BIG_SNORLAX, 18, 35, SPRITEMOVEDATA_SNORLAX, 0, 0, -1, -1, 0, PERSONTYPE_SCRIPT, 0, VermilionSnorlax, EVENT_VERMILION_CITY_SNORLAX
-	person_event SPRITE_POKEFAN_M, 16, 31, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, -1, (1 << 3) | PAL_OW_PURPLE, PERSONTYPE_SCRIPT, 0, VermilionGymBadgeGuy, -1
-	person_event SPRITE_VERMILION_LAWRENCE, 28, 19, SPRITEMOVEDATA_STANDING_UP, 0, 0, -1, -1, (1 << 3) | PAL_OW_GREEN, PERSONTYPE_SCRIPT, 0, ObjectEvent, EVENT_LAWRENCE_VERMILION_CITY
-	person_event SPRITE_BALL_CUT_FRUIT, 23, 13, SPRITEMOVEDATA_CUTTABLE_TREE, 0, 0, -1, -1, 0, PERSONTYPE_SCRIPT, 0, VermilionCityCutTree, EVENT_VERMILION_CITY_CUT_TREE
-	person_event SPRITE_ENGINEER, 26, 7, SPRITEMOVEDATA_STANDING_UP, 0, 0, -1, -1, (1 << 3) | PAL_OW_RED, PERSONTYPE_SCRIPT, 0, VermilionCityEngineerScript, -1
-	person_event SPRITE_ROCK_BOULDER_FOSSIL, 14, 26, SPRITEMOVEDATA_SMASHABLE_ROCK, 0, 0, -1, -1, 0, PERSONTYPE_SCRIPT, 0, VermilionCityRock, -1
-	person_event SPRITE_ROCK_BOULDER_FOSSIL, 12, 23, SPRITEMOVEDATA_SMASHABLE_ROCK, 0, 0, -1, -1, 0, PERSONTYPE_SCRIPT, 0, VermilionCityRock, -1
-	person_event SPRITE_ROCK_BOULDER_FOSSIL, 7, 28, SPRITEMOVEDATA_SMASHABLE_ROCK, 0, 0, -1, -1, 0, PERSONTYPE_SCRIPT, 0, VermilionCityRock, -1
-	person_event SPRITE_ROCK_BOULDER_FOSSIL, 9, 29, SPRITEMOVEDATA_SMASHABLE_ROCK, 0, 0, -1, -1, 0, PERSONTYPE_SCRIPT, 0, VermilionCityRock, -1

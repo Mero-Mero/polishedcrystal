@@ -34,12 +34,9 @@ Special_BattleTower_FindChallengeLevel: ; 1700b0
 	ld [rSVBK], a
 	ld a, b
 	ld [wBTChoiceOfLvlGroup], a
-	ld [wBTChoiceOfLvlGroupBackup], a ; save here to store in ScriptVar later
+	ld [ScriptVar], a
 	pop af
 	ld [rSVBK], a
-
-	ld a, [wBTChoiceOfLvlGroupBackup] ; saved value of wBTChoiceOfLvlGroup
-	ld [ScriptVar], a
 	ret
 ; 1700ba
 
@@ -91,6 +88,7 @@ RunBattleTowerTrainer: ; 17024d
 	ld [wLinkMode], a
 	farcall HealPartyEvenForNuzlocke
 	call ReadBTTrainerParty
+	farcall PopulateBattleTowerTeam
 
 	predef StartBattle
 
@@ -181,7 +179,7 @@ CopyBTTrainerToTemp: ; 1704a2
 ; copy the BattleTower-Trainer data that lies at 'BT_OTTrainer' to 'wBT_OTTemp'
 	ld a, [rSVBK]
 	push af
-	ld a, $3 ; BANK(BT_OTTrainer)
+	ld a, BANK(BT_OTTrainer)
 	ld [rSVBK], a
 
 	ld hl, BT_OTTrainer ; $d100
@@ -305,7 +303,7 @@ Special_BattleTower_BeginChallenge: ; 170a9c (5c:4a9c)
 	ret
 
 Special_BattleTower_LoadOpponentTrainerAndPokemonsWithOTSprite: ; 0x170b44
-	farcall Function_LoadOpponentTrainerAndPokemons
+	farcall Function_LoadOpponentTrainer
 	ld a, [rSVBK]
 	push af
 	ld a, $3
@@ -345,12 +343,11 @@ Special_BattleTower_LoadOpponentTrainerAndPokemonsWithOTSprite: ; 0x170b44
 	ld [hUsedSpriteIndex], a
 	ld a, [hl]
 	ld [hUsedSpriteTile], a
-	farcall GetUsedSprite
-	ret
+	farjp GetUsedSprite
 ; 170b90
 
 .Sprites:
-	db SPRITE_KRIS          ; KAY
+	db SPRITE_KRIS          ; CARRIE
 	db SPRITE_CHRIS         ; CAL
 	db SPRITE_FALKNER       ; FALKNER
 	db SPRITE_BUGSY         ; BUGSY
@@ -706,8 +703,11 @@ Function_PartyCountEq3: ; 8b2da
 
 Function_PartySpeciesAreUnique: ; 8b2e2
 	ld hl, PartyMon1Species
-	jp VerifyUniqueness
-; 8b2e9
+	jr VerifyUniqueness
+
+Function_PartyItemsAreUnique: ; 8b32a
+	ld hl, PartyMon1Item
+	; fallthrough
 
 VerifyUniqueness: ; 8b2e9
 	ld de, PartyCount
@@ -772,11 +772,6 @@ VerifyUniqueness: ; 8b2e9
 	pop bc
 	ret
 ; 8b32a
-
-Function_PartyItemsAreUnique: ; 8b32a
-	ld hl, PartyMon1Item
-	jp VerifyUniqueness
-; 8b331
 
 Function_HasPartyAnEgg: ; 8b331
 	ld hl, PartyCount

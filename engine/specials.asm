@@ -1,9 +1,8 @@
-
 Special:: ; c01b
 ; Run script special de.
 	ld hl, SpecialsPointers
 rept 3
-	add hl,de
+	add hl, de
 endr
 	ld b, [hl]
 	inc hl
@@ -11,9 +10,13 @@ endr
 	ld h, [hl]
 	ld l, a
 	ld a, b
-	rst FarCall
-	ret
+	jp FarCall_hl
 ; c029
+
+add_special: MACRO
+\1Special::
+	dba \1
+ENDM
 
 SpecialsPointers:: ; c029
 	add_special WarpToSpawnPoint
@@ -104,7 +107,7 @@ SpecialsPointers:: ; c029
 	add_special RandomPhoneRareWildMon
 	add_special RandomPhoneWildMon
 	add_special RandomPhoneMon
-	add_special RunCallback_04
+	add_special MapCallbackSprites_LoadUsedSpritesGFX
 	add_special PlaySlowCry
 	add_special SpecialSnorlaxAwake
 	add_special Special_YoungerHaircutBrother
@@ -128,7 +131,6 @@ SpecialsPointers:: ; c029
 	add_special CheckCaughtCelebi
 	add_special SpecialStatsJudge
 	add_special SpecialBuenasPassword
-	add_special SpecialBuenaPrize
 	add_special TeachDratiniExtremeSpeed
 	add_special Special_SampleKenjiBreakCountdown
 	add_special SpecialBeastsCheck
@@ -164,7 +166,7 @@ SpecialsPointers:: ; c029
 	add_special SaveOptions
 	add_special WonderTrade
 	add_special RespawnOneOffs
-	add_special GiveShinyDittoEgg
+	add_special SpecialGiveShinyDitto
 	add_special GiveMystriEgg
 	add_special MoveReminder
 	add_special Special_ReiBlessing
@@ -183,6 +185,11 @@ SpecialsPointers:: ; c029
 	add_special Give_hMoneyTemp
 	add_special SetLastPartyMonBall
 	add_special CheckForSurfingPikachu
+	add_special InitializeHiddenGrotto
+	add_special GetHiddenGrottoContents
+	add_special EmptiedHiddenGrotto
+	add_special Special_HiddenPowerGuru
+	add_special Special_GetOvercastIndex
 
 	add_special SpecialNone
 ; c224
@@ -194,9 +201,7 @@ SpecialNone: ; c224
 
 Special_SetPlayerPalette: ; c225
 	ld a, [ScriptVar]
-	ld d, a
-	farcall SetPlayerPalette
-	ret
+	farjp SetPlayerPalette
 ; c230
 
 Special_GameCornerPrizeMonCheckDex: ; c230
@@ -246,7 +251,7 @@ Special_FindThatSpeciesYourTrainerID: ; c284
 	ld b, a
 	farcall _FindThatSpeciesYourTrainerID
 	jr z, FoundNone
-	jr FoundOne
+	; fallthrough
 
 FoundOne: ; c292
 	ld a, TRUE
@@ -263,30 +268,30 @@ SpecialNameRival: ; 0xc29d
 	ld b, $2 ; rival
 	ld de, RivalName
 	farcall _NamingScreen
-	; default to "SILVER"
+	; default to "Silver"
 	ld hl, RivalName
-	ld de, DefaultRivalName
+	ld de, .DefaultRivalName
 	jp InitName
 ; 0xc2b2
 
-DefaultRivalName: ; 0xc2b2
+.DefaultRivalName: ; 0xc2b2
 	db "Silver@"
 
 SpecialTrendyPhrase:
-	ld b, $4 ; trendy phrase
+	ld b, $3 ; trendy phrase
 	ld de, TrendyPhrase
 	farcall _NamingScreen
+	; default to "Nothing"
 	ld hl, TrendyPhrase
-	ld de, DefaultTrendyPhrase
+	ld de, .DefaultTrendyPhrase
 	jp InitName
 ; 0xc2b2
 
-DefaultTrendyPhrase:
-	db "Sushi@"
+.DefaultTrendyPhrase:
+	db "Nothing@"
 
 SpecialNameRater: ; c2b9
-	farcall NameRater
-	ret
+	farjp NameRater
 ; c2c0
 
 Special_TownMap: ; c2c0
@@ -314,14 +319,37 @@ BugContestJudging: ; c34a
 	farcall _BugContestJudging
 	ld a, b
 	ld [ScriptVar], a
+	dec a
+	jr z, .firstplace
+	dec a
+	jr z, .secondplace
+	dec a
+	jr z, .thirdplace
+	ld a, SHED_SHELL
+	jr .finish
+.firstplace
+	ld a, SUN_STONE
+	ld hl, StatusFlags
+	bit 6, [hl] ; hall of fame
+	jr z, .finish
+	ld a, SHINY_STONE - MOON_STONE + 1 ; TODO: include ICE_STONE once it's useful
+	call RandomRange
+	add MOON_STONE
+	jr .finish
+.secondplace
+	ld a, EVERSTONE
+	jr .finish
+.thirdplace
+	ld a, SITRUS_BERRY
+.finish
+	ld [wBugContestOfficerPrize], a
 	ret
 ; c355
 
 MapRadio: ; c355
 	ld a, [ScriptVar]
 	ld e, a
-	farcall PlayRadio
-	ret
+	farjp PlayRadio
 ; c360
 
 Special_UnownPuzzle: ; c360
@@ -337,7 +365,7 @@ Special_SlotMachine: ; c373
 	ret c
 	ld a, BANK(_SlotMachine)
 	ld hl, _SlotMachine
-	jp Special_StartGameCornerGame
+	jr Special_StartGameCornerGame
 ; c380
 
 Special_CardFlip: ; c380
@@ -345,7 +373,7 @@ Special_CardFlip: ; c380
 	ret c
 	ld a, BANK(_CardFlip)
 	ld hl, _CardFlip
-	jp Special_StartGameCornerGame
+	; fallthrough
 ; c38d
 
 ;Special_DummyNonfunctionalGameCornerGame: ; c38d
@@ -367,7 +395,7 @@ Special_StartGameCornerGame: ; c39a
 	ld h, [hl]
 	ld l, a
 	pop af
-	rst FarCall
+	call FarCall_hl
 	jp ExitAllMenus
 ; c3ae
 
@@ -455,8 +483,7 @@ Special_ResetLuckyNumberShowFlag: ; c422
 	farcall RestartLuckyNumberCountdown
 	ld hl, wLuckyNumberShowFlag
 	res 0, [hl]
-	farcall LoadOrRegenerateLuckyIDNumber
-	ret
+	farjp LoadOrRegenerateLuckyIDNumber
 ; c434
 
 Special_CheckLuckyNumberShowFlag: ; c434
@@ -503,6 +530,11 @@ Diploma: ; c49f
 	jp ExitAllMenus
 ; c4ac
 
+Special_GetOvercastIndex::
+	call GetOvercastIndex
+	ld [ScriptVar], a
+	ret
+
 CheckIfTrendyPhraseIsLucky:
 	xor a
 	ld [ScriptVar], a
@@ -526,115 +558,64 @@ CheckIfTrendyPhraseIsLucky:
 	db "Lucky@"
 
 RespawnOneOffs:
-	ld de, EVENT_BEAT_LAWRENCE
-	ld b, RESET_FLAG
-	call EventFlagAction
+	eventflagreset EVENT_BEAT_LAWRENCE
+	eventflagreset EVENT_BEAT_FLANNERY
+	eventflagreset EVENT_BEAT_MAYLENE
+	eventflagreset EVENT_BEAT_SKYLA_AGAIN
+	eventflagreset EVENT_BEAT_KUKUI
 
-	ld de, EVENT_BEAT_FLANNERY
-	ld b, RESET_FLAG
-	call EventFlagAction
-
-	ld de, EVENT_BEAT_MAYLENE
-	ld b, RESET_FLAG
-	call EventFlagAction
-
-	ld de, EVENT_BEAT_SKYLA_AGAIN
-	ld b, RESET_FLAG
-	call EventFlagAction
-
-	ld de, EVENT_GOT_MUSCLE_BAND_FROM_STEVEN
-	ld b, CHECK_FLAG
-	call EventFlagAction
-	ld a, c
-	and a
+	eventflagcheck EVENT_GOT_MUSCLE_BAND_FROM_STEVEN
 	jr z, .SkipSteven
-	ld de, EVENT_EMBEDDED_TOWER_STEVEN_1
-	ld b, SET_FLAG
-	call EventFlagAction
-	ld de, EVENT_EMBEDDED_TOWER_STEVEN_2
-	ld b, RESET_FLAG
-	call EventFlagAction
-	ld de, EVENT_BEAT_STEVEN
-	ld b, RESET_FLAG
-	call EventFlagAction
+	eventflagset EVENT_EMBEDDED_TOWER_STEVEN_1
+	eventflagreset EVENT_EMBEDDED_TOWER_STEVEN_2
+	eventflagreset EVENT_BEAT_STEVEN
+.SkipSteven
 
-.SkipSteven:
-	ld de, EVENT_GOT_WISE_GLASSES_FROM_CYNTHIA
-	ld b, CHECK_FLAG
-	call EventFlagAction
-	ld a, c
-	and a
+	eventflagcheck EVENT_GOT_WISE_GLASSES_FROM_CYNTHIA
 	jr z, .SkipCynthia
-	ld de, EVENT_MYSTRI_STAGE_CYNTHIA
-	ld b, SET_FLAG
-	call EventFlagAction
-	ld de, EVENT_SINJOH_RUINS_HOUSE_CYNTHIA
-	ld b, RESET_FLAG
-	call EventFlagAction
-	ld de, EVENT_BEAT_CYNTHIA
-	ld b, RESET_FLAG
-	call EventFlagAction
+	eventflagset EVENT_MYSTRI_STAGE_CYNTHIA
+	eventflagreset EVENT_SINJOH_RUINS_HOUSE_CYNTHIA
+	eventflagreset EVENT_BEAT_CYNTHIA
+.SkipCynthia
 
-.SkipCynthia:
-	ld a, SUDOWOODO
-	dec a
+	ld a, SUDOWOODO - 1
 	call CheckCaughtMon
 	jr nz, .CaughtSudowoodo
-	ld de, EVENT_ROUTE_36_SUDOWOODO
-	ld b, RESET_FLAG
-	call EventFlagAction
+	eventflagreset EVENT_ROUTE_36_SUDOWOODO
+.CaughtSudowoodo
 
-.CaughtSudowoodo:
-	ld a, ARTICUNO
-	dec a
+	ld a, ARTICUNO - 1
 	call CheckCaughtMon
 	jr nz, .CaughtArticuno
-	ld de, EVENT_SEAFOAM_ISLANDS_ARTICUNO
-	ld b, RESET_FLAG
-	call EventFlagAction
+	eventflagreset EVENT_SEAFOAM_ISLANDS_ARTICUNO
+.CaughtArticuno
 
-.CaughtArticuno:
-	ld a, ZAPDOS
-	dec a
+	ld a, ZAPDOS - 1
 	call CheckCaughtMon
 	jr nz, .CaughtZapdos
-	ld de, EVENT_ROUTE_10_ZAPDOS
-	ld b, RESET_FLAG
-	call EventFlagAction
-	ld de, EVENT_ZAPDOS_GONE
-	ld b, RESET_FLAG
-	call EventFlagAction
+	eventflagreset EVENT_ROUTE_10_ZAPDOS
+	eventflagreset EVENT_ZAPDOS_GONE
+.CaughtZapdos
 
-.CaughtZapdos:
-	ld a, MOLTRES
-	dec a
+	ld a, MOLTRES - 1
 	call CheckCaughtMon
 	jr nz, .CaughtMoltres
-	ld de, EVENT_CINNABAR_VOLCANO_MOLTRES
-	ld b, RESET_FLAG
-	call EventFlagAction
+	eventflagreset EVENT_CINNABAR_VOLCANO_MOLTRES
+.CaughtMoltres
 
-.CaughtMoltres:
-	ld a, MEWTWO
-	dec a
+	ld a, MEWTWO - 1
 	call CheckCaughtMon
 	jr nz, .CaughtMewtwo
-	ld de, EVENT_CERULEAN_CAVE_MEWTWO
-	ld b, RESET_FLAG
-	call EventFlagAction
-
+	eventflagreset EVENT_CERULEAN_CAVE_MEWTWO
 .CaughtMewtwo
-	ld a, MEW
-	dec a
+
+	ld a, MEW - 1
 	call CheckCaughtMon
 	jr nz, .CaughtMew
-	ld de, EVENT_FARAWAY_JUNGLE_MEW
-	ld b, RESET_FLAG
-	call EventFlagAction
-
+	eventflagreset EVENT_FARAWAY_JUNGLE_MEW
 .CaughtMew
-	ld a, RAIKOU
-	dec a
+
+	ld a, RAIKOU - 1
 	call CheckCaughtMon
 	jr nz, .CaughtRaikou
 	ld hl, wRoamMon1Species
@@ -651,10 +632,9 @@ RespawnOneOffs:
 	ld [wRoamMon1MapNumber], a
 	xor a ; generate new stats
 	ld [wRoamMon1HP], a
+.CaughtRaikou
 
-.CaughtRaikou:
-	ld a, ENTEI
-	dec a
+	ld a, ENTEI - 1
 	call CheckCaughtMon
 	jr nz, .CaughtEntei
 	ld hl, wRoamMon2Species
@@ -671,16 +651,11 @@ RespawnOneOffs:
 	ld [wRoamMon2MapNumber], a
 	xor a ; generate new stats
 	ld [wRoamMon2HP], a
+.CaughtEntei
 
-.CaughtEntei:
-	ld de, EVENT_FOUGHT_SUICUNE
-	ld b, CHECK_FLAG
-	call EventFlagAction
-	ld a, c
-	and a
+	eventflagcheck EVENT_FOUGHT_SUICUNE
 	jr z, .CaughtSuicune
-	ld a, SUICUNE
-	dec a
+	ld a, SUICUNE - 1
 	call CheckCaughtMon
 	jr nz, .CaughtSuicune
 	ld hl, wRoamMon3Species
@@ -697,32 +672,20 @@ RespawnOneOffs:
 	ld [wRoamMon3MapNumber], a
 	xor a ; generate new stats
 	ld [wRoamMon3HP], a
+.CaughtSuicune
 
-.CaughtSuicune:
-	ld a, LUGIA
-	dec a
+	ld a, LUGIA - 1
 	call CheckCaughtMon
 	jr nz, .CaughtLugia
-	ld de, EVENT_WHIRL_ISLAND_LUGIA_CHAMBER_LUGIA
-	ld b, RESET_FLAG
-	call EventFlagAction
-	ld de, EVENT_FOUGHT_LUGIA
-	ld b, RESET_FLAG
-	call EventFlagAction
+	eventflagreset EVENT_WHIRL_ISLAND_LUGIA_CHAMBER_LUGIA
+	eventflagreset EVENT_FOUGHT_LUGIA
+.CaughtLugia
 
-.CaughtLugia:
-	ld a, HO_OH
-	dec a
+	ld a, HO_OH - 1
 	call CheckCaughtMon
-	jr nz, .CaughtHoOh
-	ld de, EVENT_TIN_TOWER_ROOF_HO_OH
-	ld b, RESET_FLAG
-	call EventFlagAction
-	ld de, EVENT_FOUGHT_HO_OH
-	ld b, RESET_FLAG
-	call EventFlagAction
-
-.CaughtHoOh
+	ret nz
+	eventflagreset EVENT_TIN_TOWER_ROOF_HO_OH
+	eventflagreset EVENT_FOUGHT_HO_OH
 	ret
 
 BillBoxSwitchCheck:
@@ -763,16 +726,19 @@ BillBoxSwitchCheck:
 	ret
 
 BillBoxSwitch:
-	ld hl, wc608
+	; back up wMisc to wDecompressScratch
+	ld hl, wMisc
 	ld de, wDecompressScratch
-	ld bc, $1e0
-	ld a, $6
+	ld bc, (wMiscEnd - wMisc)
+	ld a, BANK(wDecompressScratch)
 	call FarCopyWRAM
+	; change boxes (overwrites wMisc)
 	ld a, [EngineBuffer1]
 	ld e, a
 	farcall ChangeBoxSaveGameNoConfirm
-	ld de, wc608
+	; restore wMisc from wDecompressScratch
 	ld hl, wDecompressScratch
-	ld bc, $1e0
-	ld a, $6
+	ld de, wMisc
+	ld bc, (wMiscEnd - wMisc)
+	ld a, BANK(wDecompressScratch)
 	jp FarCopyWRAM

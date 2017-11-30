@@ -1,21 +1,35 @@
-const_value set 2
+CinnabarVolcanoB2F_MapScriptHeader:
+
+.MapTriggers: db 0
+
+.MapCallbacks: db 1
+	dbw MAPCALLBACK_TILES, CinnabarVolcanoB2FBouldersLand
+
+CinnabarVolcanoB2F_MapEventHeader:
+
+.Warps: db 3
+	warp_def 3, 13, 5, CINNABAR_VOLCANO_B1F
+	warp_def 19, 25, 6, CINNABAR_VOLCANO_B1F
+	warp_def 6, 6, 7, CINNABAR_VOLCANO_B1F ; hole
+
+.XYTriggers: db 0
+
+.Signposts: db 0
+
+.PersonEvents: db 4
+	person_event SPRITE_MOLTRES, 22, 18, SPRITEMOVEDATA_POKEMON, 0, 0, -1, -1, (1 << 3) | PAL_OW_RED, PERSONTYPE_SCRIPT, 0, CinnabarVolcanoMoltres, EVENT_CINNABAR_VOLCANO_MOLTRES
+	person_event SPRITE_LAWRENCE, 24, 12, SPRITEMOVEDATA_STANDING_RIGHT, 0, 0, -1, -1, 0, PERSONTYPE_SCRIPT, 0, ObjectEvent, EVENT_LAWRENCE_FINAL_BIRD
+	smashrock_event 19, 21
+	itemball_event 3, 18, FLAME_ORB, 1, EVENT_CINNABAR_VOLCANO_B2F_FLAME_ORB
+
+const_value set 1
 	const CINNABARVOLCANOB2F_MOLTRES
-	const CINNABARVOLCANOB2F_ROCK
-	const CINNABARVOLCANOB2F_POKE_BALL
 	const CINNABARVOLCANOB2F_LAWRENCE
 
-CinnabarVolcanoB2F_MapScriptHeader:
-.MapTriggers:
-	db 0
-
-.MapCallbacks:
-	db 1
-	dbw MAPCALLBACK_TILES, .BouldersLand
-
-.BouldersLand:
+CinnabarVolcanoB2FBouldersLand:
 	checkevent EVENT_BOULDER_IN_CINNABAR_VOLCANO_B1F
 	iffalse .skip1
-	changeblock $6, $6, $5f
+	changeblock 6, 6, $5f
 .skip1
 	return
 
@@ -52,10 +66,7 @@ CinnabarVolcanoB2FLawrenceEncounterScript:
 	spriteface PLAYER, DOWN
 .continue
 	playmusic MUSIC_ZINNIA_ENCOUNTER_ORAS
-	opentext
-	writetext CinnabarVolcanoB2FLawrenceSpeechText
-	waitbutton
-	closetext
+	showtext CinnabarVolcanoB2FLawrenceSpeechText
 	spriteface CINNABARVOLCANOB2F_LAWRENCE, UP
 	opentext
 	writetext CinnabarVolcanoB2FLawrenceEscapeRopeText
@@ -100,12 +111,6 @@ CinnabarVolcanoMoltres:
 	jump CinnabarVolcanoB2FLawrenceEncounterScript
 .end
 	end
-
-CinnabarVolcanoB2FRock:
-	jumpstd smashrock
-
-CinnabarVolcanoB2FFlameOrb:
-	itemball FLAME_ORB
 
 MoltresText:
 	text "Gyaoo!"
@@ -188,23 +193,3 @@ CinnabarVolcanoB2FMovementData_LawrenceApproachDown:
 	step_up
 	step_up
 	step_end
-
-CinnabarVolcanoB2F_MapEventHeader:
-.Warps:
-	db 3
-	warp_def $3, $d, 5, CINNABAR_VOLCANO_B1F
-	warp_def $13, $19, 6, CINNABAR_VOLCANO_B1F
-	warp_def $6, $6, 7, CINNABAR_VOLCANO_B1F ; hole
-
-.XYTriggers:
-	db 0
-
-.Signposts:
-	db 0
-
-.PersonEvents:
-	db 4
-	person_event SPRITE_MOLTRES, 22, 18, SPRITEMOVEDATA_POKEMON, 0, 0, -1, -1, (1 << 3) | PAL_OW_RED, PERSONTYPE_SCRIPT, 0, CinnabarVolcanoMoltres, EVENT_CINNABAR_VOLCANO_MOLTRES
-	person_event SPRITE_ROCK_BOULDER_FOSSIL, 19, 21, SPRITEMOVEDATA_SMASHABLE_ROCK, 0, 0, -1, -1, 0, PERSONTYPE_SCRIPT, 0, CinnabarVolcanoB2FRock, -1
-	person_event SPRITE_BALL_CUT_FRUIT, 3, 18, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, -1, (1 << 3) | PAL_OW_RED, PERSONTYPE_ITEMBALL, 0, CinnabarVolcanoB2FFlameOrb, EVENT_CINNABAR_VOLCANO_B2F_FLAME_ORB
-	person_event SPRITE_LAWRENCE, 24, 12, SPRITEMOVEDATA_STANDING_RIGHT, 0, 0, -1, -1, 0, PERSONTYPE_SCRIPT, 0, ObjectEvent, EVENT_LAWRENCE_FINAL_BIRD

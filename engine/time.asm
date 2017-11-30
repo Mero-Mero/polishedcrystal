@@ -77,18 +77,29 @@ RestartReceiveCallDelay: ; 1142e
 	jp CopyDayHourMinToHL
 ; 1143c
 
-CheckReceiveCallDelay: ; 1143c
+CheckReceiveCallDelay:
 	ld hl, wReceiveCallDelay_StartTime
 	call CalcMinsHoursDaysSince
 	call GetMinutesSinceIfLessThan60
+
+	; Double effective time if lead mon has Lightning Rod, which boosts call rate
+	push bc
+	ld b, a
+	call GetLeadAbility
+	cp LIGHTNING_ROD
+	ld a, b
+	pop bc
+	jr nz, .ok
+	add a
+	jr nc, .ok
+	ld a, -1
+.ok
 	ld hl, wReceiveCallDelay_MinsRemaining
 	jp UpdateTimeRemaining
-; 1144c
 
-RestartDailyResetTimer: ; 1144c
+RestartDailyResetTimer:
 	ld hl, wDailyResetTimer
 	jp InitOneDayCountdown
-; 11452
 
 CheckDailyResetTimer:: ; 11452
 	ld hl, wDailyResetTimer
@@ -137,7 +148,11 @@ Special_SampleKenjiBreakCountdown: ; 11485
 ; 11490
 
 StartBugContestTimer: ; 11490
+if DEF(NO_RTC)
+	ld a, 20 * NO_RTC_SPEEDUP
+else
 	ld a, 20
+endc
 	ld [wBugContestMinsRemaining], a
 	xor a
 	ld [wBugContestSecsRemaining], a
@@ -213,12 +228,10 @@ RestartLuckyNumberCountdown: ; 1152b
 	ld a, FRIDAY
 	sub c
 	jr z, .friday_saturday
-	jr nc, .earlier ; should've done "ret nc"
+	ret nc
 
 .friday_saturday
 	add 7
-
-.earlier
 	ret
 ; 11542
 

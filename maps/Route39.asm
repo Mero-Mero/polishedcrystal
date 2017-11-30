@@ -1,38 +1,46 @@
-const_value set 2
-	const ROUTE39_SAILOR
-	const ROUTE39_POKEFAN_M
-	const ROUTE39_POKEFAN_F1
-	const ROUTE39_MILTANK1
-	const ROUTE39_MILTANK2
-	const ROUTE39_MILTANK3
-	const ROUTE39_MILTANK4
-	const ROUTE39_YOUNGSTER
-	const ROUTE39_FRUIT_TREE
-	const ROUTE39_POKEFAN_F2
-	const ROUTE39_COWGIRL
-	const ROUTE39_BEAUTY
-
 Route39_MapScriptHeader:
-.MapTriggers:
-	db 0
 
-.MapCallbacks:
-	db 0
+.MapTriggers: db 0
 
-Route39Miltank:
-	opentext
-	writetext Route39MiltankText
-	cry MILTANK
-	waitbutton
-	closetext
-	end
+.MapCallbacks: db 0
+
+Route39_MapEventHeader:
+
+.Warps: db 2
+	warp_def 3, 1, 1, ROUTE_39_BARN
+	warp_def 3, 5, 1, ROUTE_39_FARMHOUSE
+
+.XYTriggers: db 0
+
+.Signposts: db 4
+	signpost 31, 5, SIGNPOST_JUMPTEXT, Route39TrainerTipsText
+	signpost 5, 9, SIGNPOST_JUMPTEXT, MoomooFarmSignText
+	signpost 7, 15, SIGNPOST_JUMPTEXT, Route39SignText
+	signpost 13, 5, SIGNPOST_ITEM + NUGGET, EVENT_ROUTE_39_HIDDEN_NUGGET
+
+.PersonEvents: db 13
+	person_event SPRITE_OLIVINE_RIVAL, 14, 7, SPRITEMOVEDATA_WANDER, 1, 2, -1, -1, (1 << 3) | PAL_OW_BROWN, PERSONTYPE_SCRIPT, 0, Route39CowgirlAnnieScript, -1
+	person_event SPRITE_SAILOR, 29, 13, SPRITEMOVEDATA_STANDING_LEFT, 0, 0, -1, -1, (1 << 3) | PAL_OW_BLUE, PERSONTYPE_TRAINER, 5, TrainerSailorEugene, -1
+	person_event SPRITE_POKEFAN_M, 22, 10, SPRITEMOVEDATA_STANDING_UP, 0, 0, -1, -1, (1 << 3) | PAL_OW_RED, PERSONTYPE_TRAINER, 4, TrainerPokefanmDerek1, -1
+	person_event SPRITE_POKEFAN_F, 19, 11, SPRITEMOVEDATA_STANDING_RIGHT, 0, 0, -1, -1, (1 << 3) | PAL_OW_RED, PERSONTYPE_TRAINER, 4, TrainerPokefanfRuth, -1
+	person_event SPRITE_MILTANK, 12, 3, SPRITEMOVEDATA_POKEMON, 0, 0, -1, -1, 0, PERSONTYPE_POKEMON, MILTANK, Route39MiltankText, -1
+	person_event SPRITE_MILTANK, 11, 6, SPRITEMOVEDATA_POKEMON, 0, 0, -1, -1, 0, PERSONTYPE_POKEMON, MILTANK, Route39MiltankText, -1
+	person_event SPRITE_MILTANK, 15, 4, SPRITEMOVEDATA_POKEMON, 0, 0, -1, -1, 0, PERSONTYPE_POKEMON, MILTANK, Route39MiltankText, -1
+	person_event SPRITE_MILTANK, 13, 8, SPRITEMOVEDATA_POKEMON, 0, 0, -1, -1, 0, PERSONTYPE_POKEMON, MILTANK, Route39MiltankText, -1
+	person_event SPRITE_YOUNGSTER, 7, 13, SPRITEMOVEDATA_SPINRANDOM_FAST, 0, 0, -1, -1, (1 << 3) | PAL_OW_PURPLE, PERSONTYPE_TRAINER, 1, TrainerPsychicNorman, -1
+	fruittree_event 3, 9, FRUITTREE_ROUTE_39, CHESTO_BERRY
+	person_event SPRITE_POKEFAN_F, 22, 4, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, -1, (1 << 3) | PAL_OW_RED, PERSONTYPE_SCRIPT, 0, PokefanFScript_0x1a5bbe, -1
+	person_event SPRITE_BEAUTY, 30, 4, SPRITEMOVEDATA_WALK_LEFT_RIGHT, 0, 1, -1, -1, (1 << 3) | PAL_OW_GREEN, PERSONTYPE_COMMAND, jumptextfaceplayer, Route39BeautyText, -1
+	tmhmball_event 7, 1, TM_BULLDOZE, EVENT_ROUTE_39_TM_BULLDOZE
+
+const_value set 1
+	const ROUTE39_COWGIRL
 
 TrainerPokefanmDerek1:
 	trainer EVENT_BEAT_POKEFANM_DEREK, POKEFANM, DEREK1, PokefanmDerek1SeenText, PokefanmDerek1BeatenText, 0, PokefanmDerek1Script
 
 PokefanmDerek1Script:
 	writecode VAR_CALLERID, PHONE_POKEFANM_DEREK
-	end_if_just_battled
 	opentext
 	checkflag ENGINE_DEREK_HAS_NUGGET
 	iftrue UnknownScript_0x1a5b4a
@@ -69,10 +77,7 @@ UnknownScript_0x1a5b59:
 	jump UnknownScript_0x1a5b7e
 
 UnknownScript_0x1a5b5c:
-	writetext UnknownText_0x1a5dec
-	waitbutton
-	closetext
-	end
+	jumpopenedtext UnknownText_0x1a5dec
 
 UnknownScript_0x1a5b62:
 	jumpstd asknumber1m
@@ -111,44 +116,138 @@ TrainerPokefanfRuth:
 
 PokefanfRuthScript:
 	end_if_just_battled
+	jumptextfaceplayer UnknownText_0x1a5db2
+
+Route39CowgirlAnnieScript:
+	checkevent EVENT_GOT_PP_MAX_FROM_ROUTE_39_LEADER
+	iftrue_jumptextfaceplayer .AfterText2
+	faceplayer
+	checkevent EVENT_BEAT_COWGIRL_ANNIE
+	iftrue .Beaten
+	checkevent EVENT_BEAT_BIRD_KEEPER_TOBY
+	iffalse_jumptext .IntroText
+	checkevent EVENT_BEAT_SAILOR_HARRY
+	iffalse_jumptext .IntroText
+	checkevent EVENT_BEAT_LASS_DANA
+	iffalse_jumptext .IntroText
+	checkevent EVENT_BEAT_SCHOOLBOY_CHAD
+	iffalse_jumptext .IntroText
+	checkevent EVENT_BEAT_BEAUTY_VALENCIA
+	iffalse_jumptext .IntroText
+	checkevent EVENT_BEAT_BEAUTY_OLIVIA
+	iffalse_jumptext .IntroText
+	checkevent EVENT_BEAT_POKEFANM_DEREK
+	iffalse_jumptext .IntroText
+	checkevent EVENT_BEAT_POKEFANF_RUTH
+	iffalse_jumptext .IntroText
+	checkevent EVENT_BEAT_SAILOR_EUGENE
+	iffalse_jumptext .IntroText
+	checkevent EVENT_BEAT_PSYCHIC_NORMAN
+	iffalse_jumptext .IntroText
+	checkevent EVENT_BEAT_POKEFANF_JAIME
+	iffalse_jumptext .IntroText
 	opentext
-	writetext UnknownText_0x1a5db2
+	writetext .QuestionText
+	yesorno
+	iffalse_jumpopenedtext .RefusedText
+	writetext .SeenText
 	waitbutton
 	closetext
-	end
-
-TrainerCowgirlAnnie:
-	trainer EVENT_BEAT_COWGIRL_ANNIE, COWGIRL, ANNIE, CowgirlAnnieSeenText, CowgirlAnnieBeatenText, 0, CowgirlAnnieScript
-
-CowgirlAnnieScript:
-	end_if_just_battled
+	winlosstext .BeatenText, 0
+	setlasttalked ROUTE39_COWGIRL
+	loadtrainer COWGIRL, ANNIE
+	startbattle
+	reloadmapafterbattle
+	setevent EVENT_BEAT_COWGIRL_ANNIE
+.Beaten:
 	opentext
-	writetext CowgirlAnnieAfterText
-	waitbutton
-	closetext
-	end
+	writetext .AfterText1
+	buttonsound
+	verbosegiveitem PP_MAX
+	iffalse_endtext
+	setevent EVENT_GOT_PP_MAX_FROM_ROUTE_39_LEADER
+	thisopenedtext
+
+.AfterText2:
+	text "We make cheese"
+	line "and yogurt out"
+	cont "of Miltank milk."
+	done
+
+.IntroText:
+	text "Hey! Don't scare"
+	line "the Miltank!"
+
+	para "…Oh, you want to"
+	line "battle?"
+
+	para "I'm doing farm"
+	line "work right now…"
+
+	para "Tell ya what--"
+	line "beat everyone else"
+
+	para "from Ecruteak to"
+	line "Olivine and I'll"
+	cont "fight ya."
+	done
+
+.QuestionText:
+	text "I'm done with my"
+	line "chores, and you're"
+
+	para "done clearing"
+	line "these routes."
+
+	para "Now then, my team"
+	line "beat Morty, and I"
+
+	para "reckon we can beat"
+	line "you."
+
+	para "What do you say?"
+	done
+
+.RefusedText:
+	text "Shucks. Back to"
+	line "tending the Mil-"
+	cont "tank, then."
+	done
+
+.SeenText:
+	text "I'll show ya what"
+	line "a Cowgirl can do!"
+	done
+
+.BeatenText:
+	text "I spilled some"
+	line "milk…"
+	done
+
+.AfterText1:
+	text "Whew! That was an"
+	line "intense break!"
+
+	para "Thanks for the"
+	line "fun, partner."
+
+	para "Take this with"
+	line "ya!"
+	done
 
 TrainerSailorEugene:
 	trainer EVENT_BEAT_SAILOR_EUGENE, SAILOR, EUGENE, SailorEugeneSeenText, SailorEugeneBeatenText, 0, SailorEugeneScript
 
 SailorEugeneScript:
 	end_if_just_battled
-	opentext
-	writetext UnknownText_0x1a5c4d
-	waitbutton
-	closetext
-	end
+	jumptextfaceplayer UnknownText_0x1a5c4d
 
 TrainerPsychicNorman:
 	trainer EVENT_BEAT_PSYCHIC_NORMAN, PSYCHIC_T, NORMAN, PsychicNormanSeenText, PsychicNormanBeatenText, 0, PsychicNormanScript
 
 PsychicNormanScript:
 	end_if_just_battled
-	opentext
-	writetext UnknownText_0x1a5e57
-	waitbutton
-	closetext
-	end
+	jumptextfaceplayer UnknownText_0x1a5e57
 
 PokefanFScript_0x1a5bbe:
 	faceplayer
@@ -165,58 +264,16 @@ PokefanFScript_0x1a5bbe:
 	startbattle
 	reloadmapafterbattle
 	setevent EVENT_BEAT_POKEFANF_JAIME
-	closetext
-	end
+	endtext
 
 UnknownScript_0x1a5bdf:
-	writetext UnknownText_0x1a5f31
-	waitbutton
-	closetext
-	end
+	jumpopenedtext UnknownText_0x1a5f31
 
 UnknownScript_0x1a5be5:
-	writetext UnknownText_0x1a5ec4
-	waitbutton
-	closetext
-	end
-
-Route39BeautyScript:
-	jumptextfaceplayer Route39BeautyText
-
-Route39Sign:
-	jumptext Route39SignText
-
-MoomooFarmSign:
-	jumptext MoomooFarmSignText
-
-Route39TrainerTips:
-	jumptext Route39TrainerTipsText
-
-FruitTreeScript_0x1a5bf4:
-	fruittree FRUITTREE_ROUTE_39
-
-Route39HiddenNugget:
-	dwb EVENT_ROUTE_39_HIDDEN_NUGGET, NUGGET
-
+	jumpopenedtext UnknownText_0x1a5ec4
 
 Route39MiltankText:
 	text "Miltank: Mooo!"
-	done
-
-CowgirlAnnieSeenText:
-	text "Hey! Don't scare"
-	line "the Miltank!"
-	done
-
-CowgirlAnnieBeatenText:
-	text "I spilled some"
-	line "milk…"
-	done
-
-CowgirlAnnieAfterText:
-	text "We make cheese"
-	line "and yogurt out"
-	cont "of Miltank milk."
 	done
 
 SailorEugeneSeenText:
@@ -387,34 +444,3 @@ Route39TrainerTipsText:
 	para "Use Headbutt on"
 	line "any tree you see!"
 	done
-
-Route39_MapEventHeader:
-.Warps:
-	db 2
-	warp_def $3, $1, 1, ROUTE_39_BARN
-	warp_def $3, $5, 1, ROUTE_39_FARMHOUSE
-
-.XYTriggers:
-	db 0
-
-.Signposts:
-	db 4
-	signpost 31, 5, SIGNPOST_READ, Route39TrainerTips
-	signpost 5, 9, SIGNPOST_READ, MoomooFarmSign
-	signpost 7, 15, SIGNPOST_READ, Route39Sign
-	signpost 13, 5, SIGNPOST_ITEM, Route39HiddenNugget
-
-.PersonEvents:
-	db 12
-	person_event SPRITE_SAILOR, 29, 13, SPRITEMOVEDATA_STANDING_LEFT, 0, 0, -1, -1, (1 << 3) | PAL_OW_BLUE, PERSONTYPE_TRAINER, 5, TrainerSailorEugene, -1
-	person_event SPRITE_POKEFAN_M, 22, 10, SPRITEMOVEDATA_STANDING_UP, 0, 0, -1, -1, (1 << 3) | PAL_OW_RED, PERSONTYPE_TRAINER, 4, TrainerPokefanmDerek1, -1
-	person_event SPRITE_POKEFAN_F, 19, 11, SPRITEMOVEDATA_STANDING_RIGHT, 0, 0, -1, -1, (1 << 3) | PAL_OW_RED, PERSONTYPE_TRAINER, 4, TrainerPokefanfRuth, -1
-	person_event SPRITE_MILTANK, 12, 3, SPRITEMOVEDATA_POKEMON, 0, 0, -1, -1, 0, PERSONTYPE_SCRIPT, 0, Route39Miltank, -1
-	person_event SPRITE_MILTANK, 11, 6, SPRITEMOVEDATA_POKEMON, 0, 0, -1, -1, 0, PERSONTYPE_SCRIPT, 0, Route39Miltank, -1
-	person_event SPRITE_MILTANK, 15, 4, SPRITEMOVEDATA_POKEMON, 0, 0, -1, -1, 0, PERSONTYPE_SCRIPT, 0, Route39Miltank, -1
-	person_event SPRITE_MILTANK, 13, 8, SPRITEMOVEDATA_POKEMON, 0, 0, -1, -1, 0, PERSONTYPE_SCRIPT, 0, Route39Miltank, -1
-	person_event SPRITE_YOUNGSTER, 7, 13, SPRITEMOVEDATA_SPINRANDOM_FAST, 0, 0, -1, -1, (1 << 3) | PAL_OW_PURPLE, PERSONTYPE_TRAINER, 1, TrainerPsychicNorman, -1
-	person_event SPRITE_BALL_CUT_FRUIT, 3, 9, SPRITEMOVEDATA_STANDING_LEFT, 0, 0, -1, -1, 0, PERSONTYPE_SCRIPT, 0, FruitTreeScript_0x1a5bf4, -1
-	person_event SPRITE_POKEFAN_F, 22, 4, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, -1, (1 << 3) | PAL_OW_RED, PERSONTYPE_SCRIPT, 0, PokefanFScript_0x1a5bbe, -1
-	person_event SPRITE_OLIVINE_RIVAL, 14, 7, SPRITEMOVEDATA_STANDING_UP, 0, 0, -1, -1, (1 << 3) | PAL_OW_BROWN, PERSONTYPE_TRAINER, 4, TrainerCowgirlAnnie, -1
-	person_event SPRITE_BEAUTY, 30, 4, SPRITEMOVEDATA_WALK_LEFT_RIGHT, 0, 1, -1, -1, (1 << 3) | PAL_OW_GREEN, PERSONTYPE_SCRIPT, 0, Route39BeautyScript, -1

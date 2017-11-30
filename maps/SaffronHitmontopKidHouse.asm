@@ -1,82 +1,96 @@
-const_value set 2
-	const SAFFRONHITMONTOPKIDHOUSE_CHILD
-	const SAFFRONHITMONTOPKIDHOUSE_TEACHER
-
 SaffronHitmontopKidHouse_MapScriptHeader:
-.MapTriggers:
-	db 0
 
-.MapCallbacks:
-	db 0
+.MapTriggers: db 0
+
+.MapCallbacks: db 0
+
+SaffronHitmontopKidHouse_MapEventHeader:
+
+.Warps: db 2
+	warp_def 7, 2, 19, SAFFRON_CITY
+	warp_def 7, 3, 19, SAFFRON_CITY
+
+.XYTriggers: db 0
+
+.Signposts: db 0
+
+.PersonEvents: db 2
+	person_event SPRITE_CHILD, 4, 5, SPRITEMOVEDATA_WANDER, 2, 2, -1, -1, (1 << 3) | PAL_OW_BROWN, PERSONTYPE_SCRIPT, 0, SaffronHitmontopKidHouseChildScript, -1
+	person_event SPRITE_TEACHER, 4, 2, SPRITEMOVEDATA_STANDING_LEFT, 2, 2, -1, -1, (1 << 3) | PAL_OW_RED, PERSONTYPE_SCRIPT, 0, SaffronHitmontopKidHouseTeacherScript, -1
+
+const_value set 1
+	const SAFFRONHITMONTOPKIDHOUSE_CHILD
 
 SaffronHitmontopKidHouseChildScript:
-	faceplayer
-	opentext
-	writetext SaffronHitmontopKidHouseChildText1
-	waitbutton
-	closetext
-	applymovement SAFFRONHITMONTOPKIDHOUSE_CHILD, SaffronHitmontopKidHouseChildSpinMovement
+	showtextfaceplayer .Text1
+	applymovement SAFFRONHITMONTOPKIDHOUSE_CHILD, .SpinMovement
 	faceplayer
 	pause 20
 	checkpoke HITMONTOP
 	iffalse .Done
 	showemote EMOTE_SHOCK, SAFFRONHITMONTOPKIDHOUSE_CHILD, 15
-	opentext
-	writetext SaffronHitmontopKidHouseChildText2
-	waitbutton
-	closetext
-	applymovement SAFFRONHITMONTOPKIDHOUSE_CHILD, SaffronHitmontopKidHouseSpin2Movement
+	showtext .Text2
+	applymovement SAFFRONHITMONTOPKIDHOUSE_CHILD, .Spin2Movement
 	pause 20
-	opentext
-	writetext SaffronHitmontopKidHouseChildText3
-	waitbutton
-	closetext
+	showtext .Text3
 	setevent EVENT_SHOWED_SAFFRON_KID_HITMONTOP
 .Done
 	end
 
-SaffronHitmontopKidHouseTeacherScript:
-	faceplayer
-	opentext
-	checkevent EVENT_GOT_AIR_BALLOON_FROM_SAFFRON
-	iftrue .GotItem
-	checkevent EVENT_SHOWED_SAFFRON_KID_HITMONTOP
-	iffalse .NoShow
-	writetext SaffronHitmontopKidHouseTeacherText2
-	buttonsound
-	verbosegiveitem AIR_BALLOON
-	iffalse .Done
-	setevent EVENT_GOT_AIR_BALLOON_FROM_SAFFRON
-.GotItem:
-	writetext SaffronHitmontopKidHouseTeacherText3
-	waitbutton
-.Done:
-	closetext
-	end
-
-.NoShow:
-	writetext SaffronHitmontopKidHouseTeacherText1
-	waitbutton
-	closetext
-	end
-
-SaffronHitmontopKidHouseChildText1:
+.Text1:
 	text "Top! Top!"
 	line "Hit-mon-TOP!"
 	done
 
-SaffronHitmontopKidHouseChildText2:
+.Text2:
 	text "Top… Top? TOP!"
 	line "HITMONTOP! ♥"
 	done
 
-SaffronHitmontopKidHouseChildText3:
+.Text3:
 	text "That's a"
 	line "Hitmontop!"
 	cont "Oh boy! So cool!"
 	done
 
-SaffronHitmontopKidHouseTeacherText1:
+.SpinMovement:
+	turn_head_down
+	turn_head_left
+	turn_head_up
+	turn_head_right
+	turn_head_down
+	turn_head_left
+	turn_head_up
+	turn_head_right
+.Spin2Movement:
+	turn_head_down
+	turn_head_left
+	turn_head_up
+	turn_head_right
+	turn_head_down
+	step_end
+
+SaffronHitmontopKidHouseTeacherScript:
+	checkevent EVENT_GOT_AIR_BALLOON_FROM_SAFFRON
+	iftrue_jumptextfaceplayer .Text3
+	faceplayer
+	opentext
+	checkevent EVENT_SHOWED_SAFFRON_KID_HITMONTOP
+	iffalse_jumpopenedtext .Text1
+	writetext .Text2
+	buttonsound
+	verbosegiveitem AIR_BALLOON
+	iffalse_endtext
+	setevent EVENT_GOT_AIR_BALLOON_FROM_SAFFRON
+	thisopenedtext
+
+.Text3:
+	text "My son finally got"
+	line "to meet his favor-"
+	cont "ite #mon."
+	done
+
+.Text1:
 	text "My son likes to"
 	line "pretend he's a"
 	cont "#mon."
@@ -90,7 +104,7 @@ SaffronHitmontopKidHouseTeacherText1:
 	cont "would calm down…"
 	done
 
-SaffronHitmontopKidHouseTeacherText2:
+.Text2:
 	text "Oh my! You made my"
 	line "son so happy!"
 
@@ -100,43 +114,3 @@ SaffronHitmontopKidHouseTeacherText2:
 	para "like you to have"
 	line "this."
 	done
-
-SaffronHitmontopKidHouseTeacherText3:
-	text "My son finally got"
-	line "to meet his favor-"
-	cont "ite #mon."
-	done
-
-SaffronHitmontopKidHouseChildSpinMovement:
-	turn_head_down
-	turn_head_left
-	turn_head_up
-	turn_head_right
-	turn_head_down
-	turn_head_left
-	turn_head_up
-	turn_head_right
-SaffronHitmontopKidHouseSpin2Movement:
-	turn_head_down
-	turn_head_left
-	turn_head_up
-	turn_head_right
-	turn_head_down
-	step_end
-
-SaffronHitmontopKidHouse_MapEventHeader:
-.Warps:
-	db 2
-	warp_def $7, $2, 19, SAFFRON_CITY
-	warp_def $7, $3, 19, SAFFRON_CITY
-
-.XYTriggers:
-	db 0
-
-.Signposts:
-	db 0
-
-.PersonEvents:
-	db 2
-	person_event SPRITE_CHILD, 4, 5, SPRITEMOVEDATA_WANDER, 2, 2, -1, -1, (1 << 3) | PAL_OW_BROWN, PERSONTYPE_SCRIPT, 0, SaffronHitmontopKidHouseChildScript, -1
-	person_event SPRITE_TEACHER, 4, 2, SPRITEMOVEDATA_STANDING_LEFT, 2, 2, -1, -1, (1 << 3) | PAL_OW_RED, PERSONTYPE_SCRIPT, 0, SaffronHitmontopKidHouseTeacherScript, -1

@@ -634,7 +634,7 @@ OaksPkmnTalk14:
 	ld hl, wRadioTextDelay
 	dec [hl]
 	ret nz
-	ld de, $1d
+	ld de, MUSIC_POKEMON_TALK
 	farcall RadioMusicRestartDE
 	ld hl, .terminator
 	call PrintText
@@ -914,8 +914,7 @@ StartPokemonMusicChannel:
 	jr z, .SunTueThurSun
 	ld de, MUSIC_POKEMON_LULLABY
 .SunTueThurSun:
-	farcall RadioMusicRestartDE
-	ret
+	farjp RadioMusicRestartDE
 
 BenIntroText1:
 	; BEN: #MON MUSIC
@@ -1196,7 +1195,7 @@ PeoplePlaces4: ; People
 
 .E4Names:          db WILL, KOGA, BRUNO, KAREN, CHAMPION
 .KantoLeaderNames: db BROCK, MISTY, LT_SURGE, ERIKA, JANINE, SABRINA, BLAINE, BLUE
-.MiscNames:        db RIVAL1, LYRA1, PROF_OAK, PROF_ELM, CAL, KAY, RED
+.MiscNames:        db RIVAL1, LYRA1, PROF_OAK, PROF_ELM, CAL, CARRIE, RED
                    db -1
 
 PnP_Text4:
@@ -1348,10 +1347,10 @@ PeoplePlaces6: ; Places
 	map PALLET_TOWN
 	map ROUTE_22
 	map PEWTER_CITY
-	map CERULEAN_POLICE_STATION
+	map CERULEAN_CITY
 	map ROUTE_12_NORTH
 	map ROUTE_11
-	map ROUTE_16_NORTH
+	map ROUTE_16_WEST
 	map ROUTE_14
 
 PnP_Text5:
@@ -1638,18 +1637,15 @@ GetBuenasPassword:
 
 .Mon:
 	call .GetTheIndex
-	call GetPokemonName
-	ret
+	jp GetPokemonName
 
 .Item:
 	call .GetTheIndex
-	call GetItemName
-	ret
+	jp GetItemName
 
 .Move:
 	call .GetTheIndex
-	call GetMoveName
-	ret
+	jp GetMoveName
 
 .GetTheIndex:
 	ld h, 0
@@ -1945,8 +1941,7 @@ StartRadioStation:
 	ld e, [hl]
 	inc hl
 	ld d, [hl]
-	farcall RadioMusicRestartDE
-	ret
+	farjp RadioMusicRestartDE
 
 RadioChannelSongs:
 	dw MUSIC_POKEMON_TALK

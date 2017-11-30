@@ -306,6 +306,7 @@ endr
 ; need to be able to add or subtract 1 without overflow/underflow
 
 .SmearglePals:
+if !DEF(MONOCHROME)
 	RGB 14, 05, 06 ; maroon (fighting)
 	RGB 27, 09, 26 ; lavender (flying)
 	RGB 29, 05, 06 ; red (poison)
@@ -322,8 +323,27 @@ endr
 	RGB 02, 22, 26 ; teal (ice)
 	RGB 07, 11, 30 ; indigo (dragon)
 	RGB 08, 06, 06 ; black (dark)
+else
+	RGB_MONOCHROME_DARK
+	RGB_MONOCHROME_DARK
+	RGB_MONOCHROME_DARK
+	RGB_MONOCHROME_DARK
+	RGB_MONOCHROME_DARK
+	RGB_MONOCHROME_DARK
+	RGB_MONOCHROME_DARK
+	RGB_MONOCHROME_DARK
+	RGB_MONOCHROME_DARK
+	RGB_MONOCHROME_DARK
+	RGB_MONOCHROME_DARK
+	RGB_MONOCHROME_DARK
+	RGB_MONOCHROME_DARK
+	RGB_MONOCHROME_DARK
+	RGB_MONOCHROME_DARK
+	RGB_MONOCHROME_DARK
+endc
 
 .SmeargleShinyPals: ; TODO
+if !DEF(MONOCHROME)
 	RGB 14, 05, 06 ; maroon (fighting)
 	RGB 27, 09, 26 ; lavender (flying)
 	RGB 29, 05, 06 ; red (poison)
@@ -340,14 +360,31 @@ endr
 	RGB 02, 22, 26 ; teal (ice)
 	RGB 07, 11, 30 ; indigo (dragon)
 	RGB 08, 06, 06 ; black (dark)
-
+else
+	RGB_MONOCHROME_DARK
+	RGB_MONOCHROME_DARK
+	RGB_MONOCHROME_DARK
+	RGB_MONOCHROME_DARK
+	RGB_MONOCHROME_DARK
+	RGB_MONOCHROME_DARK
+	RGB_MONOCHROME_DARK
+	RGB_MONOCHROME_DARK
+	RGB_MONOCHROME_DARK
+	RGB_MONOCHROME_DARK
+	RGB_MONOCHROME_DARK
+	RGB_MONOCHROME_DARK
+	RGB_MONOCHROME_DARK
+	RGB_MONOCHROME_DARK
+	RGB_MONOCHROME_DARK
+	RGB_MONOCHROME_DARK
+endc
 
 VaryBGPal0ByTempMonDVs:
 	ld hl, TempMonDVs
 	ld a, [TempMonSpecies]
 	ld b, a
 	call CopyDVsToColorVaryDVs
-	ld hl, UnknBGPals + 2
+	ld hl, UnknBGPals palette 0 + 2
 	jp VaryColorsByDVs
 
 VaryBGPal1ByTempMonDVs:
@@ -355,5 +392,5 @@ VaryBGPal1ByTempMonDVs:
 	ld a, [TempMonSpecies]
 	ld b, a
 	call CopyDVsToColorVaryDVs
-	ld hl, UnknBGPals + 1 palettes + 2
+	ld hl, UnknBGPals palette 1 + 2
 	jp VaryColorsByDVs

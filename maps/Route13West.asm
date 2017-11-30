@@ -1,26 +1,30 @@
-const_value set 2
-	const ROUTE13WEST_YOUNGSTER
-	const ROUTE13WEST_LASS
-	const ROUTE13WEST_POKEFAN_M1
-	const ROUTE13WEST_POKEFAN_M2
-
 Route13West_MapScriptHeader:
-.MapTriggers:
-	db 0
 
-.MapCallbacks:
-	db 0
+.MapTriggers: db 0
+
+.MapCallbacks: db 0
+
+Route13West_MapEventHeader:
+
+.Warps: db 0
+
+.XYTriggers: db 0
+
+.Signposts: db 1
+	signpost 13, 17, SIGNPOST_JUMPTEXT, Route13DirectionsSignText
+
+.PersonEvents: db 4
+	person_event SPRITE_YOUNGSTER, 5, 5, SPRITEMOVEDATA_SPINCOUNTERCLOCKWISE, 0, 0, -1, -1, (1 << 3) | PAL_OW_GREEN, PERSONTYPE_TRAINER, 1, TrainerCamperClark, -1
+	person_event SPRITE_LASS, 6, 16, SPRITEMOVEDATA_STANDING_LEFT, 0, 0, -1, -1, (1 << 3) | PAL_OW_GREEN, PERSONTYPE_TRAINER, 4, TrainerPicnickerGinger, -1
+	person_event SPRITE_POKEFAN_M, 10, 14, SPRITEMOVEDATA_STANDING_LEFT, 0, 0, -1, -1, (1 << 3) | PAL_OW_RED, PERSONTYPE_TRAINER, 4, TrainerHikerKenny, -1
+	person_event SPRITE_POKEFAN_M, 6, 25, SPRITEMOVEDATA_STANDING_RIGHT, 0, 0, -1, -1, (1 << 3) | PAL_OW_RED, PERSONTYPE_SCRIPT, 0, ObjectEvent, -1
 
 TrainerCamperClark:
 	trainer EVENT_BEAT_CAMPER_CLARK, CAMPER, CLARK, .SeenText, .BeatenText, 0, .Script
 
 .Script:
 	end_if_just_battled
-	opentext
-	writetext .AfterText
-	waitbutton
-	closetext
-	end
+	jumptextfaceplayer .AfterText
 
 .SeenText:
 	text "Collect water!"
@@ -52,11 +56,7 @@ TrainerPicnickerGinger:
 
 .Script:
 	end_if_just_battled
-	opentext
-	writetext .AfterText
-	waitbutton
-	closetext
-	end
+	jumptextfaceplayer .AfterText
 
 .SeenText:
 	text "Why do I always"
@@ -81,11 +81,7 @@ TrainerHikerKenny:
 
 HikerKennyScript:
 	end_if_just_battled
-	opentext
-	writetext UnknownText_0x1a26c2
-	waitbutton
-	closetext
-	end
+	jumptextfaceplayer UnknownText_0x1a26c2
 
 HikerKennySeenText:
 	text "I should go to"
@@ -107,9 +103,6 @@ UnknownText_0x1a26c2:
 	cont "little."
 	done
 
-Route13DirectionsSign:
-	jumptext Route13DirectionsSignText
-
 Route13DirectionsSignText:
 	text "North to Lavender"
 	line "Town"
@@ -117,21 +110,3 @@ Route13DirectionsSignText:
 	para "West to Fuchsia"
 	line "City"
 	done
-
-Route13West_MapEventHeader:
-.Warps:
-	db 0
-
-.XYTriggers:
-	db 0
-
-.Signposts:
-	db 1
-	signpost 13, 17, SIGNPOST_READ, Route13DirectionsSign
-
-.PersonEvents:
-	db 4
-	person_event SPRITE_YOUNGSTER, 5, 5, SPRITEMOVEDATA_SPINCOUNTERCLOCKWISE, 0, 0, -1, -1, (1 << 3) | PAL_OW_GREEN, PERSONTYPE_TRAINER, 1, TrainerCamperClark, -1
-	person_event SPRITE_LASS, 6, 16, SPRITEMOVEDATA_STANDING_LEFT, 0, 0, -1, -1, (1 << 3) | PAL_OW_GREEN, PERSONTYPE_TRAINER, 4, TrainerPicnickerGinger, -1
-	person_event SPRITE_POKEFAN_M, 10, 14, SPRITEMOVEDATA_STANDING_LEFT, 0, 0, -1, -1, (1 << 3) | PAL_OW_RED, PERSONTYPE_TRAINER, 4, TrainerHikerKenny, -1
-	person_event SPRITE_POKEFAN_M, 6, 25, SPRITEMOVEDATA_STANDING_RIGHT, 0, 0, -1, -1, (1 << 3) | PAL_OW_RED, PERSONTYPE_SCRIPT, 0, ObjectEvent, -1

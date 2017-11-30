@@ -1,18 +1,35 @@
-const_value set 2
+PowerPlant_MapScriptHeader:
+
+.MapTriggers: db 0
+
+.MapCallbacks: db 0
+
+PowerPlant_MapEventHeader:
+
+.Warps: db 2
+	warp_def 17, 2, 2, ROUTE_10_NORTH
+	warp_def 17, 3, 2, ROUTE_10_NORTH
+
+.XYTriggers: db 1
+	xy_trigger 1, 12, 5, PowerPlantGuardPhoneScript
+
+.Signposts: db 2
+	signpost 1, 0, SIGNPOST_JUMPSTD, difficultbookshelf
+	signpost 1, 1, SIGNPOST_JUMPSTD, difficultbookshelf
+
+.PersonEvents: db 7
+	person_event SPRITE_OFFICER, 14, 4, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, -1, (1 << 3) | PAL_OW_GREEN, PERSONTYPE_SCRIPT, 0, OfficerScript_0x188df5, -1
+	person_event SPRITE_GYM_GUY, 9, 2, SPRITEMOVEDATA_SPINRANDOM_SLOW, 0, 0, -1, -1, (1 << 3) | PAL_OW_BLUE, PERSONTYPE_SCRIPT, 0, GymGuyScript_0x188e15, -1
+	person_event SPRITE_GYM_GUY, 11, 6, SPRITEMOVEDATA_STANDING_UP, 0, 0, -1, -1, (1 << 3) | PAL_OW_BLUE, PERSONTYPE_SCRIPT, 0, GymGuyScript_0x188e29, -1
+	person_event SPRITE_OFFICER, 3, 9, SPRITEMOVEDATA_STANDING_LEFT, 0, 0, -1, -1, (1 << 3) | PAL_OW_GREEN, PERSONTYPE_SCRIPT, 0, OfficerScript_0x188e3d, -1
+	person_event SPRITE_GYM_GUY, 2, 7, SPRITEMOVEDATA_WALK_LEFT_RIGHT, 0, 1, -1, -1, (1 << 3) | PAL_OW_BLUE, PERSONTYPE_SCRIPT, 0, GymGuyScript_0x188e51, -1
+	person_event SPRITE_FISHER, 10, 14, SPRITEMOVEDATA_STANDING_UP, 0, 0, -1, -1, (1 << 3) | PAL_OW_RED, PERSONTYPE_SCRIPT, 0, PowerPlantManager, -1
+	person_event SPRITE_GYM_GUY, 5, 5, SPRITEMOVEDATA_STANDING_UP, 0, 0, -1, -1, (1 << 3) | PAL_OW_BLUE, PERSONTYPE_COMMAND, jumptextfaceplayer, PowerPlantForestText, -1
+
+const_value set 1
 	const POWERPLANT_OFFICER1
 	const POWERPLANT_GYM_GUY1
 	const POWERPLANT_GYM_GUY2
-	const POWERPLANT_OFFICER2
-	const POWERPLANT_GYM_GUY3
-	const POWERPLANT_FISHER
-	const POWERPLANT_FOREST
-
-PowerPlant_MapScriptHeader:
-.MapTriggers:
-	db 0
-
-.MapCallbacks:
-	db 0
 
 PowerPlantGuardPhoneScript:
 	playsound SFX_CALL
@@ -22,16 +39,10 @@ PowerPlantGuardPhoneScript:
 	applymovement POWERPLANT_OFFICER1, MovementData_0x188ed5
 	spriteface POWERPLANT_GYM_GUY1, DOWN
 	spriteface POWERPLANT_GYM_GUY2, DOWN
-	opentext
-	writetext UnknownText_0x188f22
-	waitbutton
-	closetext
+	showtext UnknownText_0x188f22
 	spriteface POWERPLANT_OFFICER1, LEFT
 	spriteface PLAYER, RIGHT
-	opentext
-	writetext UnknownText_0x188f7f
-	waitbutton
-	closetext
+	showtext UnknownText_0x188f7f
 	spriteface PLAYER, DOWN
 	applymovement POWERPLANT_OFFICER1, MovementData_0x188eda
 	dotrigger $0
@@ -44,86 +55,33 @@ OfficerScript_0x188df5:
 	iftrue UnknownScript_0x188e0f
 	checkevent EVENT_MET_MANAGER_AT_POWER_PLANT
 	iftrue UnknownScript_0x188e09
-	writetext UnknownText_0x188ee0
-	waitbutton
-	closetext
-	end
+	jumpopenedtext UnknownText_0x188ee0
 
 UnknownScript_0x188e09:
-	writetext UnknownText_0x188f7f
-	waitbutton
-	closetext
-	end
+	jumpopenedtext UnknownText_0x188f7f
 
 UnknownScript_0x188e0f:
-	writetext UnknownText_0x188fa2
-	waitbutton
-	closetext
-	end
+	jumpopenedtext UnknownText_0x188fa2
 
 GymGuyScript_0x188e15:
-	faceplayer
-	opentext
 	checkevent EVENT_RETURNED_MACHINE_PART
-	iftrue UnknownScript_0x188e23
-	writetext UnknownText_0x188fcf
-	waitbutton
-	closetext
-	end
-
-UnknownScript_0x188e23:
-	writetext UnknownText_0x189038
-	waitbutton
-	closetext
-	end
+	iftrue_jumptextfaceplayer UnknownText_0x189038
+	jumptextfaceplayer UnknownText_0x188fcf
 
 GymGuyScript_0x188e29:
-	faceplayer
-	opentext
 	checkevent EVENT_RETURNED_MACHINE_PART
-	iftrue UnknownScript_0x188e37
-	writetext UnknownText_0x189079
-	waitbutton
-	closetext
-	end
-
-UnknownScript_0x188e37:
-	writetext UnknownText_0x1890ef
-	waitbutton
-	closetext
-	end
+	iftrue_jumptextfaceplayer UnknownText_0x1890ef
+	jumptextfaceplayer UnknownText_0x189079
 
 OfficerScript_0x188e3d:
-	faceplayer
-	opentext
 	checkevent EVENT_RETURNED_MACHINE_PART
-	iftrue UnknownScript_0x188e4b
-	writetext UnknownText_0x18910e
-	waitbutton
-	closetext
-	end
-
-UnknownScript_0x188e4b:
-	writetext UnknownText_0x18917f
-	waitbutton
-	closetext
-	end
+	iftrue_jumptextfaceplayer UnknownText_0x18917f
+	jumptextfaceplayer UnknownText_0x18910e
 
 GymGuyScript_0x188e51:
-	faceplayer
-	opentext
 	checkevent EVENT_RETURNED_MACHINE_PART
-	iftrue UnknownScript_0x188e5f
-	writetext UnknownText_0x1891c2
-	waitbutton
-	closetext
-	end
-
-UnknownScript_0x188e5f:
-	writetext UnknownText_0x189225
-	waitbutton
-	closetext
-	end
+	iftrue_jumptextfaceplayer UnknownText_0x189225
+	jumptextfaceplayer UnknownText_0x1891c2
 
 PowerPlantManager:
 	faceplayer
@@ -144,10 +102,7 @@ PowerPlantManager:
 	end
 
 UnknownScript_0x188e8d:
-	writetext UnknownText_0x189308
-	waitbutton
-	closetext
-	end
+	jumpopenedtext UnknownText_0x189308
 
 UnknownScript_0x188e93:
 	writetext UnknownText_0x18936e
@@ -177,29 +132,14 @@ PowerPlantTutorZapCannonScript:
 	special Special_MoveTutor
 	if_equal $0, .TeachMove
 .TutorRefused
-	writetext Text_PowerPlantTutorRefused
-	waitbutton
-	closetext
-	end
+	jumpopenedtext Text_PowerPlantTutorRefused
 
 .NoSilverLeaf
-	writetext Text_PowerPlantTutorNoSilverLeaf
-	waitbutton
-	closetext
-	end
+	jumpopenedtext Text_PowerPlantTutorNoSilverLeaf
 
 .TeachMove
 	takeitem SILVER_LEAF
-	writetext Text_PowerPlantTutorTaught
-	waitbutton
-	closetext
-	end
-
-PowerPlantForestScript:
-	jumptextfaceplayer PowerPlantForestText
-
-PowerPlantBookshelf:
-	jumpstd difficultbookshelf
+	jumpopenedtext Text_PowerPlantTutorTaught
 
 MovementData_0x188ed5:
 	step_right
@@ -422,28 +362,3 @@ PowerPlantForestText:
 	para "have something to"
 	line "do with it?"
 	done
-
-PowerPlant_MapEventHeader:
-.Warps:
-	db 2
-	warp_def $11, $2, 2, ROUTE_10_NORTH
-	warp_def $11, $3, 2, ROUTE_10_NORTH
-
-.XYTriggers:
-	db 1
-	xy_trigger 1, $c, $5, PowerPlantGuardPhoneScript
-
-.Signposts:
-	db 2
-	signpost 1, 0, SIGNPOST_READ, PowerPlantBookshelf
-	signpost 1, 1, SIGNPOST_READ, PowerPlantBookshelf
-
-.PersonEvents:
-	db 7
-	person_event SPRITE_OFFICER, 14, 4, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, -1, (1 << 3) | PAL_OW_GREEN, PERSONTYPE_SCRIPT, 0, OfficerScript_0x188df5, -1
-	person_event SPRITE_GYM_GUY, 9, 2, SPRITEMOVEDATA_SPINRANDOM_SLOW, 0, 0, -1, -1, (1 << 3) | PAL_OW_BLUE, PERSONTYPE_SCRIPT, 0, GymGuyScript_0x188e15, -1
-	person_event SPRITE_GYM_GUY, 11, 6, SPRITEMOVEDATA_STANDING_UP, 0, 0, -1, -1, (1 << 3) | PAL_OW_BLUE, PERSONTYPE_SCRIPT, 0, GymGuyScript_0x188e29, -1
-	person_event SPRITE_OFFICER, 3, 9, SPRITEMOVEDATA_STANDING_LEFT, 0, 0, -1, -1, (1 << 3) | PAL_OW_GREEN, PERSONTYPE_SCRIPT, 0, OfficerScript_0x188e3d, -1
-	person_event SPRITE_GYM_GUY, 2, 7, SPRITEMOVEDATA_WALK_LEFT_RIGHT, 0, 1, -1, -1, (1 << 3) | PAL_OW_BLUE, PERSONTYPE_SCRIPT, 0, GymGuyScript_0x188e51, -1
-	person_event SPRITE_FISHER, 10, 14, SPRITEMOVEDATA_STANDING_UP, 0, 0, -1, -1, (1 << 3) | PAL_OW_RED, PERSONTYPE_SCRIPT, 0, PowerPlantManager, -1
-	person_event SPRITE_GYM_GUY, 5, 5, SPRITEMOVEDATA_STANDING_UP, 0, 0, -1, -1, (1 << 3) | PAL_OW_BLUE, PERSONTYPE_SCRIPT, 0, PowerPlantForestScript, -1

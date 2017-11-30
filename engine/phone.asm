@@ -1,5 +1,5 @@
 AddPhoneNumber:: ; 90000
-	call _CheckCellNum
+	call CheckCellNum
 	jr c, .cant_add
 	call Phone_FindOpenSlot
 	jr nc, .cant_add
@@ -14,7 +14,7 @@ AddPhoneNumber:: ; 90000
 
 
 DelCellNum:: ; 9000f
-	call _CheckCellNum
+	call CheckCellNum
 	jr nc, .not_in_list
 	xor a
 	ld [hl], a
@@ -26,10 +26,6 @@ DelCellNum:: ; 9000f
 ; 90019
 
 CheckCellNum:: ; 90019
-	jp _CheckCellNum ; wtf
-; 9001c
-
-_CheckCellNum: ; 9001c
 	ld hl, wPhoneList
 	ld b, CONTACT_LIST_SIZE
 .loop
@@ -79,7 +75,7 @@ GetRemainingSpaceInPhoneList: ; 90040
 	push bc
 	push hl
 	ld c, a
-	call _CheckCellNum
+	call CheckCellNum
 	jr c, .elm_or_mom_in_list
 	ld hl, Buffer1
 	inc [hl]
@@ -153,8 +149,7 @@ CheckPhoneCall:: ; 90074 (24:4074)
 	ret
 
 .timecheck ; 900a6 (24:40a6)
-	farcall CheckReceiveCallTimer
-	ret
+	farjp CheckReceiveCallTimer
 
 CheckPhoneContactTimeOfDay: ; 900ad (24:40ad)
 	push hl
@@ -202,7 +197,7 @@ ChooseRandomCaller: ; 900bf (24:40bf)
 GetAvailableCallers: ; 900de (24:40de)
 	farcall CheckTime
 	ld a, c
-	ld [EngineBuffer1], a ; wd03e (aliases: MenuItemsList, CurFruitTree, CurInput)
+	ld [EngineBuffer1], a
 	ld hl, EngineBuffer3
 	ld bc, 11
 	xor a
@@ -218,7 +213,7 @@ GetAvailableCallers: ; 900de (24:40de)
 	ld hl, PhoneContacts + PHONE_CONTACT_SCRIPT2_TIME
 	ld bc, PHONE_TABLE_WIDTH
 	call AddNTimes
-	ld a, [EngineBuffer1] ; wd03e (aliases: MenuItemsList, CurFruitTree, CurInput)
+	ld a, [EngineBuffer1]
 	and [hl]
 	jr z, .not_good_for_call
 	ld bc, PHONE_CONTACT_MAP_GROUP - PHONE_CONTACT_SCRIPT2_TIME
@@ -433,7 +428,7 @@ WrongNumber: ; 90233
 ; 90241
 
 Script_ReceivePhoneCall: ; 0x90241
-	refreshscreen $0
+	refreshscreen
 	callasm RingTwice_StartCall
 	ptcall wPhoneScriptPointer
 	waitbutton
@@ -454,10 +449,6 @@ Script_SpecialBillCall:: ; 0x90255
 
 RingTwice_StartCall: ; 9026f
 	call .Ring
-	call .Ring
-	ret
-; 9027c
-
 .Ring: ; 9027c (24:427c)
 	call Phone_StartRinging
 	call Phone_Wait20Frames
@@ -465,8 +456,6 @@ RingTwice_StartCall: ; 9026f
 	call Phone_Wait20Frames
 	call Phone_CallerTextbox
 	call Phone_Wait20Frames
-	jp Phone_CallerTextboxWithName
-
 Phone_CallerTextboxWithName: ; 90292 (24:4292)
 	ld a, [wCurrentCaller]
 	ld b, a
@@ -480,10 +469,6 @@ PhoneCall:: ; 9029a
 	ld a, d
 	ld [PhoneCallerHi], a
 	call Phone_FirstOfTwoRings
-	call Phone_FirstOfTwoRings
-	ret
-; 902b3
-
 Phone_FirstOfTwoRings: ; 902b3
 	call Phone_StartRinging
 	call Phone_Wait20Frames
@@ -491,13 +476,10 @@ Phone_FirstOfTwoRings: ; 902b3
 	call Phone_Wait20Frames
 	call Phone_CallerTextbox
 	call Phone_Wait20Frames
-	jp Phone_CallerTextboxWithName2
-; 902c9
-
 Phone_CallerTextboxWithName2: ; 902c9
 	call Phone_CallerTextbox
 	hlcoord 1, 2
-	ld [hl], $62
+	ld [hl], "<PHONE>"
 rept 2
 	inc hl
 endr
@@ -522,17 +504,16 @@ HangUp:: ; 902eb
 Phone_CallEnd:
 	call HangUp_BoopOn
 	call HangUp_Wait20Frames
-	call HangUp_BoopOff
+	call SpeechTextBox
 	call HangUp_Wait20Frames
 	call HangUp_BoopOn
 	call HangUp_Wait20Frames
-	call HangUp_BoopOff
+	call SpeechTextBox
 	call HangUp_Wait20Frames
 	call HangUp_BoopOn
 	call HangUp_Wait20Frames
-	call HangUp_BoopOff
-	call HangUp_Wait20Frames
-	ret
+	call SpeechTextBox
+	jp HangUp_Wait20Frames
 ; 90316
 
 HangUp_Beep: ; 9031d
@@ -559,24 +540,20 @@ UnknownText_0x90336: ; 0x90336
 ; 0x9033b
 
 
-HangUp_BoopOff: ; 9033b
-	jp SpeechTextBox
-; 9033f
-
 Phone_StartRinging: ; 9033f
 	call WaitSFX
 	ld de, SFX_CALL
 	call PlaySFX
 	call Phone_CallerTextbox
-	jp UpdateSprites
+	call UpdateSprites
+	farjp PhoneRing_LoadEDTile
 ; 90355
 
 HangUp_Wait20Frames: ; 90355
-	jr Phone_Wait20Frames
-
-Phone_Wait20Frames
+Phone_Wait20Frames:
 	ld c, 20
-	jp DelayFrames
+	call DelayFrames
+	farjp PhoneRing_LoadEDTile
 ; 90363
 
 
@@ -596,8 +573,7 @@ endr
 
 Phone_CallerTextbox: ; 90375
 	hlcoord 0, 0
-	ld b, 2
-	ld c, SCREEN_WIDTH - 2
+	lb bc, 2, SCREEN_WIDTH - 2
 	jp TextBox
 ; 90380
 
@@ -607,19 +583,20 @@ Function90380: ; 90380 (24:4380)
 	ld l, e
 	ld a, b
 	call GetCallerTrainerClass
-	call GetCallerName
-	ret
+	jp GetCallerName
 
 CheckCanDeletePhoneNumber: ; 9038a (24:438a)
 	ld a, c
 	call GetCallerTrainerClass
 	ld a, c
-	; and a
-	ret nz
+;	and a
+;	ret nz
 	ld a, b
 	cp PHONECONTACT_MOM
 	ret z
 	cp PHONECONTACT_ELM
+	ret z
+	cp PHONECONTACT_LYRA
 	ret z
 	ld c, $1
 	ret
@@ -653,22 +630,41 @@ GetCallerName: ; 903a9 (24:43a9)
 	ld de, SCREEN_WIDTH + 3
 	add hl, de
 	call Phone_GetTrainerClassName
-	call PlaceString
-	ret
+	jp PlaceString
 
 .NotTrainer:
+	ld a, b
+	and a
+	jr z, .Blank
 	push hl
 	ld c, b
 	ld b, 0
 	ld hl, NonTrainerCallerNames
-rept 2
 	add hl, bc
-endr
+	add hl, bc
 	ld a, [hli]
 	ld e, a
 	ld d, [hl]
 	pop hl
 	jp PlaceString
+
+.Blank:
+	ld a, "<SHARP>"
+	ld [hli], a
+	ld a, [wPokegearPhoneScrollPosition]
+	ld b, a
+	ld a, [wPokegearPhoneLoadNameBuffer]
+	add b
+	inc a
+	ld de, wPokegearNumberBuffer
+	ld [de], a
+	lb bc, PRINTNUM_RIGHTALIGN | 1, 2
+	call PrintNum
+	ld de, .filler
+	jp PlaceString
+
+.filler
+	db " -------@"
 ; 903d6 (24:43d6)
 
 NonTrainerCallerNames: ; 903d6
@@ -680,7 +676,7 @@ NonTrainerCallerNames: ; 903d6
 	dw .lyra
 	dw .buena
 
-.none db "----------@"
+.none db "@"
 .mom db "Mom:@"
 .bill db "Bill:<LNBRK>   #maniac@"
 .elm db "Prof.Elm:<LNBRK>   #mon Prof.@"

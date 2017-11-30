@@ -127,13 +127,15 @@ AICheckMatchupForEnemyMon:
 
 	; Player moves vs enemy
 	call SetPlayerTurn
-	push hl
-	push bc ; popped to hl later when doing type checks
+	push hl ; Enemy mon moves
+	push bc ; Enemy mon type, popped to hl for CheckTypeMatchup
 	ld hl, PlayerUsedMoves
 	call .check_matchups
 	ld a, d
 	and a
+	pop hl
 	jr z, .unknown_moves_done
+	push hl
 
 	; Less than 4 known moves
 	; Assume player has STAB and check those type matchups
@@ -263,7 +265,7 @@ AICheckMatchupForEnemyMon:
 	inc a
 	ret
 
-CheckAbleToSwitch:
+AIWantsSwitchCheck:
 	call GetSwitchScores
 	ld a, [wEnemyAISwitchScore]
 	and a
@@ -296,7 +298,7 @@ CheckAbleToSwitch:
 	jr nc, .set_switch_score
 	; little improvement
 	ld b, $10
-	cp 8
+	cp 9
 	jr nc, .set_switch_score
 	; No reason to switch
 	ret

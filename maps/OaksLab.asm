@@ -1,19 +1,50 @@
-const_value set 2
+OaksLab_MapScriptHeader:
+
+.MapTriggers: db 0
+
+.MapCallbacks: db 0
+
+OaksLab_MapEventHeader:
+
+.Warps: db 2
+	warp_def 11, 4, 3, PALLET_TOWN
+	warp_def 11, 5, 3, PALLET_TOWN
+
+.XYTriggers: db 0
+
+.Signposts: db 16
+	signpost 1, 6, SIGNPOST_JUMPSTD, difficultbookshelf
+	signpost 1, 7, SIGNPOST_JUMPSTD, difficultbookshelf
+	signpost 1, 8, SIGNPOST_JUMPSTD, difficultbookshelf
+	signpost 1, 9, SIGNPOST_JUMPSTD, difficultbookshelf
+	signpost 7, 0, SIGNPOST_JUMPSTD, difficultbookshelf
+	signpost 7, 1, SIGNPOST_JUMPSTD, difficultbookshelf
+	signpost 7, 2, SIGNPOST_JUMPSTD, difficultbookshelf
+	signpost 7, 3, SIGNPOST_JUMPSTD, difficultbookshelf
+	signpost 7, 6, SIGNPOST_JUMPSTD, difficultbookshelf
+	signpost 7, 7, SIGNPOST_JUMPSTD, difficultbookshelf
+	signpost 7, 8, SIGNPOST_JUMPSTD, difficultbookshelf
+	signpost 7, 9, SIGNPOST_JUMPSTD, difficultbookshelf
+	signpost 0, 4, SIGNPOST_JUMPTEXT, OaksLabPoster1Text
+	signpost 0, 5, SIGNPOST_JUMPTEXT, OaksLabPoster2Text
+	signpost 3, 9, SIGNPOST_JUMPTEXT, OaksLabTrashcanText
+	signpost 1, 0, SIGNPOST_JUMPTEXT, OaksLabPCText
+
+.PersonEvents: db 8
+	person_event SPRITE_OAK, 2, 4, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, -1, 0, PERSONTYPE_SCRIPT, 0, Oak, -1
+	person_event SPRITE_BULBASAUR, 3, 6, SPRITEMOVEDATA_DOLL, 0, 0, -1, -1, (1 << 3) | PAL_OW_GREEN, PERSONTYPE_SCRIPT, 0, BulbasaurDollScript, EVENT_DECO_BULBASAUR_DOLL
+	person_event SPRITE_CHARMANDER, 3, 7, SPRITEMOVEDATA_DOLL, 0, 0, -1, -1, (1 << 3) | PAL_OW_RED, PERSONTYPE_SCRIPT, 0, CharmanderDollScript, EVENT_DECO_CHARMANDER_DOLL
+	person_event SPRITE_SQUIRTLE, 3, 8, SPRITEMOVEDATA_DOLL, 0, 0, -1, -1, (1 << 3) | PAL_OW_BLUE, PERSONTYPE_SCRIPT, 0, SquirtleDollScript, EVENT_DECO_SQUIRTLE_DOLL
+	person_event SPRITE_SCIENTIST, 8, 1, SPRITEMOVEDATA_WALK_LEFT_RIGHT, 0, 1, -1, -1, (1 << 3) | PAL_OW_BLUE, PERSONTYPE_COMMAND, jumptextfaceplayer, OaksAssistant1Text, -1
+	person_event SPRITE_SCIENTIST, 9, 8, SPRITEMOVEDATA_WALK_UP_DOWN, 1, 0, -1, -1, (1 << 3) | PAL_OW_BLUE, PERSONTYPE_COMMAND, jumptextfaceplayer, OaksAssistant2Text, -1
+	person_event SPRITE_SCIENTIST, 4, 1, SPRITEMOVEDATA_WANDER, 1, 1, -1, -1, (1 << 3) | PAL_OW_BLUE, PERSONTYPE_COMMAND, jumptextfaceplayer, OaksAssistant3Text, -1
+	person_event SPRITE_POKEDEX, 1, 2, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, -1, (1 << 3) | PAL_OW_RED, PERSONTYPE_COMMAND, jumptext, OaksLabPokedexText, -1
+
+const_value set 1
 	const OAKSLAB_OAK
-	const OAKSLAB_SCIENTIST1
-	const OAKSLAB_SCIENTIST2
-	const OAKSLAB_SCIENTIST3
 	const OAKSLAB_BULBASAUR_DOLL
 	const OAKSLAB_CHARMANDER_DOLL
 	const OAKSLAB_SQUIRTLE_DOLL
-	const OAKSLAB_POKEDEX
-
-OaksLab_MapScriptHeader:
-.MapTriggers:
-	db 0
-
-.MapCallbacks:
-	db 0
 
 Oak:
 	faceplayer
@@ -101,14 +132,12 @@ Oak:
 	writetext OakLabCaughtAllText
 	buttonsound
 	verbosegiveitem SHINY_CHARM
+	setflag ENGINE_HAVE_SHINY_CHARM
 	setevent EVENT_GOT_SHINY_CHARM_FROM_OAK
 	writetext OakLabShinyCharmText
 	waitbutton
 .NoShinyCharm
-	writetext OakLabGoodbyeText
-	waitbutton
-	closetext
-	end
+	jumpopenedtext OakLabGoodbyeText
 
 .BattleOak:
 	checkevent EVENT_LISTENED_TO_OAK_INTRO
@@ -131,6 +160,7 @@ Oak:
 	opentext
 	writetext OakOpenMtSilverText
 	buttonsound
+	setevent EVENT_BEAT_PROF_OAK
 	setevent EVENT_OPENED_MT_SILVER
 	jump .CheckPokedex
 
@@ -150,14 +180,15 @@ Oak:
 	jump .CheckPokedex
 
 BulbasaurDollScript:
+	spriteface OAKSLAB_OAK, RIGHT
 	opentext
 	writetext ProfOakBulbasaurDollTradeText
 	waitbutton
 	checkitem LEAF_STONE
-	iffalse NoStoneScript
+	iffalse_jumpopenedtext NoStoneText
 	writetext WantToTradeText
 	yesorno
-	iffalse NoTradeScript
+	iffalse_jumpopenedtext NoTradeText
 	takeitem LEAF_STONE
 	disappear OAKSLAB_BULBASAUR_DOLL
 	setevent EVENT_DECO_BULBASAUR_DOLL
@@ -167,20 +198,18 @@ BulbasaurDollScript:
 	waitbutton
 	writetext BulbasaurDollSentText
 	waitbutton
-	writetext ProfOakAfterTradeText
-	waitbutton
-	closetext
-	end
+	jumpopenedtext ProfOakAfterTradeText
 
 CharmanderDollScript:
+	spriteface OAKSLAB_OAK, RIGHT
 	opentext
 	writetext ProfOakCharmanderDollTradeText
 	waitbutton
 	checkitem FIRE_STONE
-	iffalse NoStoneScript
+	iffalse_jumpopenedtext NoStoneText
 	writetext WantToTradeText
 	yesorno
-	iffalse NoTradeScript
+	iffalse_jumpopenedtext NoTradeText
 	takeitem FIRE_STONE
 	disappear OAKSLAB_CHARMANDER_DOLL
 	setevent EVENT_DECO_CHARMANDER_DOLL
@@ -190,20 +219,18 @@ CharmanderDollScript:
 	waitbutton
 	writetext CharmanderDollSentText
 	waitbutton
-	writetext ProfOakAfterTradeText
-	waitbutton
-	closetext
-	end
+	jumpopenedtext ProfOakAfterTradeText
 
 SquirtleDollScript:
+	spriteface OAKSLAB_OAK, RIGHT
 	opentext
 	writetext ProfOakSquirtleDollTradeText
 	waitbutton
 	checkitem WATER_STONE
-	iffalse NoStoneScript
+	iffalse_jumpopenedtext NoStoneText
 	writetext WantToTradeText
 	yesorno
-	iffalse NoTradeScript
+	iffalse_jumpopenedtext NoTradeText
 	takeitem WATER_STONE
 	disappear OAKSLAB_SQUIRTLE_DOLL
 	setevent EVENT_DECO_SQUIRTLE_DOLL
@@ -213,49 +240,7 @@ SquirtleDollScript:
 	waitbutton
 	writetext SquirtleDollSentText
 	waitbutton
-	writetext ProfOakAfterTradeText
-	waitbutton
-	closetext
-	end
-
-NoStoneScript:
-	writetext NoStoneText
-	waitbutton
-	closetext
-	end
-
-NoTradeScript:
-	writetext NoTradeText
-	waitbutton
-	closetext
-	end
-
-OaksLabPokedexScript:
-	jumptext OaksLabPokedexText
-
-OaksAssistant1Script:
-	jumptextfaceplayer OaksAssistant1Text
-
-OaksAssistant2Script:
-	jumptextfaceplayer OaksAssistant2Text
-
-OaksAssistant3Script:
-	jumptextfaceplayer OaksAssistant3Text
-
-OaksLabBookshelf:
-	jumpstd difficultbookshelf
-
-OaksLabPoster1:
-	jumptext OaksLabPoster1Text
-
-OaksLabPoster2:
-	jumptext OaksLabPoster2Text
-
-OaksLabTrashcan:
-	jumptext OaksLabTrashcanText
-
-OaksLabPC:
-	jumptext OaksLabPCText
+	jumpopenedtext ProfOakAfterTradeText
 
 OakWelcomeKantoText:
 	text "Oak: Ah, <PLAYER>!"
@@ -667,42 +652,3 @@ OaksLabPokedexText:
 	text "It's Prof.Oak's"
 	line "#dex."
 	done
-
-OaksLab_MapEventHeader:
-.Warps:
-	db 2
-	warp_def $b, $4, 3, PALLET_TOWN
-	warp_def $b, $5, 3, PALLET_TOWN
-
-.XYTriggers:
-	db 0
-
-.Signposts:
-	db 16
-	signpost 1, 6, SIGNPOST_READ, OaksLabBookshelf
-	signpost 1, 7, SIGNPOST_READ, OaksLabBookshelf
-	signpost 1, 8, SIGNPOST_READ, OaksLabBookshelf
-	signpost 1, 9, SIGNPOST_READ, OaksLabBookshelf
-	signpost 7, 0, SIGNPOST_READ, OaksLabBookshelf
-	signpost 7, 1, SIGNPOST_READ, OaksLabBookshelf
-	signpost 7, 2, SIGNPOST_READ, OaksLabBookshelf
-	signpost 7, 3, SIGNPOST_READ, OaksLabBookshelf
-	signpost 7, 6, SIGNPOST_READ, OaksLabBookshelf
-	signpost 7, 7, SIGNPOST_READ, OaksLabBookshelf
-	signpost 7, 8, SIGNPOST_READ, OaksLabBookshelf
-	signpost 7, 9, SIGNPOST_READ, OaksLabBookshelf
-	signpost 0, 4, SIGNPOST_READ, OaksLabPoster1
-	signpost 0, 5, SIGNPOST_READ, OaksLabPoster2
-	signpost 3, 9, SIGNPOST_READ, OaksLabTrashcan
-	signpost 1, 0, SIGNPOST_READ, OaksLabPC
-
-.PersonEvents:
-	db 8
-	person_event SPRITE_OAK, 2, 4, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, -1, 0, PERSONTYPE_SCRIPT, 0, Oak, -1
-	person_event SPRITE_SCIENTIST, 8, 1, SPRITEMOVEDATA_WALK_LEFT_RIGHT, 0, 1, -1, -1, (1 << 3) | PAL_OW_BLUE, PERSONTYPE_SCRIPT, 0, OaksAssistant1Script, -1
-	person_event SPRITE_SCIENTIST, 9, 8, SPRITEMOVEDATA_WALK_UP_DOWN, 1, 0, -1, -1, (1 << 3) | PAL_OW_BLUE, PERSONTYPE_SCRIPT, 0, OaksAssistant2Script, -1
-	person_event SPRITE_SCIENTIST, 4, 1, SPRITEMOVEDATA_WANDER, 1, 1, -1, -1, (1 << 3) | PAL_OW_BLUE, PERSONTYPE_SCRIPT, 0, OaksAssistant3Script, -1
-	person_event SPRITE_BULBASAUR, 3, 6, SPRITEMOVEDATA_DOLL, 0, 0, -1, -1, (1 << 3) | PAL_OW_GREEN, PERSONTYPE_SCRIPT, 0, BulbasaurDollScript, EVENT_DECO_BULBASAUR_DOLL
-	person_event SPRITE_CHARMANDER, 3, 7, SPRITEMOVEDATA_DOLL, 0, 0, -1, -1, (1 << 3) | PAL_OW_RED, PERSONTYPE_SCRIPT, 0, CharmanderDollScript, EVENT_DECO_CHARMANDER_DOLL
-	person_event SPRITE_SQUIRTLE, 3, 8, SPRITEMOVEDATA_DOLL, 0, 0, -1, -1, (1 << 3) | PAL_OW_BLUE, PERSONTYPE_SCRIPT, 0, SquirtleDollScript, EVENT_DECO_SQUIRTLE_DOLL
-	person_event SPRITE_POKEDEX_UNOWN_A, 1, 2, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, -1, (1 << 3) | PAL_OW_RED, PERSONTYPE_SCRIPT, 0, OaksLabPokedexScript, -1

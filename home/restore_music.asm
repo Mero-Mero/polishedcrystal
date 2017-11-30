@@ -1,9 +1,6 @@
 ; Save/Restore Music code by TPP Anniversary Crystal 251
 ; https://github.com/TwitchPlaysPokemon/tppcrystal251pub/blob/public/misc/restoremusic.asm
 
-
-SECTION "restore_music", ROMX
-
 SaveMusic::
 	; back up old music state
 	push hl
@@ -23,8 +20,8 @@ SaveMusic::
 	call DelayFrame
 
 	di
-	ld bc, wMapMusic - MusicPlaying
-	ld hl, MusicPlaying
+	ld bc, ChannelsEnd - wMusic
+	ld hl, wMusic
 	call CopyBytes
 	ei
 
@@ -65,8 +62,8 @@ RestoreMusic::
 
 	di
 	ld hl, SoundEngineBackup
-	ld bc, wMapMusic - MusicPlaying
-	ld de, MusicPlaying
+	ld bc, ChannelsEnd - wMusic
+	ld de, wMusic
 	call CopyBytes
 	ei
 

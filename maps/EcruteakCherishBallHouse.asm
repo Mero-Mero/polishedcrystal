@@ -1,38 +1,45 @@
-const_value set 2
-	const ECRUTEAKCHERISHBALLHOUSE_GRAMPS
-	const ECRUTEAKCHERISHBALLHOUSE_GRANNY
-
 EcruteakCherishBallHouse_MapScriptHeader:
-.MapTriggers:
-	db 0
 
-.MapCallbacks:
-	db 0
+.MapTriggers: db 0
+
+.MapCallbacks: db 0
+
+EcruteakCherishBallHouse_MapEventHeader:
+
+.Warps: db 2
+	warp_def 7, 3, 16, ECRUTEAK_CITY
+	warp_def 7, 4, 16, ECRUTEAK_CITY
+
+.XYTriggers: db 0
+
+.Signposts: db 1
+	signpost 1, 2, SIGNPOST_JUMPSTD, radio2
+
+.PersonEvents: db 2
+	person_event SPRITE_GRAMPS, 3, 2, SPRITEMOVEDATA_STANDING_RIGHT, 0, 0, -1, -1, (1 << 3) | PAL_OW_BROWN, PERSONTYPE_SCRIPT, 0, EcruteakCherishBallHouseGrampsScript, -1
+	person_event SPRITE_GRANNY, 4, 5, SPRITEMOVEDATA_STANDING_LEFT, 0, 0, -1, -1, (1 << 3) | PAL_OW_BROWN, PERSONTYPE_COMMAND, jumptextfaceplayer, EcruteakCherishBallHouseGrannyText, -1
 
 EcruteakCherishBallHouseGrampsScript:
+	checkevent EVENT_GOT_CHERISH_BALL_FROM_ECRUTEAK
+	iftrue_jumptextfaceplayer .Text2
 	faceplayer
 	opentext
-	checkevent EVENT_GOT_CHERISH_BALL_FROM_ECRUTEAK
-	iftrue .GotItem
-	writetext EcruteakCherishBallHouseGrampsText1
+	writetext .Text1
 	buttonsound
 	verbosegiveitem CHERISH_BALL
-	iffalse .Done
+	iffalse_endtext
 	setevent EVENT_GOT_CHERISH_BALL_FROM_ECRUTEAK
-.GotItem:
-	writetext EcruteakCherishBallHouseGrampsText2
-	waitbutton
-.Done:
-	closetext
-	end
+	thisopenedtext
 
-EcruteakCherishBallHouseGrannyScript:
-	jumptextfaceplayer EcruteakCherishBallHouseGrannyText
+.Text2:
+	text "I will always"
+	line "cherish the time"
 
-CherishBallHouseRadio:
-	jumpstd radio2
+	para "I spent with"
+	line "#mon."
+	done
 
-EcruteakCherishBallHouseGrampsText1:
+.Text1:
 	text "I've lived a long"
 	line "life, and I have"
 
@@ -45,14 +52,6 @@ EcruteakCherishBallHouseGrampsText1:
 	cont "cherish."
 	done
 
-EcruteakCherishBallHouseGrampsText2:
-	text "I will always"
-	line "cherish the time"
-
-	para "I spent with"
-	line "#mon."
-	done
-
 EcruteakCherishBallHouseGrannyText:
 	text "Fashions change"
 	line "over the years,"
@@ -61,21 +60,3 @@ EcruteakCherishBallHouseGrannyText:
 	line "mains as trad-"
 	cont "itional as ever."
 	done
-
-EcruteakCherishBallHouse_MapEventHeader:
-.Warps:
-	db 2
-	warp_def $7, $3, 16, ECRUTEAK_CITY
-	warp_def $7, $4, 16, ECRUTEAK_CITY
-
-.XYTriggers:
-	db 0
-
-.Signposts:
-	db 1
-	signpost 1, 2, SIGNPOST_READ, CherishBallHouseRadio
-
-.PersonEvents:
-	db 2
-	person_event SPRITE_GRAMPS, 3, 2, SPRITEMOVEDATA_STANDING_RIGHT, 0, 0, -1, -1, (1 << 3) | PAL_OW_BROWN, PERSONTYPE_SCRIPT, 0, EcruteakCherishBallHouseGrampsScript, -1
-	person_event SPRITE_GRANNY, 4, 5, SPRITEMOVEDATA_STANDING_LEFT, 0, 0, -1, -1, (1 << 3) | PAL_OW_BROWN, PERSONTYPE_SCRIPT, 0, EcruteakCherishBallHouseGrannyScript, -1

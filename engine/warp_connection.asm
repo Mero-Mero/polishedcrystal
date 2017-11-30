@@ -1,6 +1,5 @@
 
 RunCallback_05_03: ; 1045b0
-	call Clearwc7e8
 	call ResetMapBufferEventFlags
 	call ResetFlashIfOutOfCave
 	call GetCurrentMapTrigger
@@ -21,11 +20,11 @@ EnterMapConnection: ; 1045d6
 	ld a, [wPlayerStepDirection]
 	and a
 	jp z, EnterSouthConnection
-	cp 1
+	dec a
 	jp z, EnterNorthConnection
-	cp 2
+	dec a
 	jp z, EnterWestConnection
-	cp 3
+	dec a
 	jp z, EnterEastConnection
 	ret
 ; 1045ed
@@ -296,12 +295,10 @@ LoadGraphics: ; 1047cf
 	call LoadTileset
 	xor a
 	ld [hMapAnims], a
-	xor a
 	ld [hTileAnimFrame], a
 	farcall RefreshSprites
 	call LoadFontsExtra
-	call LoadStandardFont
-	ret
+	jp LoadStandardFont
 
 LoadMapPalettes: ; 1047eb
 	ld b, SCGB_MAPPALS

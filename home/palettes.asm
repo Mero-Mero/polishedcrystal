@@ -14,7 +14,7 @@ ForceUpdateCGBPals:: ; c37
 
 	ld a, [rSVBK]
 	push af
-	ld a, 5 ; BANK(BGPals)
+	ld a, BANK(BGPals)
 	ld [rSVBK], a
 
 	ld hl, BGPals ; 5:d080
@@ -184,8 +184,8 @@ DmgToCgbObjPal1:: ; d24
 	ld a, 5 ; gfx
 	ld [rSVBK], a
 
-	ld hl, OBPals + 1 palettes
-	ld de, UnknOBPals + 1 palettes
+	ld hl, OBPals palette 1
+	ld de, UnknOBPals palette 1
 	ld a, [rOBP1]
 	ld b, a
 	ld c, 1
@@ -276,7 +276,7 @@ ClearVBank1:: ; d79
 Special_ReloadSpritesNoPalettes:: ; d91
 	ld a, [rSVBK]
 	push af
-	ld a, 5 ; BANK(BGPals)
+	ld a, BANK(BGPals)
 	ld [rSVBK], a
 	ld hl, BGPals
 	ld bc, $40 + $10
@@ -291,25 +291,11 @@ Special_ReloadSpritesNoPalettes:: ; d91
 
 
 FarCallSwapTextboxPalettes:: ; db1
-	ld a, [hROMBank]
-	push af
-	ld a, BANK(SwapTextboxPalettes)
-	rst Bankswitch
-	call SwapTextboxPalettes
-	pop af
-	rst Bankswitch
+	homecall SwapTextboxPalettes
 	ret
 ; dbd
 
 FarCallScrollBGMapPalettes:: ; dbd
-	ld a, [hROMBank]
-	push af
-	ld a, BANK(ScrollBGMapPalettes)
-	rst Bankswitch
-
-	call ScrollBGMapPalettes
-
-	pop af
-	rst Bankswitch
+	homecall ScrollBGMapPalettes
 	ret
 ; dc9

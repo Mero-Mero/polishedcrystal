@@ -1,12 +1,23 @@
-const_value set 2
-	const MANIASHOUSE_ROCKER
-
 ManiasHouse_MapScriptHeader:
-.MapTriggers:
-	db 0
 
-.MapCallbacks:
-	db 0
+.MapTriggers: db 0
+
+.MapCallbacks: db 0
+
+ManiasHouse_MapEventHeader:
+
+.Warps: db 2
+	warp_def 7, 2, 1, CIANWOOD_CITY
+	warp_def 7, 3, 1, CIANWOOD_CITY
+
+.XYTriggers: db 0
+
+.Signposts: db 2
+	signpost 1, 5, SIGNPOST_JUMPSTD, radio2
+	signpost 1, 7, SIGNPOST_JUMPSTD, picturebookshelf
+
+.PersonEvents: db 1
+	person_event SPRITE_ROCKER, 4, 2, SPRITEMOVEDATA_SPINRANDOM_SLOW, 0, 0, -1, -1, 0, PERSONTYPE_SCRIPT, 0, ManiaScript, -1
 
 ManiaScript:
 	faceplayer
@@ -33,22 +44,13 @@ ManiaScript:
 .alreadyhavebuffy
 	checkflag ENGINE_WOBBUFFET_GIVEN
 	iffalse .returnbuffy
-	writetext ManiaText_TakeCareOfWobbuffet
-	waitbutton
-	closetext
-	end
+	jumpopenedtext ManiaText_TakeCareOfWobbuffet
 
 .partyfull
-	writetext ManiaText_PartyFull
-	waitbutton
-	closetext
-	end
+	jumpopenedtext ManiaText_PartyFull
 
 .refusetotakebuffy
-	writetext ManiaText_IfHeComesBack
-	waitbutton
-	closetext
-	end
+	jumpopenedtext ManiaText_IfHeComesBack
 
 .returnbuffy
 	writetext ManiaText_CanIHaveMyMonBack
@@ -66,10 +68,7 @@ ManiaScript:
 	end
 
 .wrong
-	writetext ManiaText_WobbuffetNotThere
-	waitbutton
-	closetext
-	end
+	jumpopenedtext ManiaText_WobbuffetNotThere
 
 .superhappy
 	writetext ManiaText_WobbuffetLikesYou
@@ -79,28 +78,13 @@ ManiaScript:
 	end
 
 .refused
-	writetext ManiaText_SameAsBeingRobbed
-	waitbutton
-	closetext
-	end
+	jumpopenedtext ManiaText_SameAsBeingRobbed
 
 .nothingleft
-	writetext ManiaText_WobbuffetIsYourLastMon
-	waitbutton
-	closetext
-	end
+	jumpopenedtext ManiaText_WobbuffetIsYourLastMon
 
 .default_postevent
-	writetext ManiaText_HappinessSpeech
-	waitbutton
-	closetext
-	end
-
-ManiasHouseRadio:
-	jumpstd radio2
-
-ManiasHouseBookshelf:
-	jumpstd picturebookshelf
+	jumpopenedtext ManiaText_HappinessSpeech
 
 ManiaText_AskLookAfterWobbuffet:
 	text "I, I'm in shock!"
@@ -200,21 +184,3 @@ ManiaText_WobbuffetIsYourLastMon:
 	para "you going to use"
 	line "in battle?"
 	done
-
-ManiasHouse_MapEventHeader:
-.Warps:
-	db 2
-	warp_def $7, $2, 1, CIANWOOD_CITY
-	warp_def $7, $3, 1, CIANWOOD_CITY
-
-.XYTriggers:
-	db 0
-
-.Signposts:
-	db 2
-	signpost 1, 5, SIGNPOST_READ, ManiasHouseRadio
-	signpost 1, 7, SIGNPOST_READ, ManiasHouseBookshelf
-
-.PersonEvents:
-	db 1
-	person_event SPRITE_ROCKER, 4, 2, SPRITEMOVEDATA_SPINRANDOM_SLOW, 0, 0, -1, -1, 0, PERSONTYPE_SCRIPT, 0, ManiaScript, -1

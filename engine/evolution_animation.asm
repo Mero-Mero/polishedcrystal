@@ -6,13 +6,9 @@ EvolutionAnimation: ; 4e5e1
 	push af
 	ld a, [rOBP0]
 	push af
-	ld a, [BaseDexNo]
-	push af
 
 	call .EvolutionAnimation
 
-	pop af
-	ld [BaseDexNo], a
 	pop af
 	ld [rOBP0], a
 	pop af
@@ -108,7 +104,7 @@ EvolutionAnimation: ; 4e5e1
 	call .PlayEvolvedSFX
 	farcall ClearSpriteAnims
 	call .check_statused
-	jr c, .no_anim
+	ret c
 
 	ld a, [wBoxAlignment]
 	push af
@@ -127,9 +123,6 @@ EvolutionAnimation: ; 4e5e1
 	ld [CurPartySpecies], a
 	pop af
 	ld [wBoxAlignment], a
-	ret
-
-.no_anim
 	ret
 
 .cancel_evo
@@ -261,8 +254,7 @@ EvolutionAnimation: ; 4e5e1
 	call GetPartyLocation
 	ld b, h
 	ld c, l
-	farcall CheckFaintedFrzSlp
-	ret
+	farjp CheckFaintedFrzSlp
 ; 4e7a6
 
 .PlayEvolvedSFX: ; 4e7a6

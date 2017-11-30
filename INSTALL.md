@@ -1,23 +1,62 @@
-The source files are assembled into a rom using [**rgbds**](https://github.com/bentley/rgbds).
-These instructions explain how to set up the tools required to build.
+# Install Guide
 
-If you run into trouble, ask on irc ([**freenode#pret**](https://kiwiirc.com/client/irc.freenode.net/?#pret)).
+If you just want to play Polished Crystal, use one of the .ips patches as described in [README.md](README.md#download-and-play). To build a ROM yourself from the source code, follow these instructions.
+
+> You know it's sitting back and looking at it that you realize that Gamefreak is actually really good devs.  
+> Like you have Pokemon and it's a simple formula "How can you fuck it up?" and then all of these Romhacks basically go "Like this."
+>
+> — Anonymous, [/vp/](http://boards.4chan.org/vp/)
 
 
-# Linux
+## Windows
+
+To build on Windows, install [**Cygwin**](http://cygwin.com/install.html) with the default settings.
+
+In the installer, select the following packages: `git`, `python`, `make`, and `gcc-core`.
+
+In the **Cygwin terminal**:
+
+```bash
+git clone https://github.com/roukaour/polishedcrystal.git
+cd polishedcrystal
+mkdir rgbds
+```
+
+Then download [**rgbds**](https://github.com/bentley/rgbds/). You'll need version 0.3.3 or later. Extract the archive and put all the .exe and .dll files in polishedcrystal/rgbds.
+
+To build **polishedcrystal.gbc**:
+
+```bash
+make
+```
+
+To build other versions:
+
+```bash
+make [faithful] [nortc] [monochrome] [debug]
+```
+
+For example, to build a mononchrome faithful version:
+
+```bash
+make faithful monochrome
+```
+
+
+## Linux
 
 Python 2.7 is required.
 
 ```bash
-sudo apt-get install make gcc bison git python
+sudo apt-get install make python gcc git bison
 
-git clone https://github.com/bentley/rgbds
+git clone https://github.com/rednex/rgbds.git
 cd rgbds
 sudo make install
 cd ..
 
-git clone --recursive https://github.com/roukaour/pokecrystal
-cd pokecrystal
+git clone https://github.com/roukaour/polishedcrystal.git
+cd polishedcrystal
 ```
 
 To build **polishedcrystal.gbc**:
@@ -26,27 +65,27 @@ To build **polishedcrystal.gbc**:
 make
 ```
 
-To build **polishedcrystal-faithful.gbc**:
+To build other versions:
 
 ```bash
-make faithful
+make [faithful] [nortc] [monochrome] [debug]
 ```
 
 
-# Mac
+## Mac OS X
 
 In **Terminal**, run:
 
 ```bash
 xcode-select --install
 
-git clone https://github.com/bentley/rgbds
+git clone https://github.com/rednex/rgbds.git
 cd rgbds
 sudo make install
 cd ..
 
-git clone --recursive https://github.com/roukaour/pokecrystal
-cd pokecrystal
+git clone https://github.com/roukaour/polishedcrystal.git
+cd polishedcrystal
 ```
 
 To build **polishedcrystal.gbc**:
@@ -55,42 +94,8 @@ To build **polishedcrystal.gbc**:
 make
 ```
 
-To build **polishedcrystal-faithful.gbc**:
+To build other versions:
 
 ```bash
-make faithful
+make [faithful] [nortc] [monochrome] [debug]
 ```
-
-
-# Windows
-
-To build on Windows, install [**Cygwin**](http://cygwin.com/install.html) with the default settings.
-
-In the installer, select the following packages: `make` `git` `python` `gettext`
-
-Then get the most recent version of [**rgbds**](https://github.com/bentley/rgbds/releases/).
-Extract the archive and put `rgbasm.exe`, `rgblink.exe` and `rgbfix.exe` in `C:\cygwin64\usr\local\bin`.
-
-In the **Cygwin terminal**:
-
-```bash
-
-git clone --recursive https://github.com/roukaour/pokecrystal
-cd pokecrystal
-```
-
-To build **polishedcrystal.gbc**:
-
-```bash
-make
-```
-
-To build **polishedcrystal-faithful.gbc**:
-
-```bash
-make faithful
-```
-
-## notes
-
-- If `gettext` no longer exists, grab `libsasl2-3` `ca-certificates`.

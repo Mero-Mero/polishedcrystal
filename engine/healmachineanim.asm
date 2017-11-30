@@ -37,13 +37,10 @@ endr
 	add hl, de
 	ld a, [hl]
 	cp 5
-	jr z, .finish
+	ret z
 	ld hl, .Jumptable
 	rst JumpTable
 	jr .jumpable_loop
-
-.finish
-	ret
 ; 12365
 
 .Pointers: ; 12365
@@ -66,7 +63,6 @@ endr
 	dw .HOF_LoadBallsOntoMachine
 	dw .PlayHealMusic
 	dw .HOF_PlaySFX
-	dw .dummy_5 ; never encountered
 ; 12383
 
 .LoadGFX: ; 12383
@@ -119,19 +115,15 @@ endr
 	jp PlaySFX
 ; 123db
 
-.dummy_5 ; 123db
-	ret
-; 123dc
-
 .PC_ElmsLab_OAM: ; 123dc
-	dsprite   4, 0,   4, 2, $7c, $16
-	dsprite   4, 0,   4, 6, $7c, $16
-	dsprite   4, 6,   4, 0, $7d, $16
-	dsprite   4, 6,   5, 0, $7d, $36 ; xflip
-	dsprite   5, 3,   4, 0, $7d, $16
-	dsprite   5, 3,   5, 0, $7d, $36 ; xflip
-	dsprite   6, 0,   4, 0, $7d, $16
-	dsprite   6, 0,   5, 0, $7d, $36 ; xflip
+	dsprite   4, 0,   4, 2, $7c, PAL_OW_TREE
+	dsprite   4, 0,   4, 6, $7c, PAL_OW_TREE
+	dsprite   4, 6,   4, 0, $7d, PAL_OW_TREE
+	dsprite   4, 6,   5, 0, $7d, PAL_OW_TREE | X_FLIP
+	dsprite   5, 3,   4, 0, $7d, PAL_OW_TREE
+	dsprite   5, 3,   5, 0, $7d, PAL_OW_TREE | X_FLIP
+	dsprite   6, 0,   4, 0, $7d, PAL_OW_TREE
+	dsprite   6, 0,   5, 0, $7d, PAL_OW_TREE | X_FLIP
 ; 123fc
 
 .HealMachineGFX: ; 123fc
@@ -139,18 +131,18 @@ INCBIN "gfx/ow_fx/heal_machine.2bpp"
 ; 1241c
 
 .HOF_OAM: ; 1241c
-	dsprite   7, 4,  10, 1, $7d, $16
-	dsprite   7, 4,  10, 6, $7d, $16
-	dsprite   7, 3,   9, 5, $7d, $16
-	dsprite   7, 3,  11, 2, $7d, $16
-	dsprite   7, 1,   9, 1, $7d, $16
-	dsprite   7, 1,  11, 5, $7d, $16
+	dsprite   7, 4,  10, 1, $7d, PAL_OW_TREE
+	dsprite   7, 4,  10, 6, $7d, PAL_OW_TREE
+	dsprite   7, 3,   9, 5, $7d, PAL_OW_TREE
+	dsprite   7, 3,  11, 2, $7d, PAL_OW_TREE
+	dsprite   7, 1,   9, 1, $7d, PAL_OW_TREE
+	dsprite   7, 1,  11, 5, $7d, PAL_OW_TREE
 ; 12434
 
 .LoadPalettes: ; 12434
 	ld hl, .palettes
-	ld de, OBPals + 8 * 6
-	ld bc, 8
+	ld de, OBPals palette PAL_OW_TREE
+	ld bc, 1 palettes
 	ld a, $5
 	call FarCopyWRAM
 	ld a, $1
@@ -159,10 +151,14 @@ INCBIN "gfx/ow_fx/heal_machine.2bpp"
 ; 12451
 
 .palettes ; 12451
+if !DEF(MONOCHROME)
 	RGB 31, 31, 31
 	RGB 31, 19, 10
 	RGB 31, 07, 01
 	RGB 00, 00, 00
+else
+	MONOCHROME_RGB_FOUR
+endc
 ; 12459
 
 .FlashPalettes8Times: ; 12459
@@ -184,7 +180,7 @@ INCBIN "gfx/ow_fx/heal_machine.2bpp"
 	ld a, $5
 	ld [rSVBK], a
 
-	ld hl, OBPals + 8 * 6
+	ld hl, OBPals palette PAL_OW_TREE
 	ld a, [hli]
 	ld e, a
 	ld a, [hli]

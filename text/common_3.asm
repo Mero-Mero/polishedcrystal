@@ -381,11 +381,6 @@ UnknownText_0x1c0d26::
 	line "took in sunlight!"
 	prompt
 
-UnknownText_0x1c0d4e::
-	text ""
-	line "is glowing!"
-	prompt
-
 UnknownText_0x1c0d5c::
 	text ""
 	line "flew up high!"
@@ -394,12 +389,6 @@ UnknownText_0x1c0d5c::
 UnknownText_0x1c0d6c::
 	text ""
 	line "dug a hole!"
-	prompt
-
-Text_PowerHerbActivated::
-	text "<USER>'s"
-	line "Power Herb"
-	cont "activated!"
 	prompt
 
 UnknownText_0x1c0db0::

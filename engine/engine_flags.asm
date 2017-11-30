@@ -95,8 +95,10 @@ ENDM
 
 	engine_flag StatusFlags, 0 ; pokedex
 	engine_flag StatusFlags, 1 ; unown dex
+	                           ; flash
 	engine_flag StatusFlags, 3 ; pokerus
 	engine_flag StatusFlags, 4 ; rocket signal on ch20
+	                           ; wild encounters on/off
 	engine_flag StatusFlags, 6 ; credits skip
 	engine_flag StatusFlags, 7 ; bug contest on
 	engine_flag StatusFlags2, 0 ; rockets in radio tower ; $10
@@ -105,7 +107,7 @@ ENDM
 	engine_flag StatusFlags2, 3 ; seen shamouti island
 	engine_flag StatusFlags2, 4 ; bike shop call enabled (1024 bike steps reqd)
 	engine_flag StatusFlags2, 5 ; give pokerus
-	engine_flag StatusFlags2, 6 ; unused
+	engine_flag StatusFlags2, 6 ; exorcised lav radio tower
 	engine_flag StatusFlags2, 7 ; rockets in mahogany
 
 	engine_flag BikeFlags, 0 ; strength active ; $18
@@ -200,10 +202,10 @@ ENDM
 
 	engine_flag DailyFlags4, 0 ; seashore shell bell
 	engine_flag DailyFlags4, 1 ; shamouti restaurant challenge ; $68
-	engine_flag DailyFlags4, 2 ; daily unused
-	engine_flag DailyFlags4, 3 ; daily unused
-	engine_flag DailyFlags4, 4 ; daily unused
-	engine_flag DailyFlags4, 5 ; daily unused
+	engine_flag DailyFlags4, 2 ; fought psychic inver
+	engine_flag DailyFlags4, 3 ; bought moomoo milk
+	engine_flag DailyFlags4, 4 ; changed trendy phrase
+	engine_flag DailyFlags4, 5 ; all hidden grottoes
 	engine_flag DailyFlags4, 6 ; daily unused
 	engine_flag DailyFlags4, 7 ; daily unused
 
@@ -224,6 +226,8 @@ ENDM
 	engine_flag PlayerGender, 0 ; player is female
 
 	engine_flag wCelebiEvent, 2 ; have gs ball after kurt examined it
+	engine_flag wCelebiEvent, 3 ; have silphscope2
+	engine_flag wCelebiEvent, 4 ; have shiny charm
 
 	; rematches
 	engine_flag wDailyRematchFlags, 0 ; jack

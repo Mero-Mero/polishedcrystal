@@ -1,13 +1,25 @@
-const_value set 2
-	const EUSINESHOUSE_EUSINE
-	const EUSINESHOUSE_GRAMPS
-
 EusinesHouse_MapScriptHeader:
-.MapTriggers:
-	db 0
 
-.MapCallbacks:
-	db 0
+.MapTriggers: db 0
+
+.MapCallbacks: db 0
+
+EusinesHouse_MapEventHeader:
+
+.Warps: db 2
+	warp_def 7, 2, 14, CELADON_CITY
+	warp_def 7, 3, 14, CELADON_CITY
+
+.XYTriggers: db 0
+
+.Signposts: db 0
+
+.PersonEvents: db 2
+	person_event SPRITE_EUSINE, 3, 2, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, -1, 0, PERSONTYPE_SCRIPT, 0, CeladonEusine, EVENT_SET_WHEN_FOUGHT_HO_OH
+	person_event SPRITE_GRAMPS, 3, 5, SPRITEMOVEDATA_STANDING_LEFT, 0, 0, -1, -1, (1 << 3) | PAL_OW_BROWN, PERSONTYPE_SCRIPT, 0, EusinesHouseGrampsScript, -1
+
+const_value set 1
+	const EUSINESHOUSE_EUSINE
 
 CeladonEusine:
 	faceplayer
@@ -16,43 +28,46 @@ CeladonEusine:
 	buttonsound
 	special SpecialBeastsCheck
 	iftrue .HoOh
-	writetext NoBeastsText1
+	writetext EusineNoBeastsText
 	waitbutton
 	closetext
-	refreshscreen $0
+	writebyte RAIKOU
+	special SpecialMonCheck
+	iftrue .OwnRaikou
+	showtext EusineShowsRaikouText
+	refreshscreen
 	pokepic RAIKOU
 	cry RAIKOU
 	waitbutton
 	closepokepic
 	writebyte RAIKOU
 	special SpecialSeenMon
-	opentext
-	writetext NoBeastsText2
-	waitbutton
-	closetext
-	refreshscreen $0
+.OwnRaikou
+	writebyte ENTEI
+	special SpecialMonCheck
+	iftrue .OwnEntei
+	showtext EusineShowsEnteiText
+	refreshscreen
 	pokepic ENTEI
 	cry ENTEI
 	waitbutton
 	closepokepic
 	writebyte ENTEI
 	special SpecialSeenMon
-	opentext
-	writetext NoBeastsText3
-	waitbutton
-	closetext
-	refreshscreen $0
+.OwnEntei
+	writebyte SUICUNE
+	special SpecialMonCheck
+	iftrue .OwnSuicune
+	showtext EusineShowsSuicuneText
+	refreshscreen
 	pokepic SUICUNE
 	cry SUICUNE
 	waitbutton
 	closepokepic
 	writebyte SUICUNE
 	special SpecialSeenMon
-	opentext
-	writetext NoBeastsText4
-	waitbutton
-	closetext
-	end
+.OwnSuicune
+	jumptext EusineQuestHintText
 
 .HoOh:
 	writetext EusineLeavesCeladonText
@@ -81,20 +96,9 @@ CeladonEusine:
 	step_end
 
 EusinesHouseGrampsScript:
-	faceplayer
-	opentext
 	checkevent EVENT_SET_WHEN_FOUGHT_HO_OH
-	iftrue .EusineLeft
-	writetext EusinesHouseGrampsText1
-	waitbutton
-	closetext
-	end
-
-.EusineLeft:
-	writetext EusinesHouseGrampsText2
-	waitbutton
-	closetext
-	end
+	iftrue_jumptextfaceplayer EusinesHouseGrampsText2
+	jumptextfaceplayer EusinesHouseGrampsText1
 
 CeladonEusineText1:
 	text "Eusine: Hi!"
@@ -127,7 +131,7 @@ EusineLeavesCeladonText:
 	line "you, <PLAYER>!"
 	done
 
-NoBeastsText1:
+EusineNoBeastsText:
 	text "Oh, by the way,"
 	line "<PLAYER>."
 
@@ -141,21 +145,22 @@ NoBeastsText1:
 
 	para "Let me give you"
 	line "my research notes."
-
-	para "This is Raikou:"
 	done
 
-NoBeastsText2:
+EusineShowsRaikouText:
+	text "This is Raikou:"
+	done
+
+EusineShowsEnteiText:
 	text "This is Entei:"
 	done
 
-NoBeastsText3:
-	text "And this, of"
-	line "course, is Sui-"
-	cont "cune."
+EusineShowsSuicuneText:
+	text "This, of course,"
+	line "is Suicune:"
 	done
 
-NoBeastsText4:
+EusineQuestHintText:
 	text "If you catch even"
 	line "one, I hope that"
 	cont "you'll inform me."
@@ -181,20 +186,3 @@ EusinesHouseGrampsText2:
 	line "about the legend-"
 	cont "ary #mon!"
 	done
-
-EusinesHouse_MapEventHeader:
-.Warps:
-	db 2
-	warp_def $7, $2, 14, CELADON_CITY
-	warp_def $7, $3, 14, CELADON_CITY
-
-.XYTriggers:
-	db 0
-
-.Signposts:
-	db 0
-
-.PersonEvents:
-	db 2
-	person_event SPRITE_SUPER_NERD, 3, 2, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, -1, (1 << 3) | PAL_OW_PURPLE, PERSONTYPE_SCRIPT, 0, CeladonEusine, EVENT_SET_WHEN_FOUGHT_HO_OH
-	person_event SPRITE_GRAMPS, 3, 5, SPRITEMOVEDATA_STANDING_LEFT, 0, 0, -1, -1, (1 << 3) | PAL_OW_BROWN, PERSONTYPE_SCRIPT, 0, EusinesHouseGrampsScript, -1

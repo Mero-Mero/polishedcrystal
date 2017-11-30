@@ -3,8 +3,7 @@
 
 LoadMenuDataHeader::
 	call CopyMenuDataHeader
-	call PushWindow
-	ret
+	jp PushWindow
 
 CopyMenuDataHeader::
 	ld de, wMenuDataHeader
@@ -43,8 +42,7 @@ LoadMenuTextBox:: ; 1d58
 
 MenuTextBoxBackup:: ; 1d67
 	call MenuTextBox
-	call CloseWindow
-	ret
+	jp CloseWindow
 ; 1d6e
 
 LoadStandardMenuDataHeader:: ; 1d6e
@@ -123,7 +121,12 @@ PlaceTwoChoiceBox:
 	ld [wMenuBorderTopCoord], a
 	add 4
 	ld [wMenuBorderBottomCoord], a
+	ld a, [wInPokegear]
+	and a
 	ld a, SCREEN_WIDTH - 6
+	jr z, .ok
+	dec a
+.ok
 	ld [wMenuBorderLeftCoord], a
 	add 5 ; SCREEN_WIDTH - 1
 	ld [wMenuBorderRightCoord], a
@@ -154,8 +157,7 @@ YesNoMenuDataHeader:: ; 1e1d
 
 OffsetMenuDataHeader:: ; 1e2e
 	call _OffsetMenuDataHeader
-	call PushWindow
-	ret
+	jp PushWindow
 ; 1e35
 
 _OffsetMenuDataHeader:: ; 1e35
@@ -189,8 +191,7 @@ DoNthMenu:: ; 1e5d
 	call InitMenuCursorAndButtonPermissions
 	call GetStaticMenuJoypad
 	call GetMenuJoypad
-	call MenuClickSound
-	ret
+	jp MenuClickSound
 ; 1e70
 
 SetUpMenu:: ; 1e70
@@ -205,8 +206,7 @@ DrawVariableLengthMenuBox::
 	call CopyMenuData2
 	call GetMenuIndexSet
 	call AutomaticGetMenuBottomCoord
-	call MenuBox
-	ret
+	jp MenuBox
 
 MenuWriteText::
 	xor a
@@ -302,15 +302,12 @@ InitMenuCursorAndButtonPermissions:: ; 1eff
 	bit 3, a
 	jr z, .disallow_select
 	set START_F, [hl]
-
 .disallow_select
 	ld a, [wMenuData2Flags]
 	bit 2, a
-	jr z, .disallow_left_right
+	ret z
 	set D_LEFT_F, [hl]
 	set D_RIGHT_F, [hl]
-
-.disallow_left_right
 	ret
 ; 1f1a
 

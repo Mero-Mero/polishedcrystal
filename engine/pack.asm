@@ -132,8 +132,7 @@ Pack: ; 10000
 	xor a
 	ld [hBGMapMode], a
 	call WaitBGMap_DrawPackGFX
-	call Pack_JumptableNext
-	ret
+	jp Pack_JumptableNext
 
 .TMHMPocketMenu: ; 100e8 (4:40e8)
 	farcall TMHMPocket
@@ -217,7 +216,7 @@ Pack: ; 10000
 	lb bc, $7, $b ; TM/HM, Key Items
 	call Pack_InterpretJoypad
 	ret c
-	jp .ItemBallsKey_LoadSubmenu
+	jr .ItemBallsKey_LoadSubmenu
 
 .InitKeyItemsPocket: ; 10094 (4:4094)
 	ld a, KEY_ITEM - 1
@@ -241,7 +240,7 @@ Pack: ; 10000
 	lb bc, $9, $1 ; Berries, Items
 	call Pack_InterpretJoypad
 	ret c
-	jp .ItemBallsKey_LoadSubmenu
+	; fallthrough
 
 .ItemBallsKey_LoadSubmenu: ; 101c5 (4:41c5)
 	farcall _CheckTossableItem
@@ -516,7 +515,7 @@ TossMenu: ; 10364
 	push af
 	call ExitMenu
 	pop af
-	jr c, .finish
+	ret c
 	call Pack_GetItemName
 	ld hl, Text_ConfirmThrowAway
 	call MenuTextBox
@@ -524,15 +523,13 @@ TossMenu: ; 10364
 	push af
 	call ExitMenu
 	pop af
-	jr c, .finish
+	ret c
 	ld hl, NumItems
 	ld a, [CurItemQuantity]
 	call TossItem
 	call Pack_GetItemName
 	ld hl, Text_ThrewAway
-	call Pack_PrintTextNoScroll
-.finish
-	ret
+	jp Pack_PrintTextNoScroll
 ; 1039d
 
 RegisterItem: ; 103c2
@@ -756,8 +753,7 @@ BattlePack: ; 10493
 	call WaitBGMap_DrawPackGFX
 	ld hl, Text_PackEmptyString
 	call Pack_PrintTextNoScroll
-	call Pack_JumptableNext
-	ret
+	jp Pack_JumptableNext
 
 .TMHMPocketMenu: ; 10581 (4:4581)
 	farcall TMHMPocket
@@ -789,7 +785,7 @@ BattlePack: ; 10493
 	lb bc, $7, $b ; TM/HM, Key Items
 	call Pack_InterpretJoypad
 	ret c
-	jp ItemSubmenu
+	jr ItemSubmenu
 
 .InitKeyItemsPocket: ; 10527 (4:4527)
 	ld a, KEY_ITEM - 1
@@ -813,7 +809,7 @@ BattlePack: ; 10493
 	lb bc, $9, $1 ; Berries, Items
 	call Pack_InterpretJoypad
 	ret c
-	jp ItemSubmenu
+	; fallthrough
 
 ItemSubmenu: ; 105d3 (4:45d3)
 	farcall CheckItemContext
@@ -939,8 +935,6 @@ TMHMSubmenu: ; 105dc (4:45dc)
 .didnt_use_item ; 10684 (4:4684)
 	xor a
 	ld [wItemEffectSucceeded], a
-	ret
-; 10689 (4:4689)
 .Quit: ; 10689
 	ret
 ; 1068a
@@ -971,8 +965,7 @@ DepositSellInitPackBuffers: ; 106a5
 	ld [wcf66], a
 	ld [wSwitchItem], a
 	call Pack_InitGFX
-	call Pack_InitColors
-	ret
+	jp Pack_InitColors
 ; 106be
 
 DepositSellPack: ; 106be
@@ -1092,8 +1085,7 @@ DepositSellPack: ; 106be
 InitPocket: ; 10762 (4:4762)
 	ld [wCurrPocket], a
 	call ClearPocketList
-	call WaitBGMap_DrawPackGFX
-	ret
+	jp WaitBGMap_DrawPackGFX
 
 DepositSellTutorial_InterpretJoypad: ; 1076f
 	ld hl, wMenuJoypad
@@ -1261,8 +1253,7 @@ TutorialPack: ; 107bb
 	call InitPocket
 	pop hl
 	call CopyMenuDataHeader
-	call ScrollingMenu
-	ret
+	jp ScrollingMenu
 
 Pack_JumptableNext: ; 10866 (4:4866)
 	ld hl, wJumptableIndex
@@ -1506,8 +1497,7 @@ Pack_GetItemName: ; 10a1d
 	ld a, [CurItem]
 	ld [wNamedObjectIndexBuffer], a
 	call GetItemName
-	call CopyName1
-	ret
+	jp CopyName1
 ; 10a2a
 
 ClearPocketList: ; 10a36 (4:4a36)
@@ -1759,8 +1749,7 @@ Special_ChooseItem::
 	call LoadStandardMenuDataHeader
 	call DepositSellInitPackBuffers
 	call .PickItem
-	farcall ReturnToMapWithSpeechTextbox
-	ret
+	farjp ReturnToMapWithSpeechTextbox
 
 .PickItem:
 	xor a ; ld a, FALSE

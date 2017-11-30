@@ -1,5 +1,5 @@
 MainMenu: ; 49cdc
-	farcall DeleteSavedMusic
+	call DeleteSavedMusic
 	xor a
 	ld [wDisableTextAcceleration], a
 	call Function49ed0
@@ -15,15 +15,12 @@ MainMenu: ; 49cdc
 	call LoadMenuDataHeader
 	call MainMenuJoypadLoop
 	call CloseWindow
-	jr c, .quit
+	ret c
 	call ClearTileMap
 	ld a, [MenuSelection]
 	ld hl, .Jumptable
 	rst JumpTable
 	jr MainMenu
-
-.quit
-	ret
 ; 49d14
 
 .MenuDataHeader: ; 49d14
@@ -45,30 +42,45 @@ MainMenu: ; 49cdc
 .Strings: ; 49d24
 	db "Continue@"
 	db "New Game@"
+	db "New Game+@"
 	db "Options@"
+	db "Music Player@"
 
 .Jumptable: ; 0x49d60
-
 	dw MainMenu_Continue
 	dw MainMenu_NewGame
+	dw MainMenu_NewGamePlus
 	dw MainMenu_Options
+	dw MainMenu_MusicPlayer
 ; 0x49d6c
 
 CONTINUE       EQU 0
 NEW_GAME       EQU 1
-OPTION         EQU 2
+NEW_GAME_PLUS  EQU 2
+OPTION         EQU 3
+MUSIC_PLAYER   EQU 4
 
 MainMenuItems:
 ; .NewGameMenu: ; 0x49d6c
-	db 2
+	db 3
 	db NEW_GAME
 	db OPTION
+	db MUSIC_PLAYER
 	db -1
 ; .ContinueMenu: ; 0x49d70
-	db 3
+	db 4
 	db CONTINUE
 	db NEW_GAME
 	db OPTION
+	db MUSIC_PLAYER
+	db -1
+; .NewGamePlusMenu:
+	db 5
+	db CONTINUE
+	db NEW_GAME
+	db NEW_GAME_PLUS
+	db OPTION
+	db MUSIC_PLAYER
 	db -1
 
 MainMenu_GetWhichMenu: ; 49da4
@@ -79,7 +91,20 @@ MainMenu_GetWhichMenu: ; 49da4
 	ret
 
 .next
+	ld a, BANK(sPlayerData)
+	call GetSRAMBank
+	ld hl, sPlayerData + (EventFlags + (EVENT_BEAT_LEAF >> 3)) - wPlayerData
+	ld de, EventFlags + (EVENT_BEAT_LEAF >> 3)
+	ld a, [hl]
+	ld [de], a
+	call CloseSRAM
+	eventflagcheck EVENT_BEAT_LEAF
+	jr nz, .next2
 	ld a, $1 ; Continue
+	ret
+
+.next2
+	ld a, $2 ; New Game+
 	ret
 ; 49de4
 
@@ -154,7 +179,7 @@ MainMenu_PrintCurrentTimeAndDay: ; 49e09
 if DEF(NO_RTC)
 	ld a, BANK(sPlayerData)
 	call GetSRAMBank
-	ld hl, sPlayerData + (wNoRTC - wPlayerData)
+	ld hl, sPlayerData + wNoRTC - wPlayerData
 	ld de, wNoRTC
 	ld bc, 5
 	call CopyBytes
@@ -220,22 +245,24 @@ Function49ed0: ; 49ed0
 	call ClearTileMap
 	call LoadFontsExtra
 	call LoadStandardFont
-	call ClearWindowData
-	ret
+	jp ClearWindowData
 ; 49ee0
 
 
 MainMenu_NewGame: ; 49ee0
-	farcall NewGame
-	ret
+	farjp NewGame
 ; 49ee7
 
+MainMenu_NewGamePlus:
+	farjp NewGamePlus
+
 MainMenu_Options: ; 49ee7
-	farcall OptionsMenu
-	ret
+	farjp OptionsMenu
 ; 49eee
 
 MainMenu_Continue: ; 49eee
-	farcall Continue
-	ret
+	farjp Continue
 ; 49ef5
+
+MainMenu_MusicPlayer:
+	farjp MusicPlayer

@@ -1,13 +1,24 @@
-const_value set 2
-	const OLIVINELIGHTHOUSEROOF_SKYLA
-	const OLIVINELIGHTHOUSEROOF_POKE_BALL
-
 OlivineLighthouseRoof_MapScriptHeader:
-.MapTriggers:
-	db 0
 
-.MapCallbacks:
-	db 0
+.MapTriggers: db 0
+
+.MapCallbacks: db 0
+
+OlivineLighthouseRoof_MapEventHeader:
+
+.Warps: db 1
+	warp_def 3, 9, 4, OLIVINE_LIGHTHOUSE_6F
+
+.XYTriggers: db 0
+
+.Signposts: db 0
+
+.PersonEvents: db 2
+	person_event SPRITE_SKYLA, 13, 4, SPRITEMOVEDATA_WANDER, 1, 1, -1, -1, 0, PERSONTYPE_SCRIPT, 0, OlivineLighthouseRoofSkylaScript, -1
+	itemball_event 8, 16, SILVER_LEAF, 1, EVENT_OLIVINE_LIGHTHOUSE_ROOF_SILVER_LEAF
+
+const_value set 1
+	const OLIVINELIGHTHOUSEROOF_SKYLA
 
 OlivineLighthouseRoofSkylaScript:
 	faceplayer
@@ -66,16 +77,10 @@ OlivineLighthouseRoofSkylaScript:
 	waitbutton
 	setevent EVENT_INTRODUCED_SKYLA
 .Introduced2
-	writetext .WaitingText
-	waitbutton
-	closetext
-	end
+	jumpopenedtext .WaitingText
 
 .Refused:
-	writetext .RefusedText
-	waitbutton
-	closetext
-	end
+	jumpopenedtext .RefusedText
 
 .IntroText:
 	text "Skyla: Who are"
@@ -183,21 +188,3 @@ OlivineLighthouseRoofSkylaScript:
 	line "our full strength."
 	done
 
-OlivineLighthouseRoofSilverLeaf:
-	itemball SILVER_LEAF
-
-OlivineLighthouseRoof_MapEventHeader:
-.Warps:
-	db 1
-	warp_def $3, $9, 4, OLIVINE_LIGHTHOUSE_6F
-
-.XYTriggers:
-	db 0
-
-.Signposts:
-	db 0
-
-.PersonEvents:
-	db 2
-	person_event SPRITE_SKYLA, 13, 4, SPRITEMOVEDATA_WANDER, 1, 1, -1, -1, 0, PERSONTYPE_SCRIPT, 0, OlivineLighthouseRoofSkylaScript, -1
-	person_event SPRITE_BALL_CUT_FRUIT, 8, 16, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, -1, (1 << 3) | PAL_OW_RED, PERSONTYPE_ITEMBALL, 0, OlivineLighthouseRoofSilverLeaf, EVENT_OLIVINE_LIGHTHOUSE_ROOF_SILVER_LEAF

@@ -130,23 +130,22 @@
 	const OVAL_CHARM   ; $6f
 	const SILPHSCOPE2  ; $70
 
-	const ORAN_BERRY   ; $71
-	const SITRUS_BERRY ; $72
+	const CHERI_BERRY  ; $71
+	const CHESTO_BERRY ; $72
 	const PECHA_BERRY  ; $73
 	const RAWST_BERRY  ; $74
-	const CHERI_BERRY  ; $75
-	const CHESTO_BERRY ; $76
-	const ASPEAR_BERRY ; $77
+	const ASPEAR_BERRY ; $75
+	const LEPPA_BERRY  ; $76
+	const ORAN_BERRY   ; $77
 	const PERSIM_BERRY ; $78
 	const LUM_BERRY    ; $79
-	const LEPPA_BERRY  ; $7a
-
-	const POMEG_BERRY  ; $7b
-	const KELPSY_BERRY ; $7c
-	const QUALOT_BERRY ; $7d
-	const HONDEW_BERRY ; $7e
-	const GREPA_BERRY  ; $7f
-	const TAMATO_BERRY ; $80
+	const SITRUS_BERRY ; $7a
+	const FIGY_BERRY   ; $7b
+	const LIECHI_BERRY ; $7c
+	const GANLON_BERRY ; $7d
+	const SALAC_BERRY  ; $7e
+	const PETAYA_BERRY ; $7f
+	const APICOT_BERRY ; $80
 
 	const RED_APRICORN ; $81
 	const BLU_APRICORN ; $82
@@ -403,6 +402,8 @@ CANT_TOSS   EQU 1 << CANT_TOSS_F
 
 	const HELD_BLACK_SLUDGE
 
+	const HELD_RAISE_STAT
+
 ; item attributes
 	const_def
 	const ITEMATTR_PRICE
@@ -414,10 +415,10 @@ CANT_TOSS   EQU 1 << CANT_TOSS_F
 	const ITEMATTR_HELP
 NUM_ITEMATTRS EQU const_value
 
-ITEMMENU_NOUSE              EQU 0
-ITEMMENU_CURRENT            EQU 4
-ITEMMENU_PARTY              EQU 5
-ITEMMENU_CLOSE              EQU 6
+ITEMMENU_NOUSE   EQU 0
+ITEMMENU_CURRENT EQU 4
+ITEMMENU_PARTY   EQU 5
+ITEMMENU_CLOSE   EQU 6
 
 
 ; mart types
@@ -427,9 +428,13 @@ ITEMMENU_CLOSE              EQU 6
 	const MARTTYPE_BARGAIN
 	const MARTTYPE_PHARMACY
 	const MARTTYPE_ROOFTOP
+	const MARTTYPE_SILPH
 	const MARTTYPE_ADVENTURER
 	const MARTTYPE_INFORMAL
+	const MARTTYPE_BAZAAR
 	const MARTTYPE_TM
+	const MARTTYPE_BLUECARD
+	const MARTTYPE_BP
 
 
 ; marts
@@ -471,6 +476,9 @@ ITEMMENU_CLOSE              EQU 6
 	const MART_FUCHSIA
 	const MART_SHAMOUTI_1
 	const MART_SHAMOUTI_2
+	const MART_BT_1
+	const MART_BT_2
+	const MART_BT_3
 
 
 ; PartyMenuActionText

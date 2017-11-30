@@ -150,29 +150,67 @@ CheckBreedmonCompatibility: ; 16e1d
 ; 16f3e
 
 DoEggStep:: ; 16f3e
+	; Check if Flame Body/Magma Armor applies
 	ld de, PartySpecies
-	ld hl, PartyMon1Happiness
+	ld hl, PartyMon1Ability
+.ability_loop
+	ld a, [de]
+	inc de
+	cp -1
+	jr z, .no_ability_bonus
+	cp EGG
+	jr z, .ability_next
+	ld c, a
+	ld b, [hl]
+	push de
+	push hl
+	call GetAbility
+	pop hl
+	pop de
+	ld a, b
+	ld c, 1
+	cp FLAME_BODY
+	jr z, .ability_ok
+	cp MAGMA_ARMOR
+	jr z, .ability_ok
+.ability_next
+	call .nextpartymon
+	jr .ability_loop
+.no_ability_bonus
 	ld c, 0
+.ability_ok
+	ld de, PartySpecies
+	ld hl, PartyMon1Happiness ; Egg cycles when not hatched
 .loop
 	ld a, [de]
 	inc de
 	cp -1
-	ret z
+	jr z, .done
 	cp EGG
 	jr nz, .next
 	dec [hl]
+	jr z, .hatch
+	ld a, c
+	and a
+	jr z, .next
+	dec [hl]
 	jr nz, .next
+.hatch
 	ld a, 1
 	and a
+.done
+	ld c, 0	; TODO: check if this is needed (was done earlier)
 	ret
 
 .next
+	call .nextpartymon
+	jr .loop
+.nextpartymon
 	push de
 	ld de, PARTYMON_STRUCT_LENGTH
 	add hl, de
 	pop de
-	jr .loop
-; 16f5e
+	ret
 
 OverworldHatchEgg:: ; 16f5e
 	call RefreshScreen
@@ -193,7 +231,8 @@ HatchEggs: ; 16f70 (5:6f70)
 	ld a, [de]
 	inc de
 	cp -1
-	jp z, .done
+	ret z
+
 	push de
 	push hl
 	cp EGG
@@ -226,10 +265,7 @@ HatchEggs: ; 16f70 (5:6f70)
 	ld a, [CurPartySpecies]
 	cp TOGEPI
 	jr nz, .nottogepi
-	; set the event flag for hatching togepi
-	ld de, EVENT_TOGEPI_HATCHED
-	ld b, SET_FLAG
-	call EventFlagAction
+	eventflagset EVENT_TOGEPI_HATCHED
 .nottogepi
 
 	pop de
@@ -240,11 +276,9 @@ HatchEggs: ; 16f70 (5:6f70)
 	ld [wd265], a
 	ld [CurSpecies], a
 	call GetPokemonName
-	xor a
-	ld [wd26b], a
 	call GetBaseData
 	ld a, [CurPartyMon]
-	ld hl, PartyMons ; wdcdf (aliases: PartyMon1, PartyMon1Species)
+	ld hl, PartyMons
 	ld bc, PARTYMON_STRUCT_LENGTH
 	call AddNTimes
 	push hl
@@ -290,7 +324,7 @@ HatchEggs: ; 16f70 (5:6f70)
 	ld a, [PlayerID + 1]
 	ld [hl], a
 	ld a, [CurPartyMon]
-	ld hl, PartyMonOT ; wddff (aliases: PartyMonOT)
+	ld hl, PartyMonOT
 	ld bc, NAME_LENGTH
 	call AddNTimes
 	ld d, h
@@ -320,8 +354,6 @@ HatchEggs: ; 16f70 (5:6f70)
 .alwaysnickname
 	pop de
 .yesnickname
-	ld a, $1
-	ld [wd26b], a
 	xor a
 	ld [MonType], a
 	push de
@@ -345,9 +377,6 @@ HatchEggs: ; 16f70 (5:6f70)
 	add hl, de
 	pop de
 	jp .loop
-
-.done ; 1708a (5:708a)
-	ret
 ; 1708b (5:708b)
 
 .Text_HatchEgg: ; 0x1708b
@@ -399,7 +428,8 @@ InitEggMoves: ; 170bf
 .loop
 	ld a, [de]
 	and a
-	jr z, .done
+	ret z
+
 	ld hl, wEggMonMoves
 	ld c, NUM_MOVES
 .next
@@ -417,8 +447,6 @@ InitEggMoves: ; 170bf
 	inc de
 	dec b
 	jr nz, .loop
-
-.done
 	ret
 ; 170e4
 
@@ -466,9 +494,8 @@ endr
 	ld c, a
 	ld b, 0
 	ld hl, EvosAttacksPointers
-rept 2
 	add hl, bc
-endr
+	add hl, bc
 	ld a, BANK(EvosAttacksPointers)
 	call GetFarHalfword
 .loop3
@@ -849,22 +876,21 @@ Hatch_InitShellFragments: ; 173b3 (5:73b3)
 .done
 	ld de, SFX_EGG_HATCH
 	call PlaySFX
-	call EggHatch_DoAnimFrame
-	ret
+	jp EggHatch_DoAnimFrame
 ; 173ef (5:73ef)
 
 .SpriteData: ; 173ef
 ; Probably OAM.
-	dsprite 10, 4,  9, 0, $00, $3c
-	dsprite 11, 4,  9, 0, $01, $04
-	dsprite 10, 4, 10, 0, $00, $30
-	dsprite 11, 4, 10, 0, $01, $10
-	dsprite 10, 4, 11, 0, $02, $24
-	dsprite 11, 4, 11, 0, $03, $1c
-	dsprite 10, 0,  9, 4, $00, $36
-	dsprite 12, 0,  9, 4, $01, $0a
-	dsprite 10, 0, 10, 4, $02, $2a
-	dsprite 12, 0, 10, 4, $03, $16
+	dsprite 10, 4,  9, 0, $00, $4 | X_FLIP
+	dsprite 11, 4,  9, 0, $01, $4
+	dsprite 10, 4, 10, 0, $00, $0 | X_FLIP
+	dsprite 11, 4, 10, 0, $01, $0
+	dsprite 10, 4, 11, 0, $02, $4 | X_FLIP
+	dsprite 11, 4, 11, 0, $03, $4
+	dsprite 10, 0,  9, 4, $00, $6 | X_FLIP
+	dsprite 12, 0,  9, 4, $01, $2
+	dsprite 10, 0, 10, 4, $02, $2 | X_FLIP
+	dsprite 12, 0, 10, 4, $03, $6
 	db -1
 ; 17418
 
@@ -926,18 +952,20 @@ DayCareMonCompatibilityText: ; 1746c
 	call CheckBreedmonCompatibility
 	pop bc
 	ld a, [wd265]
+
 	ld hl, .Incompatible
 	and a
-	jr z, .done
-	ld hl, .HighCompatibility
-	cp 3
-	jr nc, .done
-	cp 2
-	ld hl, .ModerateCompatibility
-	jr nc, .done
-	ld hl, .SlightCompatibility
+	ret z
 
-.done
+	ld hl, .SlightCompatibility
+	dec a
+	ret z
+
+	ld hl, .ModerateCompatibility
+	dec a
+	ret z
+
+	ld hl, .HighCompatibility
 	ret
 ; 1749c
 

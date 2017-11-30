@@ -1,21 +1,39 @@
-const_value set 2
+RuinsofAlphResearchCenter_MapScriptHeader:
+
+.MapTriggers: db 2
+	dw RuinsofAlphResearchCenterTrigger0
+	dw RuinsofAlphResearchCenterTrigger1
+
+.MapCallbacks: db 1
+	dbw MAPCALLBACK_OBJECTS, UnknownScript_0x59185
+
+RuinsofAlphResearchCenter_MapEventHeader:
+
+.Warps: db 2
+	warp_def 7, 2, 6, RUINS_OF_ALPH_OUTSIDE
+	warp_def 7, 3, 6, RUINS_OF_ALPH_OUTSIDE
+
+.XYTriggers: db 0
+
+.Signposts: db 4
+	signpost 5, 6, SIGNPOST_JUMPTEXT, UnknownText_0x59886
+	signpost 4, 3, SIGNPOST_READ, MapRuinsofAlphResearchCenterSignpost1Script
+	signpost 1, 7, SIGNPOST_JUMPTEXT, UnknownText_0x5980e
+	signpost 0, 5, SIGNPOST_JUMPTEXT, UnknownText_0x59848
+
+.PersonEvents: db 3
+	person_event SPRITE_SCIENTIST, 5, 4, SPRITEMOVEDATA_STANDING_UP, 0, 0, -1, -1, (1 << 3) | PAL_OW_BLUE, PERSONTYPE_SCRIPT, 0, ScientistScript_0x591e5, -1
+	person_event SPRITE_SCIENTIST, 2, 5, SPRITEMOVEDATA_WANDER, 1, 2, -1, -1, (1 << 3) | PAL_OW_BLUE, PERSONTYPE_SCRIPT, 0, ScientistScript_0x59214, -1
+	person_event SPRITE_SCIENTIST, 5, 2, SPRITEMOVEDATA_STANDING_UP, 0, 0, -1, -1, (1 << 3) | PAL_OW_BLUE, PERSONTYPE_SCRIPT, 0, ScientistScript_0x591d1, EVENT_RUINS_OF_ALPH_RESEARCH_CENTER_SCIENTIST
+
+const_value set 1
 	const RUINSOFALPHRESEARCHCENTER_SCIENTIST1
 	const RUINSOFALPHRESEARCHCENTER_SCIENTIST2
 	const RUINSOFALPHRESEARCHCENTER_SCIENTIST3
 
-RuinsofAlphResearchCenter_MapScriptHeader:
-.MapTriggers:
-	db 2
-	dw .Trigger0
-	dw .Trigger1
-
-.MapCallbacks:
-	db 1
-	dbw MAPCALLBACK_OBJECTS, UnknownScript_0x59185
-
-.Trigger1:
+RuinsofAlphResearchCenterTrigger1:
 	priorityjump UnknownScript_0x59192
-.Trigger0:
+RuinsofAlphResearchCenterTrigger0:
 	end
 
 UnknownScript_0x59185:
@@ -24,7 +42,7 @@ UnknownScript_0x59185:
 	return
 
 UnknownScript_0x5918b:
-	moveperson RUINSOFALPHRESEARCHCENTER_SCIENTIST3, $3, $7
+	moveperson RUINSOFALPHRESEARCHCENTER_SCIENTIST3, 3, 7
 	appear RUINSOFALPHRESEARCHCENTER_SCIENTIST3
 	return
 
@@ -39,11 +57,8 @@ UnknownScript_0x59192:
 	playsound SFX_TRANSACTION
 	pause 30
 	spriteface RUINSOFALPHRESEARCHCENTER_SCIENTIST3, DOWN
-	opentext
-	writetext UnknownText_0x59278
-	waitbutton
-	closetext
-	applymovement RUINSOFALPHRESEARCHCENTER_SCIENTIST3, MovementData_0x59274
+	showtext UnknownText_0x59278
+	applyonemovement RUINSOFALPHRESEARCHCENTER_SCIENTIST3, step_down
 	opentext
 	writetext UnknownText_0x592fa
 	playsound SFX_ITEM
@@ -52,7 +67,7 @@ UnknownScript_0x59192:
 	writetext UnknownText_0x59311
 	waitbutton
 	closetext
-	applymovement RUINSOFALPHRESEARCHCENTER_SCIENTIST3, MovementData_0x59276
+	applyonemovement RUINSOFALPHRESEARCHCENTER_SCIENTIST3, step_up
 	dotrigger $0
 	special RestartMapMusic
 	end
@@ -64,16 +79,10 @@ ScientistScript_0x591d1:
 	iftrue .Conclusion
 	checkcode VAR_UNOWNCOUNT
 	if_equal NUM_UNOWN, UnknownScript_0x591df
-	writetext UnknownText_0x59311
-	waitbutton
-	closetext
-	end
+	jumpopenedtext UnknownText_0x59311
 
 .Conclusion:
-	writetext RuinsofAlphResearchCenterScientistConclusionText
-	waitbutton
-	closetext
-	end
+	jumpopenedtext RuinsofAlphResearchCenterScientistConclusionText
 
 UnknownScript_0x591df:
 	writetext UnknownText_0x5935f
@@ -99,10 +108,7 @@ UnknownScript_0x591df:
 	showemote EMOTE_SHOCK, RUINSOFALPHRESEARCHCENTER_SCIENTIST3, 15
 	showemote EMOTE_SHOCK, RUINSOFALPHRESEARCHCENTER_SCIENTIST1, 15
 	showemote EMOTE_SHOCK, RUINSOFALPHRESEARCHCENTER_SCIENTIST2, 15
-	opentext
-	writetext RuinsofAlphResearchCenterScientistShockedText
-	waitbutton
-	closetext
+	showtext RuinsofAlphResearchCenterScientistShockedText
 	checkcode VAR_FACING
 	if_equal UP, .GoAround
 	follow RUINSOFALPHRESEARCHCENTER_SCIENTIST3, PLAYER
@@ -112,12 +118,12 @@ UnknownScript_0x591df:
 .GoAround:
 	applymovement RUINSOFALPHRESEARCHCENTER_SCIENTIST3, RuinsofAlphResearchCenterScientistStepAsideMovementData
 	follow RUINSOFALPHRESEARCHCENTER_SCIENTIST3, PLAYER
-	applymovement RUINSOFALPHRESEARCHCENTER_SCIENTIST3, RuinsofAlphResearchCenterLeave1MovementData
+	applyonemovement RUINSOFALPHRESEARCHCENTER_SCIENTIST3, step_down
 	stopfollow
 .Continue:
 	playsound SFX_EXIT_BUILDING
 	disappear RUINSOFALPHRESEARCHCENTER_SCIENTIST3
-	applymovement PLAYER, RuinsofAlphResearchCenterLeave1MovementData
+	applyonemovement PLAYER, step_down
 	playsound SFX_EXIT_BUILDING
 	disappear PLAYER
 	special FadeOutPalettes
@@ -126,7 +132,7 @@ UnknownScript_0x591df:
 	clearevent EVENT_RUINS_OF_ALPH_OUTSIDE_SCIENTIST_CLIMAX
 	setevent EVENT_DO_RUINS_OF_ALPH_CLIMAX
 	pause 15
-	warpfacing DOWN, RUINS_OF_ALPH_OUTSIDE, $13, $12
+	warpfacing DOWN, RUINS_OF_ALPH_OUTSIDE, 19, 18
 	end
 
 RuinsofAlphResearchCenterScientistStepAsideMovementData:
@@ -136,7 +142,6 @@ RuinsofAlphResearchCenterScientistStepAsideMovementData:
 
 RuinsofAlphResearchCenterLeave2MovementData:
 	step_down
-RuinsofAlphResearchCenterLeave1MovementData:
 	step_down
 	step_end
 
@@ -149,22 +154,13 @@ ScientistScript_0x591e5:
 	iftrue UnknownScript_0x59205
 	checkevent EVENT_MADE_UNOWN_APPEAR_IN_RUINS
 	iftrue UnknownScript_0x591ff
-	writetext UnknownText_0x593ed
-	waitbutton
-	closetext
-	end
+	jumpopenedtext UnknownText_0x593ed
 
 UnknownScript_0x591ff:
-	writetext UnknownText_0x59478
-	waitbutton
-	closetext
-	end
+	jumpopenedtext UnknownText_0x59478
 
 UnknownScript_0x59205:
-	writetext UnknownText_0x59445
-	waitbutton
-	closetext
-	end
+	jumpopenedtext UnknownText_0x59445
 
 UnknownScript_0x5920b:
 	writetext UnknownText_0x594cb
@@ -180,26 +176,17 @@ ScientistScript_0x59214:
 	if_greater_than 3, UnknownScript_0x5922e
 	checkevent EVENT_MADE_UNOWN_APPEAR_IN_RUINS
 	iftrue UnknownScript_0x59228
-	writetext UnknownText_0x5954f
-	waitbutton
-	closetext
-	end
+	jumpopenedtext UnknownText_0x5954f
 
 UnknownScript_0x59228:
-	writetext UnknownText_0x595cb
-	waitbutton
-	closetext
-	end
+	jumpopenedtext UnknownText_0x595cb
 
 UnknownScript_0x5922e:
 	checkcode VAR_UNOWNCOUNT
 	if_equal NUM_UNOWN, ResearchCompleteScript_0x596d3
 	checkcode VAR_UNOWNCOUNT
 	if_greater_than 10, ResearchOngoingScript_0x59669
-	writetext UnknownText_0x59769
-	waitbutton
-	closetext
-	end
+	jumpopenedtext UnknownText_0x59769
 
 ResearchCompleteScript_0x596d3:
 	writetext UnknownText_0x596d3
@@ -209,10 +196,7 @@ ResearchCompleteScript_0x596d3:
 	end
 
 ResearchOngoingScript_0x59669:
-	writetext UnknownText_0x59669
-	waitbutton
-	closetext
-	end
+	jumpopenedtext UnknownText_0x59669
 
 MapRuinsofAlphResearchCenterSignpost1Script:
 	opentext
@@ -220,40 +204,17 @@ MapRuinsofAlphResearchCenterSignpost1Script:
 	iffalse UnknownScript_0x59241
 	checkevent EVENT_DECO_UNOWN_DOLL
 	iftrue UnknownScript_0x59241
-	writetext UnknownText_0x597b6
-	waitbutton
-	closetext
-	end
+	jumpopenedtext UnknownText_0x597b6
 
 UnknownScript_0x59241:
-	count_unown_caught
-	writetext UnknownText_0x597d9
-	waitbutton
-	closetext
-	end
-
-MapRuinsofAlphResearchCenterSignpost2Script:
-	jumptext UnknownText_0x5980e
-
-MapRuinsofAlphResearchCenterSignpost3Script:
-	jumptext UnknownText_0x59848
-
-MapRuinsofAlphResearchCenterSignpost0Script:
-	jumptext UnknownText_0x59886
+	checkcode VAR_UNOWNCOUNT
+	jumpopenedtext UnknownText_0x597d9
 
 MovementData_0x5926f:
 	step_up
 	step_up
 	step_left
 	turn_head_up
-	step_end
-
-MovementData_0x59274:
-	step_down
-	step_end
-
-MovementData_0x59276:
-	step_up
 	step_end
 
 UnknownText_0x59278:
@@ -467,7 +428,7 @@ UnknownText_0x597d9:
 	line "Name: Unown"
 
 	para "A total of @"
-	deciram wd002, 1, 2
+	deciram ScriptVar, 1, 2
 	text ""
 	line "kinds found."
 	done
@@ -497,25 +458,3 @@ UnknownText_0x59886:
 	line "Mysteries of the"
 	cont "Ancients…"
 	done
-
-RuinsofAlphResearchCenter_MapEventHeader:
-.Warps:
-	db 2
-	warp_def $7, $2, 6, RUINS_OF_ALPH_OUTSIDE
-	warp_def $7, $3, 6, RUINS_OF_ALPH_OUTSIDE
-
-.XYTriggers:
-	db 0
-
-.Signposts:
-	db 4
-	signpost 5, 6, SIGNPOST_READ, MapRuinsofAlphResearchCenterSignpost0Script
-	signpost 4, 3, SIGNPOST_READ, MapRuinsofAlphResearchCenterSignpost1Script
-	signpost 1, 7, SIGNPOST_READ, MapRuinsofAlphResearchCenterSignpost2Script
-	signpost 0, 5, SIGNPOST_READ, MapRuinsofAlphResearchCenterSignpost3Script
-
-.PersonEvents:
-	db 3
-	person_event SPRITE_SCIENTIST, 5, 4, SPRITEMOVEDATA_STANDING_UP, 0, 0, -1, -1, (1 << 3) | PAL_OW_BLUE, PERSONTYPE_SCRIPT, 0, ScientistScript_0x591e5, -1
-	person_event SPRITE_SCIENTIST, 2, 5, SPRITEMOVEDATA_WANDER, 1, 2, -1, -1, (1 << 3) | PAL_OW_BLUE, PERSONTYPE_SCRIPT, 0, ScientistScript_0x59214, -1
-	person_event SPRITE_SCIENTIST, 5, 2, SPRITEMOVEDATA_STANDING_UP, 0, 0, -1, -1, (1 << 3) | PAL_OW_BLUE, PERSONTYPE_SCRIPT, 0, ScientistScript_0x591d1, EVENT_RUINS_OF_ALPH_RESEARCH_CENTER_SCIENTIST

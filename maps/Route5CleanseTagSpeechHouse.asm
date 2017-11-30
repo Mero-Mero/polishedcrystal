@@ -1,13 +1,23 @@
-const_value set 2
-	const ROUTE5CLEANSETAGSPEECHHOUSE_GRANNY
-	const ROUTE5CLEANSETAGSPEECHHOUSE_TEACHER
-
 Route5CleanseTagSpeechHouse_MapScriptHeader:
-.MapTriggers:
-	db 0
 
-.MapCallbacks:
-	db 0
+.MapTriggers: db 0
+
+.MapCallbacks: db 0
+
+Route5CleanseTagSpeechHouse_MapEventHeader:
+
+.Warps: db 2
+	warp_def 7, 2, 4, ROUTE_5
+	warp_def 7, 3, 4, ROUTE_5
+
+.XYTriggers: db 0
+
+.Signposts: db 1
+	signpost 1, 7, SIGNPOST_JUMPSTD, difficultbookshelf
+
+.PersonEvents: db 2
+	person_event SPRITE_GRANNY, 5, 2, SPRITEMOVEDATA_SPINCLOCKWISE, 0, 0, -1, -1, (1 << 3) | PAL_OW_BROWN, PERSONTYPE_SCRIPT, 0, GrannyScript_0x18b634, -1
+	person_event SPRITE_TEACHER, 3, 5, SPRITEMOVEDATA_STANDING_LEFT, 0, 0, -1, -1, (1 << 3) | PAL_OW_RED, PERSONTYPE_COMMAND, jumptextfaceplayer, UnknownText_0x18b6de, -1
 
 GrannyScript_0x18b634:
 	faceplayer
@@ -23,14 +33,7 @@ UnknownScript_0x18b649:
 	writetext UnknownText_0x18b6a7
 	waitbutton
 UnknownScript_0x18b64d:
-	closetext
-	end
-
-TeacherScript_0x18b64f:
-	jumptextfaceplayer UnknownText_0x18b6de
-
-Route5CleanseTagSpeechBookshelf:
-	jumpstd difficultbookshelf
+	endtext
 
 UnknownText_0x18b655:
 	text "Eeyaaaah!"
@@ -59,21 +62,3 @@ UnknownText_0x18b6de:
 	para "I'm sorry that she"
 	line "startled you."
 	done
-
-Route5CleanseTagSpeechHouse_MapEventHeader:
-.Warps:
-	db 2
-	warp_def $7, $2, 4, ROUTE_5
-	warp_def $7, $3, 4, ROUTE_5
-
-.XYTriggers:
-	db 0
-
-.Signposts:
-	db 1
-	signpost 1, 7, SIGNPOST_READ, Route5CleanseTagSpeechBookshelf
-
-.PersonEvents:
-	db 2
-	person_event SPRITE_GRANNY, 5, 2, SPRITEMOVEDATA_SPINCLOCKWISE, 0, 0, -1, -1, (1 << 3) | PAL_OW_BROWN, PERSONTYPE_SCRIPT, 0, GrannyScript_0x18b634, -1
-	person_event SPRITE_TEACHER, 3, 5, SPRITEMOVEDATA_STANDING_LEFT, 0, 0, -1, -1, (1 << 3) | PAL_OW_RED, PERSONTYPE_SCRIPT, 0, TeacherScript_0x18b64f, -1

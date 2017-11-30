@@ -1,18 +1,29 @@
-const_value set 2
-	const CELADONUNIVERSITYWILLOWSOFFICE_WILLOW
-	const CELADONUNIVERSITYWILLOWSOFFICE_SCIENTIST
-
 CeladonUniversityWillowsOffice_MapScriptHeader:
-.MapTriggers:
-	db 0
 
-.MapCallbacks:
-	db 0
+.MapTriggers: db 0
 
-CeladonUniversityWillowsOfficeWillowScript:
-	jumptextfaceplayer .Text
+.MapCallbacks: db 0
 
-.Text:
+CeladonUniversityWillowsOffice_MapEventHeader:
+
+.Warps: db 2
+	warp_def 5, 3, 3, CELADON_UNIVERSITY_2F
+	warp_def 5, 4, 3, CELADON_UNIVERSITY_2F
+
+.XYTriggers: db 0
+
+.Signposts: db 5
+	signpost 0, 0, SIGNPOST_JUMPTEXT, CeladonUniversityWillowsOfficeBlackboardText
+	signpost 0, 1, SIGNPOST_JUMPTEXT, CeladonUniversityWillowsOfficeBlackboardText
+	signpost 1, 2, SIGNPOST_JUMPTEXT, CeladonUniversityWillowsOfficeBookshelf1Text
+	signpost 1, 3, SIGNPOST_JUMPTEXT, CeladonUniversityWillowsOfficeBookshelf2Text
+	signpost 2, 5, SIGNPOST_RIGHT, CeladonUniversityWillowsOfficeComputer
+
+.PersonEvents: db 2
+	person_event SPRITE_WILLOW, 2, 0, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, -1, 0, PERSONTYPE_COMMAND, jumptextfaceplayer, CeladonUniversityWillowsOfficeWillowText, -1
+	person_event SPRITE_SCIENTIST, 3, 4, SPRITEMOVEDATA_STANDING_RIGHT, 0, 0, -1, -1, (1 << 3) | PAL_OW_BLUE, PERSONTYPE_COMMAND, jumptextfaceplayer, CeladonUniversityWillowsOfficeScientistText, -1
+
+CeladonUniversityWillowsOfficeWillowText:
 	text "Hello there!"
 	line "I am Prof.Willow."
 
@@ -37,10 +48,7 @@ CeladonUniversityWillowsOfficeWillowScript:
 	line "get work done."
 	done
 
-CeladonUniversityWillowsOfficeScientistScript:
-	jumptextfaceplayer .Text
-
-.Text:
+CeladonUniversityWillowsOfficeScientistText:
 	text "I get to work as"
 	line "Prof.Willow's"
 	cont "aide!"
@@ -55,10 +63,7 @@ CeladonUniversityWillowsOfficeScientistScript:
 	cont "and one Vulpix!"
 	done
 
-CeladonUniversityWillowsOfficeBlackboard:
-	jumptext .Text
-
-.Text:
+CeladonUniversityWillowsOfficeBlackboardText:
 	text "Someone wrote “DO"
 	line "NOT ERASE” with"
 
@@ -67,10 +72,7 @@ CeladonUniversityWillowsOfficeBlackboard:
 	cont "scrawl…"
 	done
 
-CeladonUniversityWillowsOfficeBookshelf1:
-	jumptext .Text
-
-.Text:
+CeladonUniversityWillowsOfficeBookshelf1Text:
 	text "It's a book about"
 	line "ecological niches"
 
@@ -79,10 +81,7 @@ CeladonUniversityWillowsOfficeBookshelf1:
 	cont "environments."
 	done
 
-CeladonUniversityWillowsOfficeBookshelf2:
-	jumptext .Text
-
-.Text:
+CeladonUniversityWillowsOfficeBookshelf2Text:
 	text "It's a promotional"
 	line "flyer for the"
 	cont "Safari Zone."
@@ -93,32 +92,9 @@ CeladonUniversityWillowsOfficeBookshelf2:
 	done
 
 CeladonUniversityWillowsOfficeComputer:
-	jumptext .Text
+	thistext
 
-.Text:
 	text "“Pokemon Transfer"
 	line "System” is on the"
 	cont "screen."
 	done
-
-CeladonUniversityWillowsOffice_MapEventHeader:
-.Warps:
-	db 2
-	warp_def $5, $3, 3, CELADON_UNIVERSITY_2F
-	warp_def $5, $4, 3, CELADON_UNIVERSITY_2F
-
-.XYTriggers:
-	db 0
-
-.Signposts:
-	db 5
-	signpost 0, 0, SIGNPOST_READ, CeladonUniversityWillowsOfficeBlackboard
-	signpost 0, 1, SIGNPOST_READ, CeladonUniversityWillowsOfficeBlackboard
-	signpost 1, 2, SIGNPOST_READ, CeladonUniversityWillowsOfficeBookshelf1
-	signpost 1, 3, SIGNPOST_READ, CeladonUniversityWillowsOfficeBookshelf2
-	signpost 2, 5, SIGNPOST_RIGHT, CeladonUniversityWillowsOfficeComputer
-
-.PersonEvents:
-	db 2
-	person_event SPRITE_WILLOW, 2, 0, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, -1, 0, PERSONTYPE_SCRIPT, 0, CeladonUniversityWillowsOfficeWillowScript, -1
-	person_event SPRITE_SCIENTIST, 3, 4, SPRITEMOVEDATA_STANDING_RIGHT, 0, 0, -1, -1, (1 << 3) | PAL_OW_BLUE, PERSONTYPE_SCRIPT, 0, CeladonUniversityWillowsOfficeScientistScript, -1

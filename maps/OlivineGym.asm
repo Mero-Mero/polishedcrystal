@@ -1,15 +1,26 @@
-const_value set 2
-	const OLIVINEGYM_JASMINE
-	const OLIVINEGYM_GYM_GUY
-	const OLIVINEGYM_GENTLEMAN
-	const OLIVINEGYM_LASS
-
 OlivineGym_MapScriptHeader:
-.MapTriggers:
-	db 0
 
-.MapCallbacks:
-	db 0
+.MapTriggers: db 0
+
+.MapCallbacks: db 0
+
+OlivineGym_MapEventHeader:
+
+.Warps: db 2
+	warp_def 15, 4, 2, OLIVINE_CITY
+	warp_def 15, 5, 2, OLIVINE_CITY
+
+.XYTriggers: db 0
+
+.Signposts: db 2
+	signpost 13, 3, SIGNPOST_READ, OlivineGymStatue
+	signpost 13, 6, SIGNPOST_READ, OlivineGymStatue
+
+.PersonEvents: db 4
+	person_event SPRITE_JASMINE, 3, 5, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, -1, (1 << 3) | PAL_OW_RED, PERSONTYPE_SCRIPT, 0, JasmineScript_0x9c12f, EVENT_OLIVINE_GYM_JASMINE
+	person_event SPRITE_GYM_GUY, 13, 7, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, -1, (1 << 3) | PAL_OW_RED, PERSONTYPE_SCRIPT, 0, OlivineGymGuyScript, -1
+	person_event SPRITE_GENTLEMAN, 10, 3, SPRITEMOVEDATA_STANDING_RIGHT, 0, 0, -1, -1, (1 << 3) | PAL_OW_BLUE, PERSONTYPE_TRAINER, 2, OlivineGymGentlemanPreston, EVENT_OLIVINE_GYM_JASMINE
+	person_event SPRITE_LASS, 7, 6, SPRITEMOVEDATA_STANDING_LEFT, 0, 0, -1, -1, (1 << 3) | PAL_OW_BLUE, PERSONTYPE_TRAINER, 2, OlivineGymLassConnie, EVENT_OLIVINE_GYM_JASMINE
 
 JasmineScript_0x9c12f:
 	faceplayer
@@ -39,16 +50,10 @@ JasmineScript_0x9c12f:
 	buttonsound
 	verbosegivetmhm TM_IRON_TAIL
 	setevent EVENT_GOT_TM23_IRON_TAIL
-	writetext UnknownText_0x9c3a5
-	waitbutton
-	closetext
-	end
+	jumpopenedtext UnknownText_0x9c3a5
 
 UnknownScript_0x9c172:
-	writetext UnknownText_0x9c3d1
-	waitbutton
-	closetext
-	end
+	jumpopenedtext UnknownText_0x9c3d1
 
 OlivineGymGuyScript:
 	faceplayer
@@ -56,25 +61,13 @@ OlivineGymGuyScript:
 	iftrue .OlivineGymGuyWinScript
 	checkevent EVENT_JASMINE_RETURNED_TO_GYM
 	iffalse .OlivineGymGuyPreScript
-	opentext
-	writetext OlivineGymGuyText
-	waitbutton
-	closetext
-	end
+	jumptext OlivineGymGuyText
 
 .OlivineGymGuyWinScript:
-	opentext
-	writetext OlivineGymGuyWinText
-	waitbutton
-	closetext
-	end
+	jumptext OlivineGymGuyWinText
 
 .OlivineGymGuyPreScript:
-	opentext
-	writetext OlivineGymGuyPreText
-	waitbutton
-	closetext
-	end
+	jumptext OlivineGymGuyPreText
 
 OlivineGymLassConnie:
 	trainer EVENT_SPOKE_TO_LASS_CONNIE, 0, 0, OlivineGymLassConnieSeenText, 0, 0, OlivineGymLassConnieScript
@@ -85,16 +78,10 @@ OlivineGymLassConnieScript:
 	opentext
 	checkevent EVENT_BEAT_JASMINE
 	iftrue .BeatJasmine
-	writetext OlivineGymLassConnieSeenText
-	waitbutton
-	closetext
-	end
+	jumpopenedtext OlivineGymLassConnieSeenText
 
 .BeatJasmine
-	writetext OlivineGymLassConnieAfterText
-	waitbutton
-	closetext
-	end
+	jumpopenedtext OlivineGymLassConnieAfterText
 
 OlivineGymGentlemanPreston:
 	trainer EVENT_SPOKE_TO_GENTLEMAN_PRESTON, 0, 0, OlivineGymGentlemanPrestonSeenText, 0, 0, OlivineGymGentlemanPrestonScript
@@ -105,16 +92,10 @@ OlivineGymGentlemanPrestonScript:
 	opentext
 	checkevent EVENT_BEAT_JASMINE
 	iftrue .BeatJasmine
-	writetext OlivineGymGentlemanPrestonSeenText
-	waitbutton
-	closetext
-	end
+	jumpopenedtext OlivineGymGentlemanPrestonSeenText
 
 .BeatJasmine
-	writetext OlivineGymGentlemanPrestonAfterText
-	waitbutton
-	closetext
-	end
+	jumpopenedtext OlivineGymGentlemanPrestonAfterText
 
 OlivineGymStatue:
 	trainertotext JASMINE, 1, $1
@@ -281,24 +262,3 @@ OlivineGymLassConnieAfterText:
 	para "Have you been to"
 	line "Mahogany Town?"
 	done
-
-OlivineGym_MapEventHeader:
-.Warps:
-	db 2
-	warp_def $f, $4, 2, OLIVINE_CITY
-	warp_def $f, $5, 2, OLIVINE_CITY
-
-.XYTriggers:
-	db 0
-
-.Signposts:
-	db 2
-	signpost 13, 3, SIGNPOST_READ, OlivineGymStatue
-	signpost 13, 6, SIGNPOST_READ, OlivineGymStatue
-
-.PersonEvents:
-	db 4
-	person_event SPRITE_JASMINE, 3, 5, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, -1, (1 << 3) | PAL_OW_RED, PERSONTYPE_SCRIPT, 0, JasmineScript_0x9c12f, EVENT_OLIVINE_GYM_JASMINE
-	person_event SPRITE_GYM_GUY, 13, 7, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, -1, (1 << 3) | PAL_OW_RED, PERSONTYPE_SCRIPT, 0, OlivineGymGuyScript, -1
-	person_event SPRITE_GENTLEMAN, 10, 3, SPRITEMOVEDATA_STANDING_RIGHT, 0, 0, -1, -1, (1 << 3) | PAL_OW_BLUE, PERSONTYPE_TRAINER, 2, OlivineGymGentlemanPreston, EVENT_OLIVINE_GYM_JASMINE
-	person_event SPRITE_LASS, 7, 6, SPRITEMOVEDATA_STANDING_LEFT, 0, 0, -1, -1, (1 << 3) | PAL_OW_BLUE, PERSONTYPE_TRAINER, 2, OlivineGymLassConnie, EVENT_OLIVINE_GYM_JASMINE

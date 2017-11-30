@@ -1,5 +1,3 @@
-	db BELLOSSOM ; 182
-
 if DEF(FAITHFUL)
 	db  75,  80,  95,  50,  90, 100
 	;   hp  atk  def  spd  sat  sdf
@@ -8,7 +6,11 @@ else
 	;   hp  atk  def  spd  sat  sdf
 endc
 
+if DEF(FAITHFUL)
 	db GRASS, GRASS
+else
+	db GRASS, FAIRY
+endc
 	db 45 ; catch rate
 if DEF(FAITHFUL)
 	db 184 ; base exp
@@ -17,8 +19,7 @@ else
 endc
 	db SILVER_LEAF ; item 1
 	db NO_ITEM ; item 2
-	db FEMALE_50 ; gender
-	db 20 ; step cycles to hatch
+	dn FEMALE_50, 3 ; gender, step cycles to hatch
 	dn 7, 7 ; frontpic dimensions
 	db CHLOROPHYLL ; ability 1
 	db CHLOROPHYLL ; ability 2
@@ -35,5 +36,5 @@ endc
 	;         hp, atk, def, spd, sat, sdf
 
 	; tmhm
-	tmhm CURSE, TOXIC, SWORDS_DANCE, HIDDEN_POWER, SUNNY_DAY, HYPER_BEAM, PROTECT, GIGA_DRAIN, SAFEGUARD, SOLAR_BEAM, RETURN, DOUBLE_TEAM, SLUDGE_BOMB, FACADE, REST, ATTRACT, ENERGY_BALL, ENDURE, DAZZLINGLEAM, GIGA_IMPACT, FLASH, CUT, DOUBLE_EDGE, HYPER_VOICE, SEED_BOMB, SLEEP_TALK, SUBSTITUTE, SWAGGER
+	tmhm CURSE, TOXIC, HIDDEN_POWER, SUNNY_DAY, HYPER_BEAM, PROTECT, GIGA_DRAIN, SAFEGUARD, SOLAR_BEAM, RETURN, DOUBLE_TEAM, SLUDGE_BOMB, SUBSTITUTE, FACADE, REST, ATTRACT, DAZZLINGLEAM, ENERGY_BALL, ENDURE, DRAIN_PUNCH, GIGA_IMPACT, FLASH, SWORDS_DANCE, CUT, DOUBLE_EDGE, EARTH_POWER, HYPER_VOICE, SEED_BOMB, SLEEP_TALK, SWAGGER
 	; end

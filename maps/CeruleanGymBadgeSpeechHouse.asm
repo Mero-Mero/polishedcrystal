@@ -1,42 +1,45 @@
-const_value set 2
-	const CERULEANGYMBADGESPEECHHOUSE_GENTLEMAN
-
 CeruleanGymBadgeSpeechHouse_MapScriptHeader:
-.MapTriggers:
-	db 0
 
-.MapCallbacks:
-	db 0
+.MapTriggers: db 0
 
-GentlemanScript_0x188002:
-	jumptextfaceplayer UnknownText_0x188005
+.MapCallbacks: db 0
 
-UnknownText_0x188005:
-	text "We had a spate of"
-	line "burglaries a few"
-	cont "years back, so now"
+CeruleanGymBadgeSpeechHouse_MapEventHeader:
 
-	para "everyone's super-"
-	line "cautious."
-	cont "Who're you?"
+.Warps: db 2
+	warp_def 7, 2, 1, CERULEAN_CITY
+	warp_def 7, 3, 1, CERULEAN_CITY
 
-	para "You're collecting"
+.XYTriggers: db 0
+
+.Signposts: db 0
+
+.PersonEvents: db 1
+	person_event SPRITE_GENTLEMAN, 3, 2, SPRITEMOVEDATA_STANDING_RIGHT, 0, 0, -1, -1, (1 << 3) | PAL_OW_BROWN, PERSONTYPE_SCRIPT, 0, CeruleanGymBadgeSpeechHouseGentlemanScript, -1
+
+CeruleanGymBadgeSpeechHouseGentlemanScript:
+	checkevent EVENT_INTRODUCED_TO_CERULEAN_MAN
+	iftrue_jumptextfaceplayer .Text2
+	faceplayer
+	opentext
+	writetext .Text1
+	waitbutton
+	setevent EVENT_INTRODUCED_TO_CERULEAN_MAN
+	thisopenedtext
+
+.Text2:
+	text "You're collecting"
 	line "Kanto Gym Badges?"
 	cont "Good luck!"
 	done
 
-CeruleanGymBadgeSpeechHouse_MapEventHeader:
-.Warps:
-	db 2
-	warp_def $7, $2, 1, CERULEAN_CITY
-	warp_def $7, $3, 1, CERULEAN_CITY
+.Text1:
+	text "We had a spate of"
+	line "burglaries a few"
 
-.XYTriggers:
-	db 0
+	para "years back, so now"
+	line "everyone's super-"
+	cont "cautious."
 
-.Signposts:
-	db 0
-
-.PersonEvents:
-	db 1
-	person_event SPRITE_GENTLEMAN, 3, 2, SPRITEMOVEDATA_STANDING_RIGHT, 0, 0, -1, -1, (1 << 3) | PAL_OW_BROWN, PERSONTYPE_SCRIPT, 0, GentlemanScript_0x188002, -1
+	para "Who are you?"
+	done

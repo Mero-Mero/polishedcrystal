@@ -1,44 +1,30 @@
-const_value set 2
-	const CINNABARPOKECENTER1F_NURSE
-	const CINNABARPOKECENTER1F_COOLTRAINER_F
-	const CINNABARPOKECENTER1F_FISHER
-
 CinnabarPokeCenter1F_MapScriptHeader:
-.MapTriggers:
-	db 0
 
-.MapCallbacks:
-	db 0
+.MapTriggers: db 0
 
-NurseScript_0x1ab32c:
-	jumpstd pokecenternurse
+.MapCallbacks: db 0
 
-CooltrainerFScript_0x1ab32f:
-	jumptextfaceplayer UnknownText_0x1ab335
+CinnabarPokeCenter1F_MapEventHeader:
 
-FisherScript_0x1ab332:
-	jumptextfaceplayer UnknownText_0x1ab37f
+.Warps: db 3
+	warp_def 7, 5, 1, CINNABAR_ISLAND
+	warp_def 7, 6, 1, CINNABAR_ISLAND
+	warp_def 7, 0, 1, POKECENTER_2F
+
+.XYTriggers: db 0
+
+.Signposts: db 1
+	signpost 1, 10, SIGNPOST_READ, PokemonJournalBlaineScript
+
+.PersonEvents: db 3
+	pc_nurse_event 1, 5
+	person_event SPRITE_COOLTRAINER_F, 5, 2, SPRITEMOVEDATA_WALK_LEFT_RIGHT, 0, 2, -1, -1, (1 << 3) | PAL_OW_RED, PERSONTYPE_COMMAND, jumptextfaceplayer, CinnabarPokeCenter1FCooltrainerfText, -1
+	person_event SPRITE_FISHER, 4, 9, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, -1, (1 << 3) | PAL_OW_GREEN, PERSONTYPE_COMMAND, jumptextfaceplayer, CinnabarPokeCenter1FFisherText, -1
 
 PokemonJournalBlaineScript:
 	setflag ENGINE_READ_BLAINE_JOURNAL
-	jumptext PokemonJournalBlaineText
+	thistext
 
-UnknownText_0x1ab335:
-	text "Cinnabar Gym's"
-	line "Blaine apparently"
-
-	para "lives alone in the"
-	line "Seafoam Islands"
-	cont "cave…"
-	done
-
-UnknownText_0x1ab37f:
-	text "It's been a year"
-	line "since the volcano"
-	cont "erupted."
-	done
-
-PokemonJournalBlaineText:
 	text "#mon Journal"
 
 	para "Special Feature:"
@@ -52,22 +38,17 @@ PokemonJournalBlaineText:
 	cont "riddles."
 	done
 
-CinnabarPokeCenter1F_MapEventHeader:
-.Warps:
-	db 3
-	warp_def $7, $5, 1, CINNABAR_ISLAND
-	warp_def $7, $6, 1, CINNABAR_ISLAND
-	warp_def $7, $0, 1, POKECENTER_2F
+CinnabarPokeCenter1FCooltrainerfText:
+	text "Cinnabar Gym's"
+	line "Blaine apparently"
 
-.XYTriggers:
-	db 0
+	para "lives alone in the"
+	line "Seafoam Islands"
+	cont "cave…"
+	done
 
-.Signposts:
-	db 1
-	signpost 1, 10, SIGNPOST_READ, PokemonJournalBlaineScript
-
-.PersonEvents:
-	db 3
-	person_event SPRITE_NURSE, 1, 5, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, -1, 0, PERSONTYPE_SCRIPT, 0, NurseScript_0x1ab32c, -1
-	person_event SPRITE_COOLTRAINER_F, 5, 2, SPRITEMOVEDATA_WALK_LEFT_RIGHT, 0, 2, -1, -1, (1 << 3) | PAL_OW_RED, PERSONTYPE_SCRIPT, 0, CooltrainerFScript_0x1ab32f, -1
-	person_event SPRITE_FISHER, 4, 9, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, -1, (1 << 3) | PAL_OW_GREEN, PERSONTYPE_SCRIPT, 0, FisherScript_0x1ab332, -1
+CinnabarPokeCenter1FFisherText:
+	text "It's been a year"
+	line "since the volcano"
+	cont "erupted."
+	done

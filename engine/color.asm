@@ -22,8 +22,7 @@ rept 4
 	call LoadHLPaletteIntoDE
 endr
 	call InitPartyMenuOBPals
-	call WipeAttrMap
-	ret
+	jp WipeAttrMap
 
 ApplyHPBarPals:
 	ld a, [wWhichHPBar]
@@ -36,11 +35,11 @@ ApplyHPBarPals:
 	ret
 
 .Enemy:
-	ld de, BGPals + 2 palettes + 2
+	ld de, BGPals palette PAL_BATTLE_BG_PLAYER_HP + 2
 	jr .okay
 
 .Player:
-	ld de, BGPals + 3 palettes + 2
+	ld de, BGPals palette PAL_BATTLE_BG_ENEMY_HP + 2
 
 .okay
 	ld l, c
@@ -79,13 +78,12 @@ LoadPlayerStatusIconPalette:
 	ld de, BattleMonStatus
 	farcall GetStatusConditionIndex
 	ld hl, StatusIconPals
-	ld a, b
 	ld c, a
 	ld b, 0
 rept 2
 	add hl, bc
 endr
-	ld de, UnknBGPals + 5 palettes + 2
+	ld de, UnknBGPals palette PAL_BATTLE_BG_STATUS + 2
 	ld bc, 2
 	ld a, $5
 	jp FarCopyWRAM
@@ -95,13 +93,12 @@ LoadEnemyStatusIconPalette:
 	ld de, EnemyMonStatus
 	farcall GetStatusConditionIndex
 	ld hl, StatusIconPals
-	ld a, b
 	ld c, a
 	ld b, 0
 rept 2
 	add hl, bc
 endr
-	ld de, UnknBGPals + 5 palettes + 4
+	ld de, UnknBGPals palette PAL_BATTLE_BG_STATUS + 4
 	ld bc, 2
 	ld a, $5
 	jp FarCopyWRAM
@@ -114,7 +111,7 @@ LoadBattleCategoryAndTypePals:
 rept 4
 	add hl, bc
 endr
-	ld de, UnknBGPals + 6 palettes + 2
+	ld de, UnknBGPals palette PAL_BATTLE_BG_TYPE_CAT + 2
 	ld bc, 4
 	ld a, $5
 	call FarCopyWRAM
@@ -126,20 +123,20 @@ endr
 rept 2
 	add hl, bc
 endr
-	ld de, UnknBGPals + 6 palettes + 6
+	ld de, UnknBGPals palette PAL_BATTLE_BG_TYPE_CAT + 6
 	ld bc, 2
 	ld a, $5
 	jp FarCopyWRAM
 
 LoadItemIconPalette:
 	ld a, [CurSpecies]
-	ld hl, ItemIconPalettes
-	ld c, a
-	ld b, 0
-rept 4
+	ld bc, ItemIconPalettes
+	ld l, a
+	ld h, 0
+	add hl, hl
+	add hl, hl
 	add hl, bc
-endr
-	ld de, UnknBGPals + 4 palettes + 2
+	ld de, UnknBGPals palette 4 + 2
 	ld bc, 4
 	ld a, $5
 	call FarCopyWRAM
@@ -164,7 +161,7 @@ LoadTMHMIconPalette:
 rept 4
 	add hl, bc
 endr
-	ld de, UnknBGPals + 4 palettes + 2
+	ld de, UnknBGPals palette 4 + 2
 	ld bc, 4
 	ld a, $5
 	call FarCopyWRAM
@@ -175,7 +172,7 @@ endr
 
 .cancel:
 	ld hl, TMHMCancelPalette
-	ld de, UnknBGPals + 4 palettes + 2
+	ld de, UnknBGPals palette 4 + 2
 	ld bc, 6
 	ld a, $5
 	jp FarCopyWRAM
@@ -190,11 +187,11 @@ LoadStatsScreenPals:
 	ld a, $5
 	ld [rSVBK], a
 	ld a, [hli]
-	ld [UnknBGPals], a
-	ld [UnknBGPals + 2 palettes], a
+	ld [UnknBGPals palette 0], a
+	ld [UnknBGPals palette 2], a
 	ld a, [hl]
-	ld [UnknBGPals + 1], a
-	ld [UnknBGPals + 2 palettes + 1], a
+	ld [UnknBGPals palette 0 + 1], a
+	ld [UnknBGPals palette 2 + 1], a
 	pop af
 	ld [rSVBK], a
 	call ApplyPals
@@ -215,8 +212,7 @@ endr
 	call FarCopyWRAM
 	call ApplyPals
 	call WipeAttrMap
-	call ApplyAttrMap
-	ret
+	jp ApplyAttrMap
 
 LoadHLPaletteIntoDE:
 	ld a, [rSVBK]
@@ -240,12 +236,21 @@ LoadPalette_White_Col1_Col2_Black:
 	ld a, $5
 	ld [rSVBK], a
 
+if !DEF(MONOCHROME)
 	ld a, (palred 31 + palgreen 31 + palblue 31) % $100
 	ld [de], a
 	inc de
 	ld a, (palred 31 + palgreen 31 + palblue 31) / $100
 	ld [de], a
 	inc de
+else
+	ld a, PAL_MONOCHROME_WHITE % $100
+	ld [de], a
+	inc de
+	ld a, PAL_MONOCHROME_WHITE / $100
+	ld [de], a
+	inc de
+endc
 
 	ld c, 2 * 2
 .loop
@@ -255,11 +260,20 @@ LoadPalette_White_Col1_Col2_Black:
 	dec c
 	jr nz, .loop
 
+if !DEF(MONOCHROME)
 	xor a ; RGB 00, 00, 00
 rept 2
 	ld [de], a
 	inc de
 endr
+else
+	ld a, PAL_MONOCHROME_BLACK % $100
+	ld [de], a
+	inc de
+	ld a, PAL_MONOCHROME_BLACK / $100
+	ld [de], a
+	inc de
+endc
 
 	pop af
 	ld [rSVBK], a
@@ -295,14 +309,29 @@ ResetBGPals:
 	ld hl, UnknBGPals
 	ld c, 8
 .loop
-	ld a, $ff
+if !DEF(MONOCHROME)
+	ld a, $ff ; RGB 31, 31, 31
 rept 4
 	ld [hli], a
 endr
-	xor a
+	xor a ; RGB 00, 00, 00
 rept 4
 	ld [hli], a
 endr
+else
+rept 2
+	ld a, PAL_MONOCHROME_WHITE % $100
+	ld [hli], a
+	ld a, PAL_MONOCHROME_WHITE / $100
+	ld [hli], a
+endr
+rept 2
+	ld a, PAL_MONOCHROME_BLACK % $100
+	ld [hli], a
+	ld a, PAL_MONOCHROME_BLACK / $100
+	ld [hli], a
+endr
+endc
 	dec c
 	jr nz, .loop
 
@@ -509,7 +538,7 @@ LoadPokemonPalette:
 	call GetMonPalettePointer
 	; load palette in BG 7
 	ld a, $5
-	ld de, UnknBGPals + 7 palettes + 2
+	ld de, UnknBGPals palette 7 + 2
 	ld bc, 4
 	jp FarCopyWRAM
 
@@ -526,7 +555,7 @@ LoadPartyMonPalette:
 	call GetMonNormalOrShinyPalettePointer
 	; load palette in BG 7
 	ld a, $5
-	ld de, UnknBGPals + 7 palettes + 2
+	ld de, UnknBGPals palette 7 + 2
 	ld bc, 4
 	call FarCopyWRAM
 	; hl = DVs
@@ -538,7 +567,7 @@ LoadPartyMonPalette:
 	ld b, a
 	; vary colors by DVs
 	call CopyDVsToColorVaryDVs
-	ld hl, UnknBGPals + 7 palettes + 2
+	ld hl, UnknBGPals palette 7 + 2
 	jp VaryColorsByDVs
 
 InitCGBPals::
@@ -554,20 +583,34 @@ InitCGBPals::
 	ld [rBGPI], a
 	ld c, 4 * 8
 .bgpals_loop
+if !DEF(MONOCHROME)
 	ld a, $7fff % $100
 	ld [rBGPD], a
 	ld a, $7fff / $100
 	ld [rBGPD], a
+else
+	ld a, PAL_MONOCHROME_WHITE % $100
+	ld [rBGPD], a
+	ld a, PAL_MONOCHROME_WHITE / $100
+	ld [rBGPD], a
+endc
 	dec c
 	jr nz, .bgpals_loop
 	ld a, $80
 	ld [rOBPI], a
 	ld c, 4 * 8
 .obpals_loop
+if !DEF(MONOCHROME)
 	ld a, $7fff % $100
 	ld [rOBPD], a
 	ld a, $7fff / $100
 	ld [rOBPD], a
+else
+	ld a, PAL_MONOCHROME_WHITE % $100
+	ld [rOBPD], a
+	ld a, PAL_MONOCHROME_WHITE / $100
+	ld [rOBPD], a
+endc
 	dec c
 	jr nz, .obpals_loop
 	ld a, [rSVBK]
@@ -585,10 +628,17 @@ InitCGBPals::
 .LoadWhitePals:
 	ld c, 4 * 16
 .loop
+if !DEF(MONOCHROME)
 	ld a, $7fff % $100
 	ld [hli], a
 	ld a, $7fff / $100
 	ld [hli], a
+else
+	ld a, PAL_MONOCHROME_WHITE % $100
+	ld [hli], a
+	ld a, PAL_MONOCHROME_WHITE / $100
+	ld [hli], a
+endc
 	dec c
 	jr nz, .loop
 	ret
@@ -686,11 +736,29 @@ LoadMapPals:
 	call AddNTimes
 	ld de, UnknOBPals
 	ld bc, 8 palettes
-	ld a, $5 ; BANK(UnknOBPals)
+	ld a, BANK(UnknOBPals)
 	call FarCopyWRAM
 
 	farcall LoadSpecialMapOBPalette
 
+	ld a, [wTileset]
+	cp TILESET_FOREST ; for Yellow Forest
+	ret z
+
+	; overcast maps have their own roof color table
+	call GetOvercastIndex
+	and a
+	jr z, .not_overcast
+	dec a
+	ld l, a
+	ld h, 0
+rept 3
+	add hl, hl
+endr
+	ld de, .OvercastRoofPals
+	jr .get_roof_color
+
+.not_overcast
 	ld a, [wPermission]
 	cp TOWN
 	jr z, .outside
@@ -703,9 +771,10 @@ LoadMapPals:
 	ld l, a
 	ld h, 0
 rept 3
-	add hl,hl
+	add hl, hl
 endr
 	ld de, .RoofPals
+.get_roof_color
 	add hl, de
 	ld a, [TimeOfDayPal]
 	and 3
@@ -715,12 +784,10 @@ rept 4
 	inc hl
 endr
 .morn_day
-	ld de, UnknBGPals + 6 palettes + 2
+	ld de, UnknBGPals palette 6 + 2
 	ld bc, 4
 	ld a, $5
-	call FarCopyWRAM
-
-	ret
+	jp FarCopyWRAM
 
 .TilesetColorsPointers:
 	dw .OutdoorColors ; unused
@@ -753,13 +820,150 @@ endr
 	db $18, $19, $1a, $1b, $1c, $1d, $1e, $1f ; dark
 
 .TilesetBGPalette:
-INCLUDE "tilesets/bg.pal"
+if DEF(HGSS)
+INCLUDE "tilesets/palettes/hgss/bg.pal"
+else
+if !DEF(MONOCHROME)
+INCLUDE "tilesets/palettes/bg.pal"
+else
+rept 7
+	MONOCHROME_RGB_FOUR
+endr
+	RGB_MONOCHROME_WHITE
+	RGB_MONOCHROME_WHITE
+	RGB_MONOCHROME_DARK
+	RGB_MONOCHROME_BLACK
+rept 7
+	MONOCHROME_RGB_FOUR
+endr
+	RGB_MONOCHROME_WHITE
+	RGB_MONOCHROME_WHITE
+	RGB_MONOCHROME_DARK
+	RGB_MONOCHROME_BLACK
+rept 4
+	MONOCHROME_RGB_FOUR_NIGHT
+endr
+	RGB_MONOCHROME_WHITE
+	RGB_MONOCHROME_DARK
+	RGB_MONOCHROME_DARK
+	RGB_MONOCHROME_BLACK
+rept 2
+	MONOCHROME_RGB_FOUR_NIGHT
+endr
+	RGB_MONOCHROME_WHITE
+	RGB_MONOCHROME_WHITE
+	RGB_MONOCHROME_DARK
+	RGB_MONOCHROME_BLACK
+rept 4
+	RGB_MONOCHROME_BLACK
+	RGB_MONOCHROME_BLACK
+	RGB_MONOCHROME_BLACK
+	RGB_MONOCHROME_BLACK
+endr
+	RGB_MONOCHROME_WHITE
+	RGB_MONOCHROME_BLACK
+	RGB_MONOCHROME_BLACK
+	RGB_MONOCHROME_BLACK
+rept 2
+	RGB_MONOCHROME_BLACK
+	RGB_MONOCHROME_BLACK
+	RGB_MONOCHROME_BLACK
+	RGB_MONOCHROME_BLACK
+endr
+	RGB_MONOCHROME_WHITE
+	RGB_MONOCHROME_WHITE
+	RGB_MONOCHROME_DARK
+	RGB_MONOCHROME_BLACK
+rept 7
+	MONOCHROME_RGB_FOUR
+endr
+	RGB_MONOCHROME_WHITE
+	RGB_MONOCHROME_WHITE
+	RGB_MONOCHROME_DARK
+	RGB_MONOCHROME_BLACK
+	MONOCHROME_RGB_FOUR
+	MONOCHROME_RGB_FOUR
+	MONOCHROME_RGB_FOUR_NIGHT
+endc
+endc
 
 .MapObjectPals:
-INCLUDE "tilesets/ob.pal"
+if DEF(HGSS)
+INCLUDE "tilesets/palettes/hgss/ob.pal"
+else
+if !DEF(MONOCHROME)
+INCLUDE "tilesets/palettes/ob.pal"
+else
+rept 5
+	MONOCHROME_RGB_FOUR_OW
+endr
+	RGB_MONOCHROME_WHITE
+	RGB_MONOCHROME_WHITE
+	RGB_MONOCHROME_DARK
+	RGB_MONOCHROME_BLACK
+	MONOCHROME_RGB_FOUR
+	MONOCHROME_RGB_FOUR
+rept 5
+	MONOCHROME_RGB_FOUR_OW
+endr
+	RGB_MONOCHROME_WHITE
+	RGB_MONOCHROME_WHITE
+	RGB_MONOCHROME_DARK
+	RGB_MONOCHROME_BLACK
+	MONOCHROME_RGB_FOUR
+	MONOCHROME_RGB_FOUR
+rept 5
+	MONOCHROME_RGB_FOUR_OW_NIGHT
+endr
+	RGB_MONOCHROME_WHITE
+	RGB_MONOCHROME_WHITE
+	RGB_MONOCHROME_DARK
+	RGB_MONOCHROME_BLACK
+	MONOCHROME_RGB_FOUR
+	MONOCHROME_RGB_FOUR
+rept 5
+	MONOCHROME_RGB_FOUR_OW_DARKNESS
+endr
+	RGB_MONOCHROME_WHITE
+	RGB_MONOCHROME_WHITE
+	RGB_MONOCHROME_DARK
+	RGB_MONOCHROME_BLACK
+rept 2
+	RGB_MONOCHROME_BLACK
+	RGB_MONOCHROME_BLACK
+	RGB_MONOCHROME_BLACK
+	RGB_MONOCHROME_BLACK
+endr
+endc
+endc
 
 .RoofPals:
-INCLUDE "tilesets/roof.pal"
+if DEF(HGSS)
+INCLUDE "tilesets/palettes/hgss/roof.pal"
+else
+if !DEF(MONOCHROME)
+INCLUDE "tilesets/palettes/roof.pal"
+else
+rept 36
+	MONOCHROME_RGB_TWO
+	MONOCHROME_RGB_TWO_NIGHT
+endr
+endc
+endc
+
+.OvercastRoofPals:
+if DEF(HGSS)
+INCLUDE "tilesets/palettes/hgss/roof_overcast.pal"
+else
+if !DEF(MONOCHROME)
+INCLUDE "tilesets/palettes/roof_overcast.pal"
+else
+rept 3
+	MONOCHROME_RGB_TWO
+	MONOCHROME_RGB_TWO_NIGHT
+endr
+endc
+endc
 
 
 INCLUDE "gfx/pics/palette_pointers.asm"

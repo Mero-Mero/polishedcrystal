@@ -1,146 +1,111 @@
-const_value set 2
-	const ROUTE41_SWIMMER_GUY1
-	const ROUTE41_SWIMMER_GUY2
-	const ROUTE41_SWIMMER_GUY3
-	const ROUTE41_SWIMMER_GUY4
-	const ROUTE41_SWIMMER_GUY5
-	const ROUTE41_SWIMMER_GUY6
-	const ROUTE41_SWIMMER_GIRL1
-	const ROUTE41_SWIMMER_GIRL2
-	const ROUTE41_SWIMMER_GIRL3
-	const ROUTE41_SWIMMER_GIRL4
-	const ROUTE41_SWIMMER_GIRL5
-
 Route41_MapScriptHeader:
-.MapTriggers:
-	db 0
 
-.MapCallbacks:
-	db 0
+.MapTriggers: db 0
+
+.MapCallbacks: db 0
+
+Route41_MapEventHeader:
+
+.Warps: db 4
+	warp_def 17, 13, 1, WHIRL_ISLAND_NW
+	warp_def 19, 37, 1, WHIRL_ISLAND_NE
+	warp_def 37, 13, 1, WHIRL_ISLAND_SW
+	warp_def 45, 37, 1, WHIRL_ISLAND_SE
+
+.XYTriggers: db 0
+
+.Signposts: db 1
+	signpost 35, 9, SIGNPOST_ITEM + MAX_ETHER, EVENT_ROUTE_41_HIDDEN_MAX_ETHER
+
+.PersonEvents: db 11
+	person_event SPRITE_SWIMMER_GUY, 6, 32, SPRITEMOVEDATA_SPINRANDOM_FAST, 0, 0, -1, -1, (1 << 3) | PAL_OW_RED, PERSONTYPE_TRAINER, 3, TrainerSwimmermCharlie, -1
+	person_event SPRITE_SWIMMER_GUY, 8, 46, SPRITEMOVEDATA_SPINRANDOM_FAST, 0, 0, -1, -1, (1 << 3) | PAL_OW_RED, PERSONTYPE_TRAINER, 3, TrainerSwimmermGeorge, -1
+	person_event SPRITE_SWIMMER_GUY, 26, 20, SPRITEMOVEDATA_SPINCOUNTERCLOCKWISE, 0, 0, -1, -1, (1 << 3) | PAL_OW_RED, PERSONTYPE_TRAINER, 3, TrainerSwimmermBerke, -1
+	person_event SPRITE_SWIMMER_GUY, 30, 32, SPRITEMOVEDATA_SPINCLOCKWISE, 0, 0, -1, -1, (1 << 3) | PAL_OW_RED, PERSONTYPE_TRAINER, 3, TrainerSwimmermKirk, -1
+	person_event SPRITE_SWIMMER_GUY, 46, 19, SPRITEMOVEDATA_SPINCOUNTERCLOCKWISE, 0, 0, -1, -1, (1 << 3) | PAL_OW_RED, PERSONTYPE_TRAINER, 3, TrainerSwimmermMathew, -1
+	person_event SPRITE_SWIMMER_GUY, 24, 57, SPRITEMOVEDATA_SPINRANDOM_FAST, 0, 0, -1, -1, (1 << 3) | PAL_OW_RED, PERSONTYPE_TRAINER, 3, TrainerSwimmermLewis, -1
+	person_event SPRITE_SWIMMER_GIRL, 4, 17, SPRITEMOVEDATA_SPINRANDOM_FAST, 0, 0, -1, -1, (1 << 3) | PAL_OW_GREEN, PERSONTYPE_TRAINER, 3, TrainerSwimmerfKaylee, -1
+	person_event SPRITE_SWIMMER_GIRL, 19, 23, SPRITEMOVEDATA_STANDING_UP, 0, 0, -1, -1, (1 << 3) | PAL_OW_GREEN, PERSONTYPE_TRAINER, 3, TrainerSwimmerfSusie, -1
+	person_event SPRITE_SWIMMER_GIRL, 34, 27, SPRITEMOVEDATA_STANDING_LEFT, 0, 0, -1, -1, (1 << 3) | PAL_OW_GREEN, PERSONTYPE_TRAINER, 3, TrainerSwimmerfDenise, -1
+	person_event SPRITE_SWIMMER_GIRL, 28, 44, SPRITEMOVEDATA_STANDING_RIGHT, 0, 0, -1, -1, (1 << 3) | PAL_OW_GREEN, PERSONTYPE_TRAINER, 4, TrainerSwimmerfKara, -1
+	person_event SPRITE_SWIMMER_GIRL, 50, 9, SPRITEMOVEDATA_SPINRANDOM_FAST, 0, 0, -1, -1, (1 << 3) | PAL_OW_GREEN, PERSONTYPE_TRAINER, 2, TrainerSwimmerfWendy, -1
 
 TrainerSwimmerfKaylee:
 	trainer EVENT_BEAT_SWIMMERF_KAYLEE, SWIMMERF, KAYLEE, SwimmerfKayleeSeenText, SwimmerfKayleeBeatenText, 0, SwimmerfKayleeScript
 
 SwimmerfKayleeScript:
 	end_if_just_battled
-	opentext
-	writetext UnknownText_0x1a6c7f
-	waitbutton
-	closetext
-	end
+	jumptextfaceplayer UnknownText_0x1a6c7f
 
 TrainerSwimmerfSusie:
 	trainer EVENT_BEAT_SWIMMERF_SUSIE, SWIMMERF, SUSIE, SwimmerfSusieSeenText, SwimmerfSusieBeatenText, 0, SwimmerfSusieScript
 
 SwimmerfSusieScript:
 	end_if_just_battled
-	opentext
-	writetext UnknownText_0x1a6d11
-	waitbutton
-	closetext
-	end
+	jumptextfaceplayer UnknownText_0x1a6d11
 
 TrainerSwimmerfDenise:
 	trainer EVENT_BEAT_SWIMMERF_DENISE, SWIMMERF, DENISE, SwimmerfDeniseSeenText, SwimmerfDeniseBeatenText, 0, SwimmerfDeniseScript
 
 SwimmerfDeniseScript:
 	end_if_just_battled
-	opentext
-	writetext UnknownText_0x1a6d79
-	waitbutton
-	closetext
-	end
+	jumptextfaceplayer UnknownText_0x1a6d79
 
 TrainerSwimmerfKara:
 	trainer EVENT_BEAT_SWIMMERF_KARA, SWIMMERF, KARA, SwimmerfKaraSeenText, SwimmerfKaraBeatenText, 0, SwimmerfKaraScript
 
 SwimmerfKaraScript:
 	end_if_just_battled
-	opentext
-	writetext UnknownText_0x1a6e58
-	waitbutton
-	closetext
-	end
+	jumptextfaceplayer UnknownText_0x1a6e58
 
 TrainerSwimmerfWendy:
 	trainer EVENT_BEAT_SWIMMERF_WENDY, SWIMMERF, WENDY, SwimmerfWendySeenText, SwimmerfWendyBeatenText, 0, SwimmerfWendyScript
 
 SwimmerfWendyScript:
 	end_if_just_battled
-	opentext
-	writetext UnknownText_0x1a6ec2
-	waitbutton
-	closetext
-	end
+	jumptextfaceplayer UnknownText_0x1a6ec2
 
 TrainerSwimmermCharlie:
 	trainer EVENT_BEAT_SWIMMERM_CHARLIE, SWIMMERM, CHARLIE, SwimmermCharlieSeenText, SwimmermCharlieBeatenText, 0, SwimmermCharlieScript
 
 SwimmermCharlieScript:
 	end_if_just_battled
-	opentext
-	writetext UnknownText_0x1a696e
-	waitbutton
-	closetext
-	end
+	jumptextfaceplayer UnknownText_0x1a696e
 
 TrainerSwimmermGeorge:
 	trainer EVENT_BEAT_SWIMMERM_GEORGE, SWIMMERM, GEORGE, SwimmermGeorgeSeenText, SwimmermGeorgeBeatenText, 0, SwimmermGeorgeScript
 
 SwimmermGeorgeScript:
 	end_if_just_battled
-	opentext
-	writetext UnknownText_0x1a69d4
-	waitbutton
-	closetext
-	end
+	jumptextfaceplayer UnknownText_0x1a69d4
 
 TrainerSwimmermBerke:
 	trainer EVENT_BEAT_SWIMMERM_BERKE, SWIMMERM, BERKE, SwimmermBerkeSeenText, SwimmermBerkeBeatenText, 0, SwimmermBerkeScript
 
 SwimmermBerkeScript:
 	end_if_just_battled
-	opentext
-	writetext UnknownText_0x1a6aa4
-	waitbutton
-	closetext
-	end
+	jumptextfaceplayer UnknownText_0x1a6aa4
 
 TrainerSwimmermKirk:
 	trainer EVENT_BEAT_SWIMMERM_KIRK, SWIMMERM, KIRK, SwimmermKirkSeenText, SwimmermKirkBeatenText, 0, SwimmermKirkScript
 
 SwimmermKirkScript:
 	end_if_just_battled
-	opentext
-	writetext UnknownText_0x1a6b6c
-	waitbutton
-	closetext
-	end
+	jumptextfaceplayer UnknownText_0x1a6b6c
 
 TrainerSwimmermMathew:
 	trainer EVENT_BEAT_SWIMMERM_MATHEW, SWIMMERM, MATHEW, SwimmermMathewSeenText, SwimmermMathewBeatenText, 0, SwimmermMathewScript
 
 SwimmermMathewScript:
 	end_if_just_battled
-	opentext
-	writetext UnknownText_0x1a6bed
-	waitbutton
-	closetext
-	end
+	jumptextfaceplayer UnknownText_0x1a6bed
 
 TrainerSwimmermLewis:
 	trainer EVENT_BEAT_SWIMMERM_LEWIS, SWIMMERM, LEWIS, SwimmermLewisSeenText, SwimmermLewisBeatenText, 0, SwimmermLewisScript
 
 SwimmermLewisScript:
 	end_if_just_battled
-	opentext
-	writetext SwimmermLewisAfterText
-	waitbutton
-	closetext
-	end
-
-Route41HiddenMaxEther:
-	dwb EVENT_ROUTE_41_HIDDEN_MAX_ETHER, MAX_ETHER
+	jumptextfaceplayer SwimmermLewisAfterText
 
 SwimmermCharlieSeenText:
 	text "The water's warm"
@@ -366,32 +331,3 @@ UnknownText_0x1a6ec2:
 	para "It's so beautiful,"
 	line "it's scary."
 	done
-
-Route41_MapEventHeader:
-.Warps:
-	db 4
-	warp_def $11, $d, 1, WHIRL_ISLAND_NW
-	warp_def $13, $25, 1, WHIRL_ISLAND_NE
-	warp_def $25, $d, 1, WHIRL_ISLAND_SW
-	warp_def $2d, $25, 1, WHIRL_ISLAND_SE
-
-.XYTriggers:
-	db 0
-
-.Signposts:
-	db 1
-	signpost 35, 9, SIGNPOST_ITEM, Route41HiddenMaxEther
-
-.PersonEvents:
-	db 11
-	person_event SPRITE_SWIMMER_GUY, 6, 32, SPRITEMOVEDATA_SPINRANDOM_FAST, 0, 0, -1, -1, (1 << 3) | PAL_OW_RED, PERSONTYPE_TRAINER, 3, TrainerSwimmermCharlie, -1
-	person_event SPRITE_SWIMMER_GUY, 8, 46, SPRITEMOVEDATA_SPINRANDOM_FAST, 0, 0, -1, -1, (1 << 3) | PAL_OW_RED, PERSONTYPE_TRAINER, 3, TrainerSwimmermGeorge, -1
-	person_event SPRITE_SWIMMER_GUY, 26, 20, SPRITEMOVEDATA_SPINCOUNTERCLOCKWISE, 0, 0, -1, -1, (1 << 3) | PAL_OW_RED, PERSONTYPE_TRAINER, 3, TrainerSwimmermBerke, -1
-	person_event SPRITE_SWIMMER_GUY, 30, 32, SPRITEMOVEDATA_SPINCLOCKWISE, 0, 0, -1, -1, (1 << 3) | PAL_OW_RED, PERSONTYPE_TRAINER, 3, TrainerSwimmermKirk, -1
-	person_event SPRITE_SWIMMER_GUY, 46, 19, SPRITEMOVEDATA_SPINCOUNTERCLOCKWISE, 0, 0, -1, -1, (1 << 3) | PAL_OW_RED, PERSONTYPE_TRAINER, 3, TrainerSwimmermMathew, -1
-	person_event SPRITE_SWIMMER_GUY, 24, 57, SPRITEMOVEDATA_SPINRANDOM_FAST, 0, 0, -1, -1, (1 << 3) | PAL_OW_RED, PERSONTYPE_TRAINER, 3, TrainerSwimmermLewis, -1
-	person_event SPRITE_SWIMMER_GIRL, 4, 17, SPRITEMOVEDATA_SPINRANDOM_FAST, 0, 0, -1, -1, (1 << 3) | PAL_OW_GREEN, PERSONTYPE_TRAINER, 3, TrainerSwimmerfKaylee, -1
-	person_event SPRITE_SWIMMER_GIRL, 19, 23, SPRITEMOVEDATA_STANDING_UP, 0, 0, -1, -1, (1 << 3) | PAL_OW_GREEN, PERSONTYPE_TRAINER, 3, TrainerSwimmerfSusie, -1
-	person_event SPRITE_SWIMMER_GIRL, 34, 27, SPRITEMOVEDATA_STANDING_LEFT, 0, 0, -1, -1, (1 << 3) | PAL_OW_GREEN, PERSONTYPE_TRAINER, 3, TrainerSwimmerfDenise, -1
-	person_event SPRITE_SWIMMER_GIRL, 28, 44, SPRITEMOVEDATA_STANDING_RIGHT, 0, 0, -1, -1, (1 << 3) | PAL_OW_GREEN, PERSONTYPE_TRAINER, 4, TrainerSwimmerfKara, -1
-	person_event SPRITE_SWIMMER_GIRL, 50, 9, SPRITEMOVEDATA_SPINRANDOM_FAST, 0, 0, -1, -1, (1 << 3) | PAL_OW_GREEN, PERSONTYPE_TRAINER, 2, TrainerSwimmerfWendy, -1

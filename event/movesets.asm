@@ -6,7 +6,7 @@ TeachDratiniExtremeSpeed: ; 0x8b170
 .Moveset:
 	db EXTREMESPEED
 	db THUNDER_WAVE
-	db TWISTER
+	db AQUA_JET
 	db DRAGON_RAGE
 	db 0
 

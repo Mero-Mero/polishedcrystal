@@ -1,18 +1,31 @@
-const_value set 2
+Route22Past_MapScriptHeader:
+
+.MapTriggers: db 1
+	dw Route22PastTrigger0
+
+.MapCallbacks: db 0
+
+Route22Past_MapEventHeader:
+
+.Warps: db 0
+
+.XYTriggers: db 0
+
+.Signposts: db 0
+
+.PersonEvents: db 4
+	person_event SPRITE_CELEBI, 8, 6, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, -1, (1 << 3) | PAL_OW_GREEN, PERSONTYPE_SCRIPT, 0, ObjectEvent, -1
+	person_event SPRITE_LYRA, 7, 5, SPRITEMOVEDATA_STANDING_RIGHT, 0, 0, -1, -1, 0, PERSONTYPE_SCRIPT, 0, ObjectEvent, -1
+	person_event SPRITE_SILVER, 2, 5, SPRITEMOVEDATA_STANDING_LEFT, 0, 0, -1, -1, 0, PERSONTYPE_SCRIPT, 0, ObjectEvent, -1
+	person_event SPRITE_GIOVANNI, 2, 2, SPRITEMOVEDATA_STANDING_LEFT, 0, 0, -1, -1, 0, PERSONTYPE_SCRIPT, 0, ObjectEvent, -1
+
+const_value set 1
 	const ROUTE22PAST_CELEBI
 	const ROUTE22PAST_LYRA
 	const ROUTE22PAST_SILVER
 	const ROUTE22PAST_GIOVANNI
 
-Route22Past_MapScriptHeader:
-.MapTriggers:
-	db 1
-	dw .Trigger0
-
-.MapCallbacks:
-	db 0
-
-.Trigger0:
+Route22PastTrigger0:
 	priorityjump Route22PastCelebiEventScript
 	end
 
@@ -20,79 +33,46 @@ Route22PastCelebiEventScript:
 	pause 30
 	applymovement PLAYER, Route22Past_PlayerLooksAroundMovementData
 	showemote EMOTE_SHOCK, ROUTE22PAST_LYRA, 15
-	opentext
-	writetext Route22PastLyraWhereAreWeText
-	waitbutton
-	closetext
+	showtext Route22PastLyraWhereAreWeText
 	applymovement ROUTE22PAST_LYRA, Route22Past_LyraLooksAroundMovementData
-	opentext
-	writetext Route22PastLyraIlexForestDisappearedText
-	waitbutton
-	closetext
+	showtext Route22PastLyraIlexForestDisappearedText
 	applymovement ROUTE22PAST_LYRA, Route22Past_LyraStepDownMovementData
 	spriteface PLAYER, LEFT
-	opentext
-	writetext Route22PastLyraExplainsTimeTravelText
-	waitbutton
-	closetext
+	showtext Route22PastLyraExplainsTimeTravelText
 	showemote EMOTE_SHOCK, ROUTE22PAST_LYRA, 15
 	spriteface ROUTE22PAST_LYRA, UP
-	opentext
-	writetext Route22PastLyraHearsSomeoneText
-	waitbutton
-	closetext
+	showtext Route22PastLyraHearsSomeoneText
 	follow ROUTE22PAST_LYRA, PLAYER
 	applymovement ROUTE22PAST_LYRA, Route22Past_LyraApproachesSilverMovementData
 	spriteface ROUTE22PAST_LYRA, UP
 	spriteface PLAYER, UP
 	stopfollow
-	applymovement ROUTE22PAST_CELEBI, Route22Past_CelebiStepsUpMovementData
+	applyonemovement ROUTE22PAST_CELEBI, step_up
 	special Special_FadeOutMusic
-	applymovement ROUTE22PAST_SILVER, Route22Past_SilverApproachesGiovanniMovementData
-	opentext
-	writetext Route22PastSilverQuestionsGiovanniText
-	waitbutton
-	closetext
+	applyonemovement ROUTE22PAST_SILVER, slow_step_left
+	showtext Route22PastSilverQuestionsGiovanniText
 	spriteface ROUTE22PAST_GIOVANNI, RIGHT
-	opentext
-	writetext Route22PastGiovanniSilverArgumentText
-	waitbutton
-	closetext
-	applymovement ROUTE22PAST_SILVER, Route22Past_SilverApproachesGiovanniMovementData
-	opentext
-	writetext Route22PastSilverProtestsText
-	waitbutton
-	closetext
+	showtext Route22PastGiovanniSilverArgumentText
+	applyonemovement ROUTE22PAST_SILVER, slow_step_left
+	showtext Route22PastSilverProtestsText
 	spriteface ROUTE22PAST_GIOVANNI, LEFT
-	opentext
-	writetext Route22PastGiovanniGoodbyeText
-	waitbutton
-	closetext
+	showtext Route22PastGiovanniGoodbyeText
 	applymovement ROUTE22PAST_GIOVANNI, Route22Past_GiovanniLeavesMovementData
 	pause 15
-	applymovement ROUTE22PAST_SILVER, Route22Past_SilverApproachesGiovanniMovementData
-	opentext
-	writetext Route22PastSilverRantText
-	waitbutton
-	closetext
+	applyonemovement ROUTE22PAST_SILVER, slow_step_left
+	showtext Route22PastSilverRantText
 	special Special_FadeOutMusic
 	playmusic MUSIC_RIVAL_ENCOUNTER
 	applymovement ROUTE22PAST_SILVER, Route22Past_SilverRunsIntoPlayerMovementData
 	showemote EMOTE_SHOCK, ROUTE22PAST_SILVER, 15
-	opentext
-	writetext Route22PastSilverInsultText
-	waitbutton
-	closetext
+	showtext Route22PastSilverInsultText
 	playsound SFX_TACKLE
 	applymovement PLAYER, Route22Past_SilverShovesPlayerDownMovementData
 	spriteface ROUTE22PAST_LYRA, DOWN
 	applymovement ROUTE22PAST_SILVER, Route22Past_SilverLeavesMovementData
 	special RestartMapMusic
 	applymovement ROUTE22PAST_LYRA, Route22Past_LyraMeetsPlayerMovementData
-	opentext
-	writetext Route22PastLyraConclusionText
-	waitbutton
-	closetext
+	showtext Route22PastLyraConclusionText
 	cry CELEBI
 	applymovement ROUTE22PAST_CELEBI, Route22Past_CelebiHopsMovementData
 	waitsfx
@@ -104,10 +84,7 @@ Route22PastCelebiEventScript:
 	showemote EMOTE_SHOCK, PLAYER, 15
 	applymovement ROUTE22PAST_LYRA, Route22Past_LyraLooksAroundAgainMovementData
 	spriteface ROUTE22PAST_LYRA, DOWN
-	opentext
-	writetext Route22PastLyraOhNoText
-	waitbutton
-	closetext
+	showtext Route22PastLyraOhNoText
 	playsound SFX_PROTECT
 	applymovement ROUTE22PAST_CELEBI, Route22Past_CelebiFloatsMovementData
 	waitsfx
@@ -119,7 +96,7 @@ Route22PastCelebiEventScript:
 	clearevent EVENT_GIOVANNIS_CAVE_LYRA
 	clearevent EVENT_GIOVANNIS_CAVE_GIOVANNI
 	domaptrigger GIOVANNIS_CAVE, $1
-	warp GIOVANNIS_CAVE, $f, $5
+	warp GIOVANNIS_CAVE, 15, 5
 	end
 
 Route22Past_PlayerLooksAroundMovementData:
@@ -165,13 +142,8 @@ Route22Past_LyraApproachesSilverMovementData:
 	slow_step_left
 	step_end
 
-Route22Past_CelebiStepsUpMovementData:
-	step_up
-	step_end
-
 Route22Past_GiovanniLeavesMovementData:
 	slow_step_left
-Route22Past_SilverApproachesGiovanniMovementData:
 	slow_step_left
 	step_end
 
@@ -409,20 +381,3 @@ Route22PastLyraOhNoText:
 	para "It's Celebi's"
 	line "Time Travel!"
 	done
-
-Route22Past_MapEventHeader:
-.Warps:
-	db 0
-
-.XYTriggers:
-	db 0
-
-.Signposts:
-	db 0
-
-.PersonEvents:
-	db 4
-	person_event SPRITE_CELEBI, 8, 6, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, -1, (1 << 3) | PAL_OW_GREEN, PERSONTYPE_SCRIPT, 0, ObjectEvent, -1
-	person_event SPRITE_LYRA, 7, 5, SPRITEMOVEDATA_STANDING_RIGHT, 0, 0, -1, -1, 0, PERSONTYPE_SCRIPT, 0, ObjectEvent, -1
-	person_event SPRITE_SILVER, 2, 5, SPRITEMOVEDATA_STANDING_LEFT, 0, 0, -1, -1, 0, PERSONTYPE_SCRIPT, 0, ObjectEvent, -1
-	person_event SPRITE_GIOVANNI, 2, 2, SPRITEMOVEDATA_STANDING_LEFT, 0, 0, -1, -1, 0, PERSONTYPE_SCRIPT, 0, ObjectEvent, -1

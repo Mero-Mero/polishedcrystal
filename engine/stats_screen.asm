@@ -38,7 +38,6 @@ StatsScreenInit: ; 4dc8a
 StatsScreenMain: ; 0x4dcd2
 	xor a
 	ld [wJumptableIndex], a
-	inc a
 	ld [wcf64], a
 .loop ; 4dce3
 	ld a, [wJumptableIndex]
@@ -79,8 +78,7 @@ StatsScreen_WaitAnim: ; 4dd3a (13:5d3a)
 .finish
 	ld hl, wcf64
 	res 5, [hl]
-	farcall HDMATransferTileMapToWRAMBank3
-	ret
+	farjp HDMATransferTileMapToWRAMBank3
 
 StatsScreen_SetJumptableIndex: ; 4dd62 (13:5d62)
 	ld a, [wJumptableIndex]
@@ -238,12 +236,12 @@ StatsScreen_JoypadAction: ; 4de54 (13:5e54)
 	jr nz, .d_up
 	bit D_DOWN_F, a
 	jr nz, .d_down
-	jr .done
+	ret
 
 .d_down
 	ld a, [MonType]
 	cp BOXMON
-	jr nc, .done
+	ret nc
 	and a
 	ld a, [PartyCount]
 	jr z, .next_mon
@@ -253,7 +251,7 @@ StatsScreen_JoypadAction: ; 4de54 (13:5e54)
 	ld a, [CurPartyMon]
 	inc a
 	cp b
-	jr z, .done
+	ret z
 	ld [CurPartyMon], a
 	ld b, a
 	ld a, [MonType]
@@ -267,7 +265,7 @@ StatsScreen_JoypadAction: ; 4de54 (13:5e54)
 .d_up
 	ld a, [CurPartyMon]
 	and a
-	jr z, .done
+	ret z
 	dec a
 	ld [CurPartyMon], a
 	ld b, a
@@ -297,10 +295,7 @@ StatsScreen_JoypadAction: ; 4de54 (13:5e54)
 	and a
 	jr nz, .set_page
 	ld c, $3
-	jr .set_page
-
-.done
-	ret
+	; fallthrough
 
 .set_page
 	ld a, [wcf64]
@@ -322,7 +317,7 @@ StatsScreen_InitUpperHalf: ; 4deea (13:5eea)
 	call .PlaceHPBar
 	xor a
 	ld [hBGMapMode], a
-	ld a, [CurBaseData] ; wd236 (aliases: BaseDexNo)
+	ld a, [CurPartySpecies]
 	ld [wd265], a
 	ld [CurSpecies], a
 	hlcoord 8, 0
@@ -346,7 +341,7 @@ StatsScreen_InitUpperHalf: ; 4deea (13:5eea)
 	hlcoord 9, 4
 	ld a, "/"
 	ld [hli], a
-	ld a, [CurBaseData] ; wd236 (aliases: BaseDexNo)
+	ld a, [CurSpecies]
 	ld [wd265], a
 	call GetPokemonName
 	call PlaceString
@@ -368,8 +363,7 @@ StatsScreen_InitUpperHalf: ; 4deea (13:5eea)
 	call SetHPPal
 	ld b, SCGB_STATS_SCREEN_HP_PALS
 	call GetSGBLayout
-	call DelayFrame
-	ret
+	jp DelayFrame
 
 .PlaceGenderChar: ; 4df66 (13:5f66)
 	push hl
@@ -417,7 +411,7 @@ StatsScreen_PlaceShinyIcon: ; 4dfa6 (13:5fa6)
 	ret
 
 StatsScreen_LoadGFX: ; 4dfb6 (13:5fb6)
-	ld a, [BaseDexNo] ; wd236 (aliases: BaseDexNo)
+	ld a, [CurPartySpecies]
 	ld [wd265], a
 	ld [CurSpecies], a
 	xor a
@@ -534,7 +528,7 @@ StatsScreen_LoadGFX: ; 4dfb6 (13:5fb6)
 	hlcoord 9, 8
 	ld de, SCREEN_WIDTH
 	ld b, 10
-	ld a, $31
+	ld a, $31 ; vertical divider
 .vertical_divider
 	ld [hl], a
 	add hl, de
@@ -552,7 +546,7 @@ StatsScreen_LoadGFX: ; 4dfb6 (13:5fb6)
 	call .CalcExpToNextLevel
 	hlcoord 13, 13
 	lb bc, 3, 7
-	ld de, Buffer1 ; wd1ea (aliases: MagikarpLength)
+	ld de, Buffer1
 	call PrintNum
 	ld de, .LevelUpStr
 	hlcoord 10, 12
@@ -566,9 +560,9 @@ StatsScreen_LoadGFX: ; 4dfb6 (13:5fb6)
 	ld de, TempMonExp + 2
 	predef FillInExpBar
 	hlcoord 10, 16
-	ld [hl], $6e ; first "EXP" tile
+	ld [hl], "<XP1>"
 	inc hl
-	ld [hl], $6f ; second "EXP" tile
+	ld [hl], "<XP2>"
 	hlcoord 19, 16
 	ld [hl], "<XPEND>" ; exp bar end cap
 	ret
@@ -603,14 +597,14 @@ endr
 	ld a, [hQuotient + 1]
 	sbc [hl]
 	dec hl
-	ld [Buffer2], a ; wd1eb (aliases: MovementType)
+	ld [Buffer2], a
 	ld a, [hQuotient]
 	sbc [hl]
-	ld [Buffer1], a ; wd1ea (aliases: MagikarpLength)
+	ld [Buffer1], a
 	ret
 
 .AlreadyAtMaxLevel:
-	ld hl, Buffer1 ; wd1ea (aliases: MagikarpLength)
+	ld hl, Buffer1
 	xor a
 rept 2
 	ld [hli], a
@@ -735,7 +729,7 @@ endr
 	hlcoord 10, 8
 	ld de, SCREEN_WIDTH
 	ld b, 10
-	ld a, $31
+	ld a, $31 ; vertical divider
 .BluePageVerticalDivider:
 	ld [hl], a
 	add hl, de
@@ -761,8 +755,7 @@ endr
 	db "Nature/@"
 
 .OrangePage:
-	farcall OrangePage_
-	ret
+	farjp OrangePage_
 
 
 ; Fourth stats page code by TPP Anniversary Crystal 251
@@ -1114,13 +1107,11 @@ StatsScreen_PlaceFrontpic: ; 4e226 (13:6226)
 
 .egg
 	call .AnimateEgg
-	call SetPalettes
-	ret
+	jp SetPalettes
 
 .no_cry
 	call .AnimateMon
-	call SetPalettes
-	ret
+	jp SetPalettes
 
 .cry
 	call SetPalettes
@@ -1149,12 +1140,12 @@ StatsScreen_PlaceFrontpic: ; 4e226 (13:6226)
 	jr z, .unownegg
 	ld a, TRUE
 	ld [wBoxAlignment], a
-	jp .get_animation
+	jr .get_animation
 
 .unownegg
 	xor a
 	ld [wBoxAlignment], a
-	jp .get_animation
+	; fallthrough
 
 .get_animation ; 4e289 (13:6289)
 	ld a, [CurPartySpecies]
@@ -1186,7 +1177,7 @@ StatsScreen_GetAnimationParam: ; 4e2ad (13:62ad)
 
 .PartyMon: ; 4e2bf (13:62bf)
 	ld a, [CurPartyMon]
-	ld hl, PartyMons ; wdcdf (aliases: PartyMon1, PartyMon1Species)
+	ld hl, PartyMon1Species
 	ld bc, PARTYMON_STRUCT_LENGTH
 	call AddNTimes
 	ld b, h
@@ -1213,7 +1204,7 @@ StatsScreen_GetAnimationParam: ; 4e2ad (13:62ad)
 	ret
 
 .Tempmon: ; 4e2ed (13:62ed)
-	ld bc, TempMonSpecies ; wd10e (aliases: TempMon)
+	ld bc, TempMon
 .CheckEggFaintedFrzSlp: ; 4e2f2 (13:62f2)
 	ld a, [CurPartySpecies]
 	cp EGG
@@ -1247,7 +1238,7 @@ StatsScreen_LoadTextBoxSpaceGFX: ; 4e307 (13:6307)
 	ld de, TextBoxSpaceGFX
 	lb bc, BANK(TextBoxSpaceGFX), 1
 	ld hl, VTiles2 tile $7f
-	call Get2bpp
+	call Get1bpp
 	pop af
 	ld [rVBK], a
 	pop af

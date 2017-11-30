@@ -1,21 +1,33 @@
-const_value set 2
-	const ROUTE37_WEIRD_TREE1
-	const ROUTE37_WEIRD_TREE2
-	const ROUTE37_YOUNGSTER
-	const ROUTE37_FRUIT_TREE1
-	const ROUTE37_SUNNY
-	const ROUTE37_FRUIT_TREE2
-	const ROUTE37_FRUIT_TREE3
-	const ROUTE37_BEAUTY1
-	const ROUTE37_BEAUTY2
-
 Route37_MapScriptHeader:
-.MapTriggers:
-	db 0
 
-.MapCallbacks:
-	db 1
+.MapTriggers: db 0
+
+.MapCallbacks: db 1
 	dbw MAPCALLBACK_OBJECTS, SunnyCallback
+
+Route37_MapEventHeader:
+
+.Warps: db 0
+
+.XYTriggers: db 0
+
+.Signposts: db 2
+	signpost 3, 5, SIGNPOST_JUMPTEXT, Route37SignText
+	signpost 2, 4, SIGNPOST_ITEM + ETHER, EVENT_ROUTE_37_HIDDEN_ETHER
+
+.PersonEvents: db 9
+	person_event SPRITE_BUG_CATCHER, 8, 16, SPRITEMOVEDATA_WANDER, 1, 1, -1, -1, 0, PERSONTYPE_SCRIPT, 0, SunnyScript, EVENT_ROUTE_37_SUNNY_OF_SUNDAY
+	person_event SPRITE_TWIN, 12, 6, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, -1, (1 << 3) | PAL_OW_RED, PERSONTYPE_TRAINER, 1, TrainerTwinsToriandtil1, -1
+	person_event SPRITE_TWIN, 12, 7, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, -1, (1 << 3) | PAL_OW_RED, PERSONTYPE_TRAINER, 1, TrainerTwinsToriandtil2, -1
+	person_event SPRITE_YOUNGSTER, 11, 14, SPRITEMOVEDATA_STANDING_RIGHT, 0, 0, -1, -1, (1 << 3) | PAL_OW_PURPLE, PERSONTYPE_TRAINER, 3, TrainerPsychicGreg, -1
+	fruittree_event 5, 13, FRUITTREE_ROUTE_37_1, RED_APRICORN
+	fruittree_event 5, 16, FRUITTREE_ROUTE_37_2, BLU_APRICORN
+	fruittree_event 7, 15, FRUITTREE_ROUTE_37_3, BLK_APRICORN
+	person_event SPRITE_BEAUTY, 6, 4, SPRITEMOVEDATA_STANDING_RIGHT, 0, 0, -1, -1, (1 << 3) | PAL_OW_BLUE, PERSONTYPE_TRAINER, 3, TrainerBeautyCallie, -1
+	person_event SPRITE_BEAUTY, 6, 9, SPRITEMOVEDATA_STANDING_LEFT, 0, 0, -1, -1, (1 << 3) | PAL_OW_BLUE, PERSONTYPE_TRAINER, 3, TrainerBeautyCassandra, -1
+
+const_value set 1
+	const ROUTE37_SUNNY
 
 SunnyCallback:
 	checkcode VAR_WEEKDAY
@@ -32,33 +44,21 @@ TrainerTwinsToriandtil1:
 
 TwinsToriandtil1Script:
 	end_if_just_battled
-	opentext
-	writetext UnknownText_0x1a8e62
-	waitbutton
-	closetext
-	end
+	jumptextfaceplayer UnknownText_0x1a8e62
 
 TrainerTwinsToriandtil2:
 	trainer EVENT_BEAT_TWINS_ANN_AND_ANNE, TWINS, ANNANDANNE2, TwinsToriandtil2SeenText, TwinsToriandtil2BeatenText, 0, TwinsToriandtil2Script
 
 TwinsToriandtil2Script:
 	end_if_just_battled
-	opentext
-	writetext UnknownText_0x1a8eec
-	waitbutton
-	closetext
-	end
+	jumptextfaceplayer UnknownText_0x1a8eec
 
 TrainerPsychicGreg:
 	trainer EVENT_BEAT_PSYCHIC_GREG, PSYCHIC_T, GREG, PsychicGregSeenText, PsychicGregBeatenText, 0, PsychicGregScript
 
 PsychicGregScript:
 	end_if_just_battled
-	opentext
-	writetext UnknownText_0x1a8f80
-	waitbutton
-	closetext
-	end
+	jumptextfaceplayer UnknownText_0x1a8f80
 
 SunnyScript:
 	faceplayer
@@ -85,61 +85,30 @@ SunnyScript:
 	verbosegiveitem MAGNET
 	iffalse SunnyDoneScript
 	setevent EVENT_GOT_MAGNET_FROM_SUNNY
-	writetext SunnyGaveGiftText
-	waitbutton
-	closetext
-	end
+	jumpopenedtext SunnyGaveGiftText
 
 SunnySundayScript:
 	writetext SunnySundayText
 	waitbutton
 SunnyDoneScript:
-	closetext
-	end
+	endtext
 
 SunnyNotSundayScript:
-	writetext SunnyNotSundayText
-	waitbutton
-	closetext
-	end
+	jumpopenedtext SunnyNotSundayText
 
 TrainerBeautyCallie:
 	trainer EVENT_BEAT_BEAUTY_CALLIE, BEAUTY, CALLIE, BeautyCallieSeenText, BeautyCallieBeatenText, 0, BeautyCallieScript
 
 BeautyCallieScript:
 	end_if_just_battled
-	opentext
-	writetext BeautyCallieAfterText
-	waitbutton
-	closetext
-	end
+	jumptextfaceplayer BeautyCallieAfterText
 
 TrainerBeautyCassandra:
 	trainer EVENT_BEAT_BEAUTY_CASSANDRA, BEAUTY, CASSANDRA, BeautyCassandraSeenText, BeautyCassandraBeatenText, 0, BeautyCassandraScript
 
 BeautyCassandraScript:
 	end_if_just_battled
-	opentext
-	writetext BeautyCassandraAfterText
-	waitbutton
-	closetext
-	end
-
-Route37Sign:
-	jumptext Route37SignText
-
-FruitTreeScript_0x1a8e09:
-	fruittree FRUITTREE_ROUTE_37_1
-
-FruitTreeScript_0x1a8e0b:
-	fruittree FRUITTREE_ROUTE_37_2
-
-FruitTreeScript_0x1a8e0d:
-	fruittree FRUITTREE_ROUTE_37_3
-
-Route37HiddenEther:
-	dwb EVENT_ROUTE_37_HIDDEN_ETHER, ETHER
-
+	jumptextfaceplayer BeautyCassandraAfterText
 
 TwinsToriandtil1SeenText:
 	text "Til: Tori and I"
@@ -148,6 +117,7 @@ TwinsToriandtil1SeenText:
 	done
 
 TwinsToriandtil1BeatenText:
+TwinsToriandtil2BeatenText:
 	text "Til & Tori: Nnn… A"
 	line "little too strong."
 	done
@@ -164,11 +134,6 @@ TwinsToriandtil2SeenText:
 	text "Tori: Til and I"
 	line "are in this to-"
 	cont "gether!"
-	done
-
-TwinsToriandtil2BeatenText:
-	text "Til & Tori: Nnn… A"
-	line "little too strong."
 	done
 
 UnknownText_0x1a8eec:
@@ -298,27 +263,3 @@ BeautyCassandraAfterText:
 Route37SignText:
 	text "Route 37"
 	done
-
-Route37_MapEventHeader:
-.Warps:
-	db 0
-
-.XYTriggers:
-	db 0
-
-.Signposts:
-	db 2
-	signpost 3, 5, SIGNPOST_READ, Route37Sign
-	signpost 2, 4, SIGNPOST_ITEM, Route37HiddenEther
-
-.PersonEvents:
-	db 9
-	person_event SPRITE_TWIN, 12, 6, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, -1, (1 << 3) | PAL_OW_RED, PERSONTYPE_TRAINER, 1, TrainerTwinsToriandtil1, -1
-	person_event SPRITE_TWIN, 12, 7, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, -1, (1 << 3) | PAL_OW_RED, PERSONTYPE_TRAINER, 1, TrainerTwinsToriandtil2, -1
-	person_event SPRITE_YOUNGSTER, 11, 14, SPRITEMOVEDATA_STANDING_RIGHT, 0, 0, -1, -1, (1 << 3) | PAL_OW_PURPLE, PERSONTYPE_TRAINER, 3, TrainerPsychicGreg, -1
-	person_event SPRITE_BALL_CUT_FRUIT, 5, 13, SPRITEMOVEDATA_STANDING_LEFT, 0, 0, -1, -1, 0, PERSONTYPE_SCRIPT, 0, FruitTreeScript_0x1a8e09, -1
-	person_event SPRITE_BUG_CATCHER, 8, 16, SPRITEMOVEDATA_WANDER, 1, 1, -1, -1, 0, PERSONTYPE_SCRIPT, 0, SunnyScript, EVENT_ROUTE_37_SUNNY_OF_SUNDAY
-	person_event SPRITE_BALL_CUT_FRUIT, 5, 16, SPRITEMOVEDATA_STANDING_LEFT, 0, 0, -1, -1, 0, PERSONTYPE_SCRIPT, 0, FruitTreeScript_0x1a8e0b, -1
-	person_event SPRITE_BALL_CUT_FRUIT, 7, 15, SPRITEMOVEDATA_STANDING_LEFT, 0, 0, -1, -1, 0, PERSONTYPE_SCRIPT, 0, FruitTreeScript_0x1a8e0d, -1
-	person_event SPRITE_BEAUTY, 6, 4, SPRITEMOVEDATA_STANDING_RIGHT, 0, 0, -1, -1, (1 << 3) | PAL_OW_BLUE, PERSONTYPE_TRAINER, 3, TrainerBeautyCallie, -1
-	person_event SPRITE_BEAUTY, 6, 9, SPRITEMOVEDATA_STANDING_LEFT, 0, 0, -1, -1, (1 << 3) | PAL_OW_BLUE, PERSONTYPE_TRAINER, 3, TrainerBeautyCassandra, -1

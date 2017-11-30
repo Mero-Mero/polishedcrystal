@@ -60,13 +60,13 @@ BattleText_EnemyFled: ; 0x807cf
 ; 0x807e2
 
 HurtByPoisonText: ; 0x807e2
-	text "<USER>"
-	line "is hurt by poison!"
+	text "<USER> is"
+	line "hurt by poison!"
 	prompt
 ; 0x807f8
 
 HurtByBurnText: ; 0x807f8
-	text "<USER>'s"
+	text "<USER> is"
 	line "hurt by its burn!"
 	prompt
 ; 0x8080e
@@ -78,7 +78,7 @@ LeechSeedSapsText: ; 0x8080e
 ; 0x80822
 
 HurtByCurseText: ; 0x80836
-	text "<USER>'s"
+	text "<USER> is"
 	line "hurt by the curse!"
 	prompt
 ; 0x8084d
@@ -97,12 +97,18 @@ HailHitsText:
 	prompt
 
 PerishCountText: ; 0x80864
-	text "<USER>'s"
+	text "<USER> is"
 	line "Perish count is @"
 	deciram wd265, 1, 1
 	text "!"
 	prompt
 ; 0x80880
+
+BattleText_UserLostSomeOfItsHP:
+	text "<USER>"
+	line "lost some of its"
+	cont "HP!"
+	prompt
 
 BattleText_UserRecoveredWithItem:
 	text "<USER>"
@@ -120,6 +126,14 @@ BattleText_UserHurtByItem:
 	text "."
 	prompt
 
+BattleText_UserItemLetItMoveFirst::
+	text "<USER>'s"
+	line "@"
+	text_from_ram StringBuffer1
+	text " let it"
+	cont "move first."
+	prompt
+
 BattleText_UserRecoveredPPUsing:
 	text "<USER>"
 	line "recovered PP using"
@@ -128,22 +142,34 @@ BattleText_UserRecoveredPPUsing:
 	text "."
 	prompt
 
-BattleText_ItemRaisedAtk:
+BattleText_ItemRaised:
 	text "The @"
 	text_from_ram StringBuffer1
 	text ""
-	line "sharply raised"
-	para "<USER>'s"
-	line "Attack!"
+	line "raised"
+	cont "<USER>'s"
+	cont "@"
+	text_from_ram StringBuffer2
+	text "!"
 	prompt
 
-BattleText_ItemRaisedSAtk:
+BattleText_ItemSharplyRaised:
 	text "The @"
 	text_from_ram StringBuffer1
 	text ""
 	line "sharply raised"
-	para "<USER>'s"
-	line "Special Attack!"
+	cont "<USER>'s"
+	cont "@"
+	text_from_ram StringBuffer2
+	text "!"
+	prompt
+
+BattleText_UserChargedWithItem:
+	text "<USER>"
+	line "became charged"
+	cont "using @"
+	text_from_ram StringBuffer1
+	text "!"
 	prompt
 
 BattleText_TargetWasHitByFutureSight: ; 0x808b6
@@ -371,7 +397,7 @@ BattleText_UserFledUsingAStringBuffer1: ; 0x80b89
 ; 0x80ba0
 
 BattleText_UserHurtBySpikes: ; 0x80bae
-	text "<USER>'s"
+	text "<USER> is"
 	line "hurt by spikes!"
 	prompt
 ; 0x80bc2
@@ -482,21 +508,31 @@ BattleText_StringBuffer1GrewToLevel: ; 0x80c9c
 	db "@@"
 ; 0x80cb9
 
-;BattleText_WildPkmnIsEating: ; 0x80cba
-;	text "Wild @"
-;	text_from_ram EnemyMonNick
-;	text ""
-;	line "is eating!"
-;	prompt
+BattleText_WildPkmnIsEating: ; 0x80cba
+	text "Wild @"
+	text_from_ram EnemyMonNick
+	text ""
+	line "is eating!"
+	prompt
 ;; 0x80cd1
 
-;BattleText_WildPkmnIsAngry: ; 0x80cd1
-;	text "Wild @"
-;	text_from_ram EnemyMonNick
-;	text ""
-;	line "is angry!"
-;	prompt
+BattleText_WildPkmnIsAngry: ; 0x80cd1
+	text "Wild @"
+	text_from_ram EnemyMonNick
+	text ""
+	line "is angry!"
+	prompt
 ;; 0x80ce7
+
+BattleText_ThrewRock:
+	text "<PLAYER> threw a"
+	line "rock."
+	prompt
+
+BattleText_ThrewBait:
+	text "<PLAYER> threw"
+	line "some bait."
+	prompt
 
 FastAsleepText: ; 0x80ce7
 	text "<USER>"
@@ -529,7 +565,7 @@ MustRechargeText: ; 0x80d27
 ; 0x80d39
 
 DisabledNoMoreText: ; 0x80d39
-	text "<USER>'s"
+	text "<USER> is"
 	line "disabled no more!"
 	prompt
 ; 0x80d4f
@@ -547,7 +583,7 @@ HurtItselfText: ; 0x80d5f
 ; 0x80d81
 
 ConfusedNoMoreText: ; 0x80d81
-	text "<USER>'s"
+	text "<USER> is"
 	line "confused no more!"
 	prompt
 ; 0x80d97
@@ -568,13 +604,13 @@ BattleText_ItemHealedConfusion: ; ItemHealedConfusion
 ; 0x80dcc
 
 AlreadyConfusedText: ; 0x80dcc
-	text "<TARGET>'s"
+	text "<TARGET> is"
 	line "already confused!"
 	prompt
 ; 0x80de2
 
 BattleText_UsersHurtByStringBuffer1: ; 0x80de2
-	text "<USER>'s"
+	text "<USER> is"
 	line "hurt by"
 	cont "@"
 	text_from_ram StringBuffer1
@@ -632,12 +668,33 @@ InLoveWithText: ; 0x80ec4
 	prompt
 ; 0x80eda
 
-InfatuationText: ; 0x80eda
+InfatuationText:
 	text "<USER>'s"
 	line "infatuation kept"
 	cont "it from attacking!"
 	prompt
-; 0x80f02
+
+ObliviousPreventedDestinyKnot:
+	text "<USER>'s"
+	line "@"
+	text_from_ram StringBuffer1
+	text ""
+	cont "prevents"
+	cont "@"
+	text_from_ram StringBuffer2
+	text ""
+	cont "infatuating it!"
+	prompt
+
+
+DestinyKnotInfatuatedUser:
+	text "<TARGET>'s"
+	line "@"
+	text_from_ram StringBuffer1
+	text ""
+	cont "infatuated"
+	para "<USER>!"
+	prompt
 
 DisabledMoveText: ; 0x80f02
 	text "<USER>'s"
@@ -753,7 +810,7 @@ CrashedText: ; 0x81046
 ; 0x81061
 
 UnaffectedText: ; 0x81061
-	text "<TARGET>'s"
+	text "<TARGET> is"
 	line "unaffected!"
 	prompt
 ; 0x81071
@@ -800,17 +857,20 @@ GotAnEncoreText: ; 0x81109
 	prompt
 ; 0x8111b
 
-SharedPainText: ; 0x8111b
+SharedPainText:
 	text "The battlers"
 	line "shared pain!"
 	prompt
-; 0x81136
 
-TookAimText: ; 0x81136
-	text "<USER>"
-	line "took aim!"
+SwappedAbilitiesText:
+	text "The battlers"
+	line "swapped abilities!"
 	prompt
-; 0x81143
+
+SwappedItemsText:
+	text "The battlers"
+	line "swapped items!"
+	prompt
 
 SketchedText: ; 0x81143
 	text "<USER>"
@@ -822,7 +882,7 @@ SketchedText: ; 0x81143
 ; 0x81156
 
 DestinyBondEffectText: ; 0x81156
-	text "<USER>'s"
+	text "<USER> is"
 	line "trying to take its"
 	cont "opponent with it!"
 	prompt
@@ -841,7 +901,7 @@ FellAsleepText: ; 0x811b1
 ; 0x811c1
 
 AlreadyAsleepText: ; 0x811c1
-	text "<TARGET>'s"
+	text "<TARGET> is"
 	line "already asleep!"
 	prompt
 ; 0x811d5
@@ -853,13 +913,13 @@ WasPoisonedText: ; 0x811d5
 ; 0x811e6
 
 BadlyPoisonedText: ; 0x811e6
-	text "<TARGET>'s"
+	text "<TARGET> is"
 	line "badly poisoned!"
 	prompt
 ; 0x811fa
 
 AlreadyPoisonedText: ; 0x811fa
-	text "<TARGET>'s"
+	text "<TARGET> is"
 	line "already poisoned!"
 	prompt
 ; 0x81210
@@ -889,7 +949,7 @@ DefrostedOpponentText: ; 0x8124b
 ; 0x8125d
 
 AlreadyBurnedText:
-	text "<TARGET>'s"
+	text "<TARGET> is"
 	line "already burned!"
 	prompt
 
@@ -943,27 +1003,21 @@ EnemyHitTimesText: ; 0x812f8
 	prompt
 ; 0x8130b
 
-MistText: ; 0x8130b
-	text "<USER>'s"
-	line "shrouded in mist!"
-	prompt
-; 0x81321
-
 ProtectedByMistText: ; 0x81321
-	text "<TARGET>'s"
+	text "<TARGET> is"
 	line "protected by mist."
 	prompt
 ; 0x81338
 
 GettingPumpedText: ; 0x81338
 	interpret_data
-	text "<USER>'s"
+	text "<USER> is"
 	line "getting pumped!"
 	prompt
 ; 0x8134d
 
 RecoilText: ; 0x8134d
-	text "<USER>'s"
+	text "<USER> is"
 	line "hit with recoil!"
 	prompt
 ; 0x81362
@@ -1103,50 +1157,79 @@ DraggedOutText: ; 0x81544
 ; 0x81558
 
 ParalyzedText: ; 0x81558
-	text "<TARGET>'s"
+	text "<TARGET> is"
 	line "paralyzed! It"
 	cont "might not attack!"
 	prompt
 ; 0x8157d
 
 FullyParalyzedText: ; 0x8157d
-	text "<USER>'s"
+	text "<USER> is"
 	line "fully paralyzed!"
 	prompt
 ; 0x81592
 
 AlreadyParalyzedText: ; 0x81592
-	text "<TARGET>'s"
+	text "<TARGET> is"
 	line "already paralyzed!"
 	prompt
 ; 0x815a9
 
-ProtectedByText: ; 0x815a9
-	text "<TARGET>'s"
+ProtectedByText:
+	text "<TARGET> is"
 	line "protected by"
 	cont "@"
 	text_from_ram StringBuffer1
 	text "!"
 	prompt
-; 0x815c1
 
-RegainedStatsWithItem: ; 0x815a9
+RegainedStatsWithItem:
 	text "<USER>"
 	line "regained stats"
 	cont "with @"
 	text_from_ram StringBuffer1
 	text "!"
 	prompt
-; 0x815c1
 
-StoleText: ; 0x815da
+CuredInfatuationWithItem:
+	text "<USER>"
+	line "cured infatuation"
+	cont "with @"
+	text_from_ram StringBuffer1
+	text "!"
+	prompt
+
+CuredEncoreWithItem:
+	text "<USER>"
+	line "cured Encore"
+	cont "with @"
+	text_from_ram StringBuffer1
+	text "!"
+	prompt
+
+CuredDisableWithItem:
+	text "<USER>"
+	line "cured Disable"
+	cont "with @"
+	text_from_ram StringBuffer1
+	text "!"
+	prompt
+
+StoleText:
 	text "<USER>"
 	line "stole @"
 	text_from_ram StringBuffer1
 	text ""
 	cont "from its foe!"
 	prompt
-; 0x815f7
+
+KnockedOffItemText:
+	text "<USER>"
+	line "knocked off"
+	cont "@"
+	text_from_ram StringBuffer1
+	text "!"
+	prompt
 
 CantEscapeNowText: ; 0x815f7
 	text "<TARGET>"
@@ -1176,17 +1259,22 @@ ProtectedItselfText: ; 0x81665
 ; 0x8167a
 
 ProtectingItselfText: ; 0x8167a
-	text "<TARGET>'s"
+	text "<TARGET> is"
 	line "protecting itself!"
 	done
 ; 0x81691
 
-SpikesText: ; 0x81691
+SpikesText:
 	text "Spikes scattered"
 	line "all around"
 	cont "<TARGET>!"
 	prompt
-; 0x816b1
+
+ToxicSpikesText:
+	text "Toxic spikes"
+	line "scattered around"
+	cont "<TARGET>!"
+	prompt
 
 IdentifiedText: ; 0x816b1
 	text "<USER>"
@@ -1225,7 +1313,7 @@ FellInLoveText: ; 0x8170b
 ; 0x8171c
 
 CoveredByVeilText: ; 0x8171c
-	text "<USER>'s"
+	text "<USER> is"
 	line "covered by a veil!"
 	prompt
 ; 0x81733
@@ -1257,11 +1345,16 @@ ShedLeechSeedText: ; 0x8177a
 	prompt
 ; 0x8178e
 
-BlewSpikesText: ; 0x8178e
+BlewSpikesText:
 	text "<USER>"
 	line "blew away Spikes!"
 	prompt
-; 0x817a3
+
+BlewToxicSpikesText:
+	text "<USER>"
+	line "blew away Toxic"
+	cont "Spikes!"
+	prompt
 
 DownpourText: ; 0x817a3
 	text "It started"
@@ -1407,6 +1500,17 @@ ForewarnText: ; 0x80f02
 	text "!"
 	prompt
 
+BattleText_WentBackToPlayer:
+	text "<USER> went"
+	line "back to <PLAYER>!"
+	prompt
+
+BattleText_WentBackToEnemy:
+	text "<USER>"
+	line "went back to"
+	cont "<ENEMY>!"
+	prompt
+
 ScaredText:
 	text "<USER> is too"
 	line "scared to move!"
@@ -1417,7 +1521,7 @@ GetOutText:
 	line "Get out…"
 	prompt
 
-KayFinalPkmnText:
+CarrieFinalPkmnText:
 CalFinalPkmnText:
 	text "I still have one"
 	line "#mon!"
@@ -1835,6 +1939,11 @@ SkylaFinalPkmnText:
 
 ValerieFinalPkmnText:
 	text "Oh my…"
+	prompt
+
+KukuiFinalPkmnText:
+	text "My soul burns hot,"
+	line "yeah!"
 	prompt
 
 BillFinalPkmnText:

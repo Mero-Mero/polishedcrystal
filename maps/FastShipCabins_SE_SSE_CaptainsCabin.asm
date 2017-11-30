@@ -1,55 +1,55 @@
-const_value set 2
-	const FASTSHIPCABINS_SE_SSE_CAPTAINSCABIN_CAPTAIN
+FastShipCabins_SE_SSE_CaptainsCabin_MapScriptHeader:
+
+.MapTriggers: db 0
+
+.MapCallbacks: db 0
+
+FastShipCabins_SE_SSE_CaptainsCabin_MapEventHeader:
+
+.Warps: db 6
+	warp_def 7, 2, 8, FAST_SHIP_1F
+	warp_def 7, 3, 8, FAST_SHIP_1F
+	warp_def 19, 2, 9, FAST_SHIP_1F
+	warp_def 19, 3, 9, FAST_SHIP_1F
+	warp_def 33, 2, 10, FAST_SHIP_1F
+	warp_def 33, 3, 10, FAST_SHIP_1F
+
+.XYTriggers: db 0
+
+.Signposts: db 0
+
+.PersonEvents: db 11
+	person_event SPRITE_GENTLEMAN, 17, 2, SPRITEMOVEDATA_STANDING_RIGHT, 0, 0, -1, -1, (1 << 3) | PAL_OW_BLUE, PERSONTYPE_SCRIPT, 0, GentlemanScript_0x75f1f, EVENT_FAST_SHIP_CABINS_SE_SSE_GENTLEMAN
+	person_event SPRITE_TWIN, 17, 3, SPRITEMOVEDATA_SPINRANDOM_FAST, 0, 0, -1, -1, 0, PERSONTYPE_SCRIPT, 0, TwinScript_0x75f6d, EVENT_FAST_SHIP_CABINS_SE_SSE_CAPTAINS_CABIN_TWIN_1
+	person_event SPRITE_TWIN, 25, 2, SPRITEMOVEDATA_SPINRANDOM_FAST, 0, 0, -1, -1, 0, PERSONTYPE_SCRIPT, 0, TwinScript_0x75ebb, EVENT_FAST_SHIP_CABINS_SE_SSE_CAPTAINS_CABIN_TWIN_2
+	person_event SPRITE_CAPTAIN, 25, 3, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, -1, (1 << 3) | PAL_OW_BLUE, PERSONTYPE_SCRIPT, 0, CaptainScript_0x75ea7, -1
+	person_event SPRITE_POKEFAN_M, 6, 5, SPRITEMOVEDATA_STANDING_LEFT, 0, 0, -1, -1, (1 << 3) | PAL_OW_RED, PERSONTYPE_TRAINER, 5, TrainerPokefanmColin, EVENT_FAST_SHIP_PASSENGERS_FIRST_TRIP
+	person_event SPRITE_TWIN, 4, 2, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, -1, (1 << 3) | PAL_OW_RED, PERSONTYPE_TRAINER, 1, TrainerTwinsMegandpeg1, EVENT_FAST_SHIP_PASSENGERS_FIRST_TRIP
+	person_event SPRITE_TWIN, 4, 3, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, -1, (1 << 3) | PAL_OW_RED, PERSONTYPE_TRAINER, 1, TrainerTwinsMegandpeg2, EVENT_FAST_SHIP_PASSENGERS_FIRST_TRIP
+	person_event SPRITE_YOUNGSTER, 5, 5, SPRITEMOVEDATA_STANDING_LEFT, 0, 0, -1, -1, (1 << 3) | PAL_OW_PURPLE, PERSONTYPE_TRAINER, 5, TrainerPsychicRodney, EVENT_FAST_SHIP_PASSENGERS_EASTBOUND
+	person_event SPRITE_POKEFAN_M, 3, 2, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, -1, (1 << 3) | PAL_OW_RED, PERSONTYPE_TRAINER, 3, TrainerPokefanmJeremy, EVENT_FAST_SHIP_PASSENGERS_WESTBOUND
+	person_event SPRITE_POKEFAN_F, 5, 5, SPRITEMOVEDATA_STANDING_RIGHT, 0, 0, -1, -1, (1 << 3) | PAL_OW_RED, PERSONTYPE_TRAINER, 1, TrainerPokefanfGeorgia, EVENT_FAST_SHIP_PASSENGERS_WESTBOUND
+	person_event SPRITE_SUPER_NERD, 15, 1, SPRITEMOVEDATA_SPINRANDOM_SLOW, 0, 0, -1, -1, (1 << 3) | PAL_OW_BROWN, PERSONTYPE_TRAINER, 2, TrainerSupernerdShawn, EVENT_FAST_SHIP_PASSENGERS_EASTBOUND
+
+const_value set 1
 	const FASTSHIPCABINS_SE_SSE_CAPTAINSCABIN_GENTLEMAN
 	const FASTSHIPCABINS_SE_SSE_CAPTAINSCABIN_TWIN1
 	const FASTSHIPCABINS_SE_SSE_CAPTAINSCABIN_TWIN2
-	const FASTSHIPCABINS_SE_SSE_CAPTAINSCABIN_POKEFAN_M1
-	const FASTSHIPCABINS_SE_SSE_CAPTAINSCABIN_TWIN3
-	const FASTSHIPCABINS_SE_SSE_CAPTAINSCABIN_TWIN4
-	const FASTSHIPCABINS_SE_SSE_CAPTAINSCABIN_YOUNGSTER
-	const FASTSHIPCABINS_SE_SSE_CAPTAINSCABIN_POKEFAN_M2
-	const FASTSHIPCABINS_SE_SSE_CAPTAINSCABIN_POKEFAN_F
-	const FASTSHIPCABINS_SE_SSE_CAPTAINSCABIN_SUPER_NERD2
-
-FastShipCabins_SE_SSE_CaptainsCabin_MapScriptHeader:
-.MapTriggers:
-	db 0
-
-.MapCallbacks:
-	db 0
 
 CaptainScript_0x75ea7:
-	faceplayer
-	opentext
 	checkevent EVENT_FAST_SHIP_FIRST_TIME
-	iftrue UnknownScript_0x75eb5
-	writetext UnknownText_0x76012
-	waitbutton
-	closetext
-	end
-
-UnknownScript_0x75eb5:
-	writetext UnknownText_0x76064
-	waitbutton
-	closetext
-	end
+	iftrue_jumptextfaceplayer UnknownText_0x76064
+	jumptextfaceplayer UnknownText_0x76012
 
 TwinScript_0x75ebb:
 	spriteface FASTSHIPCABINS_SE_SSE_CAPTAINSCABIN_TWIN2, RIGHT
-	opentext
-	writetext UnknownText_0x761e0
-	waitbutton
-	closetext
-	faceplayer
-	opentext
-	writetext UnknownText_0x7621f
-	waitbutton
-	closetext
+	showtext UnknownText_0x761e0
+	showtextfaceplayer UnknownText_0x7621f
 	special Special_FadeBlackQuickly
 	special Special_ReloadSpritesNoPalettes
 	disappear FASTSHIPCABINS_SE_SSE_CAPTAINSCABIN_TWIN2
 	applymovement PLAYER, MovementData_0x76004
-	moveperson FASTSHIPCABINS_SE_SSE_CAPTAINSCABIN_TWIN1, $3, $13
+	moveperson FASTSHIPCABINS_SE_SSE_CAPTAINSCABIN_TWIN1, 3, 19
 	appear FASTSHIPCABINS_SE_SSE_CAPTAINSCABIN_TWIN1
 	spriteface PLAYER, UP
 	spriteface FASTSHIPCABINS_SE_SSE_CAPTAINSCABIN_TWIN1, UP
@@ -60,20 +60,14 @@ TwinScript_0x75ebb:
 	spriteface FASTSHIPCABINS_SE_SSE_CAPTAINSCABIN_GENTLEMAN, RIGHT
 	checkflag ENGINE_PLAYER_IS_FEMALE
 	iftrue UnknownScript_0x75f03
-	opentext
-	writetext UnknownText_0x76284
-	waitbutton
-	closetext
+	showtext UnknownText_0x76284
 	jump UnknownScript_0x75f09
 
 UnknownScript_0x75f03:
-	opentext
-	writetext UnknownText_0x762c6
-	waitbutton
-	closetext
+	showtext UnknownText_0x762c6
 UnknownScript_0x75f09:
 	spriteface FASTSHIPCABINS_SE_SSE_CAPTAINSCABIN_TWIN2, DOWN
-	applymovement FASTSHIPCABINS_SE_SSE_CAPTAINSCABIN_GENTLEMAN, MovementData_0x76010
+	applyonemovement FASTSHIPCABINS_SE_SSE_CAPTAINSCABIN_GENTLEMAN, step_down
 	opentext
 	writetext UnknownText_0x76143
 	buttonsound
@@ -108,8 +102,7 @@ UnknownScript_0x75f37:
 	waitbutton
 	setevent EVENT_FAST_SHIP_HAS_ARRIVED
 	setevent EVENT_FAST_SHIP_FOUND_GIRL
-	closetext
-	end
+	endtext
 
 UnknownScript_0x75f58:
 	writetext UnknownText_0x7619b
@@ -118,99 +111,63 @@ UnknownScript_0x75f58:
 	iffalse UnknownScript_0x75f65
 	setevent EVENT_GOT_MACHO_BRACE_FROM_GRANDPA_ON_SS_AQUA
 UnknownScript_0x75f65:
-	closetext
-	end
+	endtext
 
 UnknownScript_0x75f67:
-	writetext UnknownText_0x761be
-	waitbutton
-	closetext
-	end
+	jumpopenedtext UnknownText_0x761be
 
 TwinScript_0x75f6d:
 	faceplayer
-	opentext
-	writetext UnknownText_0x7630d
-	waitbutton
-	closetext
-	end
+	jumptext UnknownText_0x7630d
 
 TrainerPokefanmColin:
 	trainer EVENT_BEAT_POKEFANM_COLIN, POKEFANM, COLIN, PokefanmColinSeenText, PokefanmColinBeatenText, 0, PokefanmColinScript
 
 PokefanmColinScript:
 	end_if_just_battled
-	opentext
-	writetext UnknownText_0x7635b
-	waitbutton
-	closetext
-	end
+	jumptextfaceplayer UnknownText_0x7635b
 
 TrainerTwinsMegandpeg1:
 	trainer EVENT_BEAT_TWINS_MEG_AND_PEG, TWINS, MEGANDPEG1, TwinsMegandpeg1SeenText, TwinsMegandpeg1BeatenText, 0, TwinsMegandpeg1Script
 
 TwinsMegandpeg1Script:
 	end_if_just_battled
-	opentext
-	writetext UnknownText_0x763c2
-	waitbutton
-	closetext
-	end
+	jumptextfaceplayer UnknownText_0x763c2
 
 TrainerTwinsMegandpeg2:
 	trainer EVENT_BEAT_TWINS_MEG_AND_PEG, TWINS, MEGANDPEG2, TwinsMegandpeg2SeenText, TwinsMegandpeg2BeatenText, 0, TwinsMegandpeg2Script
 
 TwinsMegandpeg2Script:
 	end_if_just_battled
-	opentext
-	writetext UnknownText_0x76428
-	waitbutton
-	closetext
-	end
+	jumptextfaceplayer UnknownText_0x76428
 
 TrainerPsychicRodney:
 	trainer EVENT_BEAT_PSYCHIC_RODNEY, PSYCHIC_T, RODNEY, PsychicRodneySeenText, PsychicRodneyBeatenText, 0, PsychicRodneyScript
 
 PsychicRodneyScript:
 	end_if_just_battled
-	opentext
-	writetext UnknownText_0x76497
-	waitbutton
-	closetext
-	end
+	jumptextfaceplayer UnknownText_0x76497
 
 TrainerPokefanmJeremy:
 	trainer EVENT_BEAT_POKEFANM_JEREMY, POKEFANM, JEREMY, PokefanmJeremySeenText, PokefanmJeremyBeatenText, 0, PokefanmJeremyScript
 
 PokefanmJeremyScript:
 	end_if_just_battled
-	opentext
-	writetext UnknownText_0x7651c
-	waitbutton
-	closetext
-	end
+	jumptextfaceplayer UnknownText_0x7651c
 
 TrainerPokefanfGeorgia:
 	trainer EVENT_BEAT_POKEFANF_GEORGIA, POKEFANF, GEORGIA, PokefanfGeorgiaSeenText, PokefanfGeorgiaBeatenText, 0, PokefanfGeorgiaScript
 
 PokefanfGeorgiaScript:
 	end_if_just_battled
-	opentext
-	writetext UnknownText_0x76596
-	waitbutton
-	closetext
-	end
+	jumptextfaceplayer UnknownText_0x76596
 
 TrainerSupernerdShawn:
 	trainer EVENT_BEAT_SUPER_NERD_SHAWN, SUPER_NERD, SHAWN, SupernerdShawnSeenText, SupernerdShawnBeatenText, 0, SupernerdShawnScript
 
 SupernerdShawnScript:
 	end_if_just_battled
-	opentext
-	writetext UnknownText_0x7660f
-	waitbutton
-	closetext
-	end
+	jumptextfaceplayer UnknownText_0x7660f
 
 MovementData_0x76004:
 	big_step_right
@@ -226,10 +183,6 @@ MovementData_0x7600c:
 	step_up
 	step_up
 	turn_head_left
-	step_end
-
-MovementData_0x76010:
-	step_down
 	step_end
 
 UnknownText_0x76012:
@@ -453,33 +406,3 @@ UnknownText_0x76645:
 	line "has arrived in"
 	cont "Vermilion City."
 	done
-
-FastShipCabins_SE_SSE_CaptainsCabin_MapEventHeader:
-.Warps:
-	db 6
-	warp_def $7, $2, 8, FAST_SHIP_1F
-	warp_def $7, $3, 8, FAST_SHIP_1F
-	warp_def $13, $2, 9, FAST_SHIP_1F
-	warp_def $13, $3, 9, FAST_SHIP_1F
-	warp_def $21, $2, 10, FAST_SHIP_1F
-	warp_def $21, $3, 10, FAST_SHIP_1F
-
-.XYTriggers:
-	db 0
-
-.Signposts:
-	db 0
-
-.PersonEvents:
-	db 11
-	person_event SPRITE_CAPTAIN, 25, 3, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, -1, (1 << 3) | PAL_OW_BLUE, PERSONTYPE_SCRIPT, 0, CaptainScript_0x75ea7, -1
-	person_event SPRITE_GENTLEMAN, 17, 2, SPRITEMOVEDATA_STANDING_RIGHT, 0, 0, -1, -1, (1 << 3) | PAL_OW_BLUE, PERSONTYPE_SCRIPT, 0, GentlemanScript_0x75f1f, EVENT_FAST_SHIP_CABINS_SE_SSE_GENTLEMAN
-	person_event SPRITE_TWIN, 17, 3, SPRITEMOVEDATA_SPINRANDOM_FAST, 0, 0, -1, -1, 0, PERSONTYPE_SCRIPT, 0, TwinScript_0x75f6d, EVENT_FAST_SHIP_CABINS_SE_SSE_CAPTAINS_CABIN_TWIN_1
-	person_event SPRITE_TWIN, 25, 2, SPRITEMOVEDATA_SPINRANDOM_FAST, 0, 0, -1, -1, 0, PERSONTYPE_SCRIPT, 0, TwinScript_0x75ebb, EVENT_FAST_SHIP_CABINS_SE_SSE_CAPTAINS_CABIN_TWIN_2
-	person_event SPRITE_POKEFAN_M, 6, 5, SPRITEMOVEDATA_STANDING_LEFT, 0, 0, -1, -1, (1 << 3) | PAL_OW_RED, PERSONTYPE_TRAINER, 5, TrainerPokefanmColin, EVENT_FAST_SHIP_PASSENGERS_FIRST_TRIP
-	person_event SPRITE_TWIN, 4, 2, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, -1, (1 << 3) | PAL_OW_RED, PERSONTYPE_TRAINER, 1, TrainerTwinsMegandpeg1, EVENT_FAST_SHIP_PASSENGERS_FIRST_TRIP
-	person_event SPRITE_TWIN, 4, 3, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, -1, (1 << 3) | PAL_OW_RED, PERSONTYPE_TRAINER, 1, TrainerTwinsMegandpeg2, EVENT_FAST_SHIP_PASSENGERS_FIRST_TRIP
-	person_event SPRITE_YOUNGSTER, 5, 5, SPRITEMOVEDATA_STANDING_LEFT, 0, 0, -1, -1, (1 << 3) | PAL_OW_PURPLE, PERSONTYPE_TRAINER, 5, TrainerPsychicRodney, EVENT_FAST_SHIP_PASSENGERS_EASTBOUND
-	person_event SPRITE_POKEFAN_M, 3, 2, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, -1, (1 << 3) | PAL_OW_RED, PERSONTYPE_TRAINER, 3, TrainerPokefanmJeremy, EVENT_FAST_SHIP_PASSENGERS_WESTBOUND
-	person_event SPRITE_POKEFAN_F, 5, 5, SPRITEMOVEDATA_STANDING_RIGHT, 0, 0, -1, -1, (1 << 3) | PAL_OW_RED, PERSONTYPE_TRAINER, 1, TrainerPokefanfGeorgia, EVENT_FAST_SHIP_PASSENGERS_WESTBOUND
-	person_event SPRITE_SUPER_NERD, 15, 1, SPRITEMOVEDATA_SPINRANDOM_SLOW, 0, 0, -1, -1, (1 << 3) | PAL_OW_BROWN, PERSONTYPE_TRAINER, 2, TrainerSupernerdShawn, EVENT_FAST_SHIP_PASSENGERS_EASTBOUND

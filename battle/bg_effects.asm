@@ -514,8 +514,7 @@ BattleBGEffect_HeadFollow: ; c8281 (32:4281)
 	jp EndBattleBGEffect
 
 _QueueBattleAnimation: ; c82ee (32:42ee)
-	farcall QueueBattleAnimation
-	ret
+	farjp QueueBattleAnimation
 
 BattleBGEffect_27: ; c82f5 (32:42f5)
 	call BattleBGEffects_AnonJumptable
@@ -975,8 +974,7 @@ BattleBGEffect_30: ; c85c2 (32:45c2)
 	call BattleBGEffects_ClearLYOverrides
 	ld a, $42
 	call BattleBGEffect_SetLCDStatCustoms1
-	call EndBattleBGEffect
-	ret
+	jp EndBattleBGEffect
 
 BattleBGEffect_31: ; c85ce (32:45ce)
 	ld hl, BG_EFFECT_STRUCT_03
@@ -1008,8 +1006,7 @@ BattleBGEffect_31: ; c85ce (32:45ce)
 
 .done
 	call BattleBGEffects_ClearLYOverrides
-	call EndBattleBGEffect
-	ret
+	jp EndBattleBGEffect
 
 BattleBGEffect_32: ; c8603 (32:4603)
 	jp BattleAnim_ResetLCDStatCustom
@@ -1157,7 +1154,6 @@ BattleBGEffect_DoubleTeam: ; c8689 (32:4689)
 	ld a, [hl]
 	add $4
 	ld [hl], a
-
 .four
 	ret
 
@@ -1951,8 +1947,7 @@ BattleBGEffect_1c: ; c8b00 (32:4b00)
 	call BGEffects_LoadBGPal0_OBPal1
 	ld a, $e4
 	call BGEffects_LoadBGPal1_OBPal0
-	call EndBattleBGEffect
-	ret
+	jp EndBattleBGEffect
 
 .CGB_DMGEnemyData:
 	db $e4, $e4
@@ -2288,8 +2283,7 @@ BGEffect_RapidCyclePals: ; c8d77 (32:4d77)
 .two_cgb ; c8e21 (32:4e21)
 	ld a, $e4
 	call BGEffects_LoadBGPal0_OBPal1
-	call EndBattleBGEffect
-	ret
+	jp EndBattleBGEffect
 
 .three_cgb ; c8e2a (32:4e2a)
 	ld hl, BG_EFFECT_STRUCT_BATTLE_TURN
@@ -2318,8 +2312,7 @@ BGEffect_RapidCyclePals: ; c8d77 (32:4d77)
 .four_cgb ; c8e49 (32:4e49)
 	ld a, $e4
 	call BGEffects_LoadBGPal1_OBPal0
-	call EndBattleBGEffect
-	ret
+	jp EndBattleBGEffect
 
 BGEffects_LoadBGPal0_OBPal1: ; c8e52 (32:4e52)
 	ld h, a
@@ -2330,20 +2323,20 @@ BGEffects_LoadBGPal0_OBPal1: ; c8e52 (32:4e52)
 	ld a, h
 	push bc
 	push af
-	ld hl, BGPals
-	ld de, UnknBGPals
+	ld hl, BGPals palette PAL_BATTLE_BG_PLAYER
+	ld de, UnknBGPals palette PAL_BATTLE_BG_PLAYER
 	ld b, a
 	ld c, $1
 	call CopyPals
-	ld hl, BGPals + 6 palettes
-	ld de, UnknBGPals + 6 palettes
+	ld hl, BGPals palette PAL_BATTLE_BG_TYPE_CAT
+	ld de, UnknBGPals palette PAL_BATTLE_BG_TYPE_CAT
 	pop af
 	ld b, a
 	push af
 	ld c, $1
 	call CopyPals
-	ld hl, OBPals + 1 palettes
-	ld de, UnknOBPals + 1 palettes
+	ld hl, OBPals palette PAL_BATTLE_OB_PLAYER
+	ld de, UnknOBPals palette PAL_BATTLE_OB_PLAYER
 	pop af
 	ld b, a
 	ld c, $1
@@ -2364,13 +2357,13 @@ BGEffects_LoadBGPal1_OBPal0: ; c8e7f (32:4e7f)
 	ld a, h
 	push bc
 	push af
-	ld hl, BGPals + 1 palettes
-	ld de, UnknBGPals + 1 palettes
+	ld hl, BGPals palette PAL_BATTLE_BG_ENEMY
+	ld de, UnknBGPals palette PAL_BATTLE_BG_ENEMY
 	ld b, a
 	ld c, $1
 	call CopyPals
-	ld hl, OBPals ; OBPals
-	ld de, UnknOBPals ; wd040
+	ld hl, OBPals palette PAL_BATTLE_OB_ENEMY
+	ld de, UnknOBPals palette PAL_BATTLE_OB_ENEMY
 	pop af
 	ld b, a
 	ld c, $1
@@ -2411,7 +2404,7 @@ BattleBGEffect_GetNextDMGPal: ; c8eb2 (32:4eb2)
 BattleBGEffects_ClearLYOverrides: ; c8eca (32:4eca)
 	xor a
 BattleBGEffects_SetLYOverrides: ; c8ecb (32:4ecb)
-	ld hl, LYOverrides ; wListPointer
+	ld hl, LYOverrides
 	ld e, $99
 .loop1
 	ld [hli], a

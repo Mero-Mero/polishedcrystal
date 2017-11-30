@@ -1,18 +1,37 @@
-const_value set 2
+WiseTriosRoom_MapScriptHeader:
+
+.MapTriggers: db 0
+
+.MapCallbacks: db 1
+	dbw MAPCALLBACK_OBJECTS, UnknownScript_0x98574
+
+WiseTriosRoom_MapEventHeader:
+
+.Warps: db 3
+	warp_def 4, 7, 1, BELLCHIME_TRAIL
+	warp_def 5, 7, 2, BELLCHIME_TRAIL
+	warp_def 4, 1, 5, ECRUTEAK_HOUSE
+
+.XYTriggers: db 1
+	xy_trigger 0, 4, 7, UnknownScript_0x985a3
+
+.Signposts: db 0
+
+.PersonEvents: db 6
+	person_event SPRITE_ELDER, 2, 6, SPRITEMOVEDATA_SPINRANDOM_SLOW, 0, 0, -1, -1, (1 << 3) | PAL_OW_GREEN, PERSONTYPE_COMMAND, jumptextfaceplayer, UnknownText_0x9862b, EVENT_WISE_TRIOS_ROOM_WISE_TRIO_1
+	person_event SPRITE_ELDER, 7, 6, SPRITEMOVEDATA_WALK_LEFT_RIGHT, 0, 1, -1, -1, (1 << 3) | PAL_OW_GREEN, PERSONTYPE_COMMAND, jumptextfaceplayer, UnknownText_0x9868b, EVENT_WISE_TRIOS_ROOM_WISE_TRIO_1
+	person_event SPRITE_ELDER, 5, 7, SPRITEMOVEDATA_STANDING_LEFT, 0, 0, -1, -1, (1 << 3) | PAL_OW_GREEN, PERSONTYPE_COMMAND, jumptextfaceplayer, UnknownText_0x987af, EVENT_WISE_TRIOS_ROOM_WISE_TRIO_1
+	person_event SPRITE_ELDER, 2, 4, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, -1, (1 << 3) | PAL_OW_GREEN, PERSONTYPE_TRAINER, 2, TrainerElderGaku, EVENT_WISE_TRIOS_ROOM_WISE_TRIO_2
+	person_event SPRITE_ELDER, 6, 4, SPRITEMOVEDATA_STANDING_UP, 0, 0, -1, -1, (1 << 3) | PAL_OW_GREEN, PERSONTYPE_TRAINER, 2, TrainerElderMasa, EVENT_WISE_TRIOS_ROOM_WISE_TRIO_2
+	person_event SPRITE_ELDER, 4, 6, SPRITEMOVEDATA_STANDING_LEFT, 0, 0, -1, -1, (1 << 3) | PAL_OW_GREEN, PERSONTYPE_TRAINER, 2, TrainerElderKoji, EVENT_WISE_TRIOS_ROOM_WISE_TRIO_2
+
+const_value set 1
 	const WISETRIOSROOM_ELDER1
 	const WISETRIOSROOM_ELDER2
 	const WISETRIOSROOM_ELDER3
 	const WISETRIOSROOM_ELDER4
 	const WISETRIOSROOM_ELDER5
 	const WISETRIOSROOM_ELDER6
-
-WiseTriosRoom_MapScriptHeader:
-.MapTriggers:
-	db 0
-
-.MapCallbacks:
-	db 1
-	dbw MAPCALLBACK_OBJECTS, UnknownScript_0x98574
 
 UnknownScript_0x98574:
 	checkevent EVENT_FOUGHT_SUICUNE
@@ -35,15 +54,6 @@ UnknownScript_0x98593:
 	setevent EVENT_WISE_TRIOS_ROOM_WISE_TRIO_2
 	return
 
-ElderScript_0x9859a:
-	jumptextfaceplayer UnknownText_0x9862b
-
-ElderScript_0x9859d:
-	jumptextfaceplayer UnknownText_0x9868b
-
-ElderScript_0x985a0:
-	jumptextfaceplayer UnknownText_0x987af
-
 UnknownScript_0x985a3:
 	spriteface WISETRIOSROOM_ELDER3, UP
 	spriteface PLAYER, DOWN
@@ -52,10 +62,7 @@ UnknownScript_0x985a3:
 	applymovement PLAYER, MovementData_0x98622
 	stopfollow
 	spriteface PLAYER, RIGHT
-	opentext
-	writetext UnknownText_0x98712
-	waitbutton
-	closetext
+	showtext UnknownText_0x98712
 	applymovement WISETRIOSROOM_ELDER3, MovementData_0x98625
 	spriteface WISETRIOSROOM_ELDER3, LEFT
 	end
@@ -64,28 +71,20 @@ TrainerElderGaku:
 	trainer EVENT_BEAT_ELDER_GAKU, ELDER, GAKU, ElderGakuSeenText, ElderGakuBeatenText, 0, ElderGakuScript
 
 ElderGakuScript:
-	opentext
-	writetext UnknownText_0x98938
-	waitbutton
-	closetext
-	end
+	jumptext UnknownText_0x98938
 
 TrainerElderMasa:
 	trainer EVENT_BEAT_ELDER_MASA, ELDER, MASA, ElderMasaSeenText, ElderMasaBeatenText, 0, ElderMasaScript
 
 ElderMasaScript:
-	opentext
-	writetext UnknownText_0x98a35
-	waitbutton
-	closetext
-	end
+	jumptext UnknownText_0x98a35
 
 TrainerElderKoji:
 	trainer EVENT_BEAT_ELDER_KOJI, ELDER, KOJI, ElderKojiSeenText, ElderKojiBeatenText, 0, ElderKojiScript
 
 ElderKojiScript:
 	checkevent EVENT_KOJI_ALLOWS_YOU_PASSAGE_TO_TIN_TOWER
-	iftrue UnknownScript_0x9861b
+	iftrue_jumptext UnknownText_0x98db5
 	pause 10
 	showemote EMOTE_SHOCK, WISETRIOSROOM_ELDER6, 20
 	opentext
@@ -98,13 +97,6 @@ ElderKojiScript:
 	spriteface WISETRIOSROOM_ELDER6, UP
 	setevent EVENT_KOJI_ALLOWS_YOU_PASSAGE_TO_TIN_TOWER
 	dotrigger $1
-	end
-
-UnknownScript_0x9861b:
-	opentext
-	writetext UnknownText_0x98db5
-	waitbutton
-	closetext
 	end
 
 MovementData_0x98622:
@@ -240,7 +232,11 @@ UnknownText_0x98a35:
 	line "were two nine-tier"
 	cont "towers here."
 
+if DEF(FAITHFUL)
+	para "The Brass Tower,"
+else
 	para "The Gong Tower,"
+endc
 	line "which was said to"
 
 	para "waken #mon, and"
@@ -262,7 +258,11 @@ UnknownText_0x98a35:
 	line "was said to make"
 
 	para "its roost atop the"
+if DEF(FAITHFUL)
+	line "Brass Tower."
+else
 	line "Gong Tower."
+endc
 
 	para "However…"
 
@@ -307,7 +307,7 @@ UnknownText_0x98cac:
 	text "I see…"
 
 	para "We, the Wise Trio,"
-	line "have been given "
+	line "have been given"
 
 	para "the responsibility"
 	line "of protecting the"
@@ -335,26 +335,3 @@ UnknownText_0x98db5:
 	para "Suicune will put"
 	line "you to the test."
 	done
-
-WiseTriosRoom_MapEventHeader:
-.Warps:
-	db 3
-	warp_def $4, $7, 1, BELLCHIME_TRAIL
-	warp_def $5, $7, 2, BELLCHIME_TRAIL
-	warp_def $4, $1, 5, ECRUTEAK_HOUSE
-
-.XYTriggers:
-	db 1
-	xy_trigger 0, $4, $7, UnknownScript_0x985a3
-
-.Signposts:
-	db 0
-
-.PersonEvents:
-	db 6
-	person_event SPRITE_ELDER, 2, 6, SPRITEMOVEDATA_SPINRANDOM_SLOW, 0, 0, -1, -1, (1 << 3) | PAL_OW_GREEN, PERSONTYPE_SCRIPT, 0, ElderScript_0x9859a, EVENT_WISE_TRIOS_ROOM_WISE_TRIO_1
-	person_event SPRITE_ELDER, 7, 6, SPRITEMOVEDATA_WALK_LEFT_RIGHT, 0, 1, -1, -1, (1 << 3) | PAL_OW_GREEN, PERSONTYPE_SCRIPT, 0, ElderScript_0x9859d, EVENT_WISE_TRIOS_ROOM_WISE_TRIO_1
-	person_event SPRITE_ELDER, 5, 7, SPRITEMOVEDATA_STANDING_LEFT, 0, 0, -1, -1, (1 << 3) | PAL_OW_GREEN, PERSONTYPE_SCRIPT, 0, ElderScript_0x985a0, EVENT_WISE_TRIOS_ROOM_WISE_TRIO_1
-	person_event SPRITE_ELDER, 2, 4, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, -1, (1 << 3) | PAL_OW_GREEN, PERSONTYPE_TRAINER, 2, TrainerElderGaku, EVENT_WISE_TRIOS_ROOM_WISE_TRIO_2
-	person_event SPRITE_ELDER, 6, 4, SPRITEMOVEDATA_STANDING_UP, 0, 0, -1, -1, (1 << 3) | PAL_OW_GREEN, PERSONTYPE_TRAINER, 2, TrainerElderMasa, EVENT_WISE_TRIOS_ROOM_WISE_TRIO_2
-	person_event SPRITE_ELDER, 4, 6, SPRITEMOVEDATA_STANDING_LEFT, 0, 0, -1, -1, (1 << 3) | PAL_OW_GREEN, PERSONTYPE_TRAINER, 2, TrainerElderKoji, EVENT_WISE_TRIOS_ROOM_WISE_TRIO_2

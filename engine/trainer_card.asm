@@ -1,3 +1,5 @@
+TRAINERCARD_BORDERGFX_START EQU $f4
+
 TrainerCard: ; 25105
 	ld a, [VramState]
 	push af
@@ -37,19 +39,16 @@ TrainerCard: ; 25105
 	farcall GetCardPic
 
 	ld hl, CardBorderGFX
-	ld de, VTiles1 tile ($de - $80)
+	ld de, VTiles1 tile (TRAINERCARD_BORDERGFX_START - $80)
 	ld bc, 12 tiles
 	ld a, BANK(CardBorderGFX)
 	call FarCopyBytes
 
 	ld hl, CardDividerGFX
 	ld de, VTiles2 tile $23
-	ld bc, 6 tiles
-	ld a, BANK(CardDividerGFX)
+	ld bc, (6 + 4) tiles ; CardDividerGFX + CardStatusGFX
+	ld a, BANK(CardDividerGFX) ; BANK(CardStatusGFX)
 	call FarCopyBytes
-
-	ld hl, CardStatusGFX
-	call TrainerCard_LoadHeaderGFX
 
 	call TrainerCard_PrintBorder
 	call TrainerCard_PrintTopHalfOfCard
@@ -94,8 +93,15 @@ TrainerCard_Page1_LoadGFX: ; 251b6 (9:51b6)
 	call ClearSprites
 	call TrainerCardSetup_ClearBottomHalf
 	call WaitBGMap
-	ld hl, CardStatusGFX
+
+	ld b, SCGB_TRAINER_CARD
+	call GetSGBLayout
+	call SetPalettes
+	call WaitBGMap
+
+	ld de, CardStatusGFX
 	call TrainerCard_LoadHeaderGFX
+
 	call TrainerCard_Page1_PrintDexCaught_GameTime
 	jp TrainerCard_IncrementJumptable
 
@@ -119,12 +125,12 @@ TrainerCard_Page2_LoadGFX: ; 251f4 (9:51f4)
 	call TrainerCardSetup_ClearBottomHalf
 	call WaitBGMap
 
-	ld b, SCGB_TRAINER_CARD
+	ld b, SCGB_TRAINER_CARD_2
 	call GetSGBLayout
 	call SetPalettes
 	call WaitBGMap
 
-	ld hl, CardBadgesGFX
+	ld de, CardBadgesGFX
 	call TrainerCard_LoadHeaderGFX
 
 	ld de, LeaderGFX
@@ -186,12 +192,12 @@ TrainerCard_Page3_LoadGFX: ; 2524c (9:524c)
 	call TrainerCardSetup_ClearBottomHalf
 	call WaitBGMap
 
-	ld b, SCGB_TRAINER_CARD_2
+	ld b, SCGB_TRAINER_CARD_3
 	call GetSGBLayout
 	call SetPalettes
 	call WaitBGMap
 
-	ld hl, CardBadgesGFX
+	ld de, CardBadgesGFX
 	call TrainerCard_LoadHeaderGFX
 
 	ld de, LeaderGFX2
@@ -230,15 +236,14 @@ TrainerCard_Page3_Joypad: ; 25279 (9:5279)
 	ret
 
 TrainerCard_LoadHeaderGFX:
-	ld de, VTiles2 tile $2b
-	ld bc, 4 tiles
-	ld a, BANK(CardStatusGFX) ; BANK(CardBadgesGFX)
-	jp FarCopyBytes
+	ld hl, VTiles2 tile $29
+	lb bc, BANK(CardStatusGFX), $4 ; BANK(CardBadgesGFX)
+	jp Request2bpp
 
 TrainerCard_PrintBorder: ; 253b0 (9:53b0)
 	hlcoord 0, 0
 
-	ld a, $de ; top-left corner
+	ld a, TRAINERCARD_BORDERGFX_START
 	ld [hli], a
 	ld e, SCREEN_WIDTH - 2
 	inc a ; top border
@@ -276,13 +281,13 @@ TrainerCard_PrintBorder: ; 253b0 (9:53b0)
 	hlcoord 1, 8
 	ld a, $23
 	ld [hli], a
-	ld a, $2b
+	ld a, $29
+	ld [hli], a
+	inc a ; $2a
+	ld [hli], a
+	inc a ; $2b
 	ld [hli], a
 	inc a ; $2c
-	ld [hli], a
-	inc a ; $2d
-	ld [hli], a
-	inc a ; $2e
 	ld [hli], a
 	ld a, $24
 	ld [hli], a
@@ -341,9 +346,9 @@ TrainerCard_PrintTopHalfOfCard: ; 25299 (9:5299)
 ; 252ec (9:52ec)
 
 .Top_Headings: ; 252ec
-	db $e6, "Name/<LNBRK>"
-	db $e6, "<ID>№.<LNBRK>"
-	db $e7, $e8, $e8, $e8, $e8, $e8, $e8, $e8, $e8, $e8, $e8, $e8, $e9, "<LNBRK>"
+	db "┐Name/<LNBRK>"
+	db "┐<ID>№.<LNBRK>"
+	db "│└└└└└└└└└└└┘<LNBRK>"
 	db "<LNBRK>"
 	db " Money@"
 
@@ -388,48 +393,17 @@ TrainerCard_Page1_PrintDexCaught_GameTime: ; 2530a (9:530a)
 .have_bp
 
 ; trainer stars
+	ld c, VAR_TRAINER_STARS
+	farcall _GetVarAction
+	ld a, [StringBuffer2]
 	hlcoord 2, 16
-	push hl
-	ld de, EVENT_BEAT_ELITE_FOUR
-	ld b, CHECK_FLAG
-	call EventFlagAction
-	pop hl
-	ld a, c
-	and a
-	jr z, .nostar1
-	ld a, $28
-	ld [hli], a ; beat the Elite 4
-.nostar1
-	push hl
-	ld de, EVENT_BEAT_LEAF
-	ld b, CHECK_FLAG
-	call EventFlagAction
-	pop hl
-	ld a, c
-	and a
-	jr z, .nostar2
-	ld a, $28
-	ld [hli], a ; beat Leaf
-.nostar2
-	push hl
-	ld hl, PokedexCaught
-	ld b, EndPokedexCaught - PokedexCaught
-	call CountSetBits
-	pop hl
-	cp NUM_POKEMON
-	jr c, .nostar3
-	ld a, $28
-	ld [hli], a ; complete Pokédex
-.nostar3
-	push hl
-	ld hl, PokemonJournals
-	ld b, PokemonJournalsEnd - PokemonJournals
-	call CountSetBits
-	pop hl
-	cp NUM_POKEMON_JOURNALS
-	ret c
-	ld [hl], $28 ; read all Pokémon Journals
-	ret
+.star_loop
+	dec a
+	cp -1
+	ret z
+	ld [hl], $28
+	inc hl
+	jr .star_loop
 
 .Dex_PlayTime_BP:
 	db   "#dex"
@@ -731,8 +705,7 @@ TrainerCard_KantoBadgesOAM:
 
 CardBorderGFX:  INCBIN "gfx/trainer_card/border.2bpp"
 CardDividerGFX: INCBIN "gfx/trainer_card/divider.2bpp"
-
-CardStatusGFX:  INCBIN "gfx/trainer_card/status.2bpp"
+CardStatusGFX:  INCBIN "gfx/trainer_card/status.2bpp" ; must come after CardDividerGFX
 CardBadgesGFX:  INCBIN "gfx/trainer_card/badges.2bpp"
 
 LeaderGFX:  INCBIN "gfx/trainer_card/johto_leaders.w40.2bpp"

@@ -109,7 +109,8 @@ _KrisDecorationMenu: ; 0x2675c
 	ld a, [hli]
 	ld d, a
 	or e
-	jr z, .done
+	ret z
+
 	push hl
 	call _de_
 	pop hl
@@ -121,8 +122,6 @@ _KrisDecorationMenu: ; 0x2675c
 .next
 	inc hl
 	jr .loop
-.done
-	ret
 ; 26855 (9:6855)
 
 .dw ; 26855
@@ -149,7 +148,8 @@ CheckAllDecorationFlags: ; 2687a
 .loop
 	ld a, [hli]
 	cp -1
-	jr z, .done
+	ret z
+
 	push hl
 	push af
 	ld b, CHECK_FLAG
@@ -161,9 +161,6 @@ CheckAllDecorationFlags: ; 2687a
 	call nz, AppendDecoIndex
 	pop hl
 	jr .loop
-
-.done
-	ret
 ; 26891
 
 AppendDecoIndex: ; 26891
@@ -647,11 +644,6 @@ GetDecoName: ; 26c72
 	dw .bigdoll
 ; 26c8c
 
-
-.invalid ; 26c8c
-	ret
-; 26c8d
-
 .plant ; 26c8d
 	ld a, e
 	jr .getdeconame
@@ -684,7 +676,7 @@ GetDecoName: ; 26c72
 	call .getdeconame
 	pop de
 	ld a, e
-	jr .getpokename
+	; fallthrough
 
 .getpokename ; 26cc0
 	push bc
@@ -704,7 +696,9 @@ GetDecoName: ; 26c72
 	ld d, h
 	ld e, l
 	pop bc
+.invalid ; 26c8c
 	ret
+; 26c8d
 
 .copy ; 26cda
 	ld h, b
@@ -890,19 +884,20 @@ DecoAction_putawayornament: ; 26dc9
 
 .incave
 	call DecoAction_PutItAway_Ornament
+	; fallthrough
 
 DecoAction_FinishUp_Ornament: ; 26dd6
 	call QueryWhichSide
-	ld a, [wd1ec]
+	ld a, [Buffer3]
 	ld [hl], a
-	ld a, [wd1ed]
+	ld a, [Buffer4]
 	ld [de], a
 	xor a
 	ret
 ; 26de3
 
 DecoAction_SetItUp_Ornament: ; 26de3
-	ld a, [wd1ec]
+	ld a, [Buffer3]
 	and a
 	jr z, .nothingthere
 	ld b, a
@@ -916,7 +911,7 @@ DecoAction_SetItUp_Ornament: ; 26de3
 	ld hl, StringBuffer4
 	call GetDecorationName
 	ld a, [MenuSelection]
-	ld [wd1ec], a
+	ld [Buffer3], a
 	call .getwhichside
 	ld hl, DecoText_PutAwayAndSetUp
 	call MenuTextBoxBackup
@@ -925,7 +920,7 @@ DecoAction_SetItUp_Ornament: ; 26de3
 
 .nothingthere
 	ld a, [MenuSelection]
-	ld [wd1ec], a
+	ld [Buffer3], a
 	call .getwhichside
 	ld a, [MenuSelection]
 	ld hl, StringBuffer3
@@ -945,11 +940,11 @@ DecoAction_SetItUp_Ornament: ; 26de3
 .getwhichside ; 26e33
 	ld a, [MenuSelection]
 	ld b, a
-	ld a, [wd1ed]
+	ld a, [Buffer4]
 	cp b
 	ret nz
 	xor a
-	ld [wd1ed], a
+	ld [Buffer4], a
 	ret
 ; 26e41
 
@@ -960,7 +955,7 @@ UnknownText_0x26e41: ; 0x26e41
 ; 0x26e46
 
 DecoAction_PutItAway_Ornament: ; 26e46
-	ld a, [wd1ec]
+	ld a, [Buffer3]
 	and a
 	jr z, .nothingthere
 	ld hl, StringBuffer3
@@ -968,7 +963,7 @@ DecoAction_PutItAway_Ornament: ; 26e46
 	ld a, $1
 	ld [Buffer5], a
 	xor a
-	ld [wd1ec], a
+	ld [Buffer3], a
 	ld hl, DecoText_PutAwayTheDeco
 	call MenuTextBoxBackup
 	xor a
@@ -1000,9 +995,9 @@ DecoAction_AskWhichSide: ; 26e70
 	ld [Buffer2], a
 	call QueryWhichSide
 	ld a, [hl]
-	ld [wd1ec], a
+	ld [Buffer3], a
 	ld a, [de]
-	ld [wd1ed], a
+	ld [Buffer4], a
 	xor a
 	ret
 
@@ -1261,7 +1256,7 @@ DecorationDesc_RightOrnament: ; 26fbe
 
 DecorationDesc_Console: ; 26fc3
 	ld a, [Console]
-	jr DecorationDesc_OrnamentOrConsole
+	; fallthrough
 
 DecorationDesc_OrnamentOrConsole: ; 26fc8
 	ld c, a
@@ -1368,8 +1363,7 @@ ToggleDecorationsVisibility: ; 27043
 	ld de, EVENT_KRISS_HOUSE_2F_BIG_DOLL
 	ld hl, VariableSprites + SPRITE_BIG_DOLL - SPRITE_VARS
 	ld a, [BigDoll]
-	jp ToggleDecorationVisibility
-; 27074
+	; fallthrough
 
 ToggleDecorationVisibility: ; 27074
 	and a

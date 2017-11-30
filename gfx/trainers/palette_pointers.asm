@@ -1,9 +1,10 @@
 
 TrainerPalettes: ; b0ce
 
+if !DEF(MONOCHROME)
 PlayerPalette:           INCLUDE "gfx/trainers/cal.pal"
 KrisPalette:
-KayPalette:              INCLUDE "gfx/trainers/kay.pal"
+CarriePalette:           INCLUDE "gfx/trainers/carrie.pal"
 CalPalette:              INCLUDE "gfx/trainers/cal.pal"
 FalknerPalette:          INCLUDE "gfx/trainers/falkner.pal"
 BugsyPalette:            INCLUDE "gfx/trainers/bugsy.pal"
@@ -47,6 +48,7 @@ PokefanmPalette:         INCLUDE "gfx/trainers/pokefan_m.pal"
 PokefanfPalette:         INCLUDE "gfx/trainers/pokefan_f.pal"
 OfficermPalette:         INCLUDE "gfx/trainers/officer_m.pal"
 OfficerfPalette:         INCLUDE "gfx/trainers/officer_f.pal"
+NursePalette:            INCLUDE "gfx/trainers/nurse.pal"
 PokemaniacPalette:       INCLUDE "gfx/trainers/pokemaniac.pal"
 CosplayerPalette:        INCLUDE "gfx/trainers/cosplayer.pal"
 SuperNerdPalette:        INCLUDE "gfx/trainers/super_nerd.pal"
@@ -93,6 +95,7 @@ RoughneckPalette:        INCLUDE "gfx/trainers/roughneck.pal"
 TamerPalette:            INCLUDE "gfx/trainers/tamer.pal"
 ArtistPalette:           INCLUDE "gfx/trainers/artist.pal"
 AromaLadyPalette:        INCLUDE "gfx/trainers/aroma_lady.pal"
+WaitressPalette:         INCLUDE "gfx/trainers/waitress.pal"
 SightseermPalette:       INCLUDE "gfx/trainers/sightseer_m.pal"
 SightseerfPalette:       INCLUDE "gfx/trainers/sightseer_f.pal"
 SightseersPalette:       INCLUDE "gfx/trainers/sightseers.pal"
@@ -133,6 +136,7 @@ FlanneryPalette:         INCLUDE "gfx/trainers/flannery.pal"
 MaylenePalette:          INCLUDE "gfx/trainers/maylene.pal"
 SkylaPalette:            INCLUDE "gfx/trainers/skyla.pal"
 ValeriePalette:          INCLUDE "gfx/trainers/valerie.pal"
+KukuiPalette:            INCLUDE "gfx/trainers/kukui.pal"
 VictorPalette:           INCLUDE "gfx/trainers/victor.pal"
 BillPalette:             INCLUDE "gfx/trainers/bill.pal"
 YellowPalette:           INCLUDE "gfx/trainers/yellow.pal"
@@ -146,3 +150,11 @@ AerodactylFossilPalette: INCLUDE "gfx/trainers/aerodactyl_fossil.pal"
 CuboneArmorPalette:      INCLUDE "gfx/trainers/cubone_armor.pal"
 MeteoritePalette:        INCLUDE "gfx/trainers/meteorite.pal"
 SilhouettePalette:       INCLUDE "gfx/trainers/silhouette.pal"
+else
+PlayerPalette:
+KrisPalette:
+Lyra1Palette:
+rept 144
+	MONOCHROME_RGB_TWO
+endr
+endc

@@ -1,27 +1,44 @@
-const_value set 2
-	const CELADONUNIVERSITYCLASSROOM1_IMAKUNI
-	const CELADONUNIVERSITYCLASSROOM1_ANDY
-	const CELADONUNIVERSITYCLASSROOM1_DRAGON_TAMER
-	const CELADONUNIVERSITYCLASSROOM1_LADY
-	const CELADONUNIVERSITYCLASSROOM1_ARTIST1
-	const CELADONUNIVERSITYCLASSROOM1_ARTIST2
-	const CELADONUNIVERSITYCLASSROOM1_ARTIST3
-
 CeladonUniversityClassroom1_MapScriptHeader:
-.MapTriggers:
-	db 0
 
-.MapCallbacks:
-	db 0
+.MapTriggers: db 0
+
+.MapCallbacks: db 0
+
+CeladonUniversityClassroom1_MapEventHeader:
+
+.Warps: db 2
+	warp_def 11, 2, 6, CELADON_UNIVERSITY_1F
+	warp_def 11, 3, 6, CELADON_UNIVERSITY_1F
+
+.XYTriggers: db 0
+
+.Signposts: db 5
+	signpost 0, 2, SIGNPOST_JUMPTEXT, CeladonUniversityClassroom1BlackboardText
+	signpost 0, 3, SIGNPOST_JUMPTEXT, CeladonUniversityClassroom1BlackboardText
+	signpost 0, 4, SIGNPOST_JUMPTEXT, CeladonUniversityClassroom1BlackboardText
+	signpost 1, 6, SIGNPOST_JUMPTEXT, CeladonUniversityClassroom1Bookshelf1Text
+	signpost 1, 7, SIGNPOST_JUMPTEXT, CeladonUniversityClassroom1Bookshelf2Text
+
+.PersonEvents: db 7
+	person_event SPRITE_IMAKUNI, 7, 0, SPRITEMOVEDATA_WALK_UP_DOWN, 1, 0, -1, -1, 0, PERSONTYPE_SCRIPT, 0, CeladonUniversityClassroom1ImakuniScript, -1
+	person_event SPRITE_ANDY, 2, 1, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, -1, 0, PERSONTYPE_COMMAND, jumptextfaceplayer, CeladonUniversityClassroom1AndyText, -1
+	person_event SPRITE_DRAGON_TAMER, 2, 5, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, -1, (1 << 3) | PAL_OW_RED, PERSONTYPE_COMMAND, jumptextfaceplayer, CeladonUniversityClassroom1Dragon_tamerText, -1
+	person_event SPRITE_LADY, 5, 2, SPRITEMOVEDATA_STANDING_LEFT, 0, 0, -1, -1, (1 << 3) | PAL_OW_GREEN, PERSONTYPE_COMMAND, jumptextfaceplayer, CeladonUniversityClassroom1LadyText, -1
+	person_event SPRITE_ARTIST, 5, 5, SPRITEMOVEDATA_STANDING_UP, 0, 0, -1, -1, (1 << 3) | PAL_OW_BLUE, PERSONTYPE_COMMAND, jumptextfaceplayer, CeladonUniversityClassroom1Artist1Text, -1
+	person_event SPRITE_ARTIST, 7, 4, SPRITEMOVEDATA_STANDING_UP, 0, 0, -1, (1 << MORN) | (1 << DAY), (1 << 3) | PAL_OW_PURPLE, PERSONTYPE_COMMAND, jumptextfaceplayer, CeladonUniversityClassroom1Artist2Text, -1
+	person_event SPRITE_ARTIST, 9, 3, SPRITEMOVEDATA_STANDING_UP, 0, 0, -1, (1 << NITE), (1 << 3) | PAL_OW_PURPLE, PERSONTYPE_COMMAND, jumptextfaceplayer, CeladonUniversityClassroom1Artist3Text, -1
+
+const_value set 1
+	const CELADONUNIVERSITYCLASSROOM1_IMAKUNI
 
 CeladonUniversityClassroom1ImakuniScript:
 	faceplayer
-	opentext
 	checkevent EVENT_BEAT_IMAKUNI
 	iftrue .Beaten
+	opentext
 	writetext .Text1
 	yesorno
-	iffalse .NoBattle
+	iffalse_jumpopenedtext .Text2
 	writetext .Text3
 	waitbutton
 	closetext
@@ -31,27 +48,29 @@ CeladonUniversityClassroom1ImakuniScript:
 	startbattle
 	reloadmapafterbattle
 	setevent EVENT_BEAT_IMAKUNI
-	opentext
 .Beaten
 	checkevent EVENT_GOT_PERSIM_BERRY_FROM_IMAKUNI
-	iftrue .GotItem
+	iftrue_jumptext .Text6
+	opentext
 	writetext .Text5
 	buttonsound
 	verbosegiveitem PERSIM_BERRY
-	iffalse .Done
+	iffalse_endtext
 	setevent EVENT_GOT_PERSIM_BERRY_FROM_IMAKUNI
-.GotItem:
-	writetext .Text6
-	waitbutton
-.Done:
-	closetext
-	end
+	thisopenedtext
 
-.NoBattle:
-	writetext .Text2
-	waitbutton
-	closetext
-	end
+.Text6:
+	text "In both battle and"
+	line "dance, soul and"
+	cont "rhythm are the"
+	cont "secret."
+
+	para "Hey, that sounds"
+	line "pretty cool!"
+
+	para "Maybe I'll become"
+	line "a poet!"
+	done
 
 .Text1:
 	text "Huh? W…Who are"
@@ -109,23 +128,7 @@ CeladonUniversityClassroom1ImakuniScript:
 	line "lost, OK?"
 	done
 
-.Text6:
-	text "In both battle and"
-	line "dance, soul and"
-	cont "rhythm are the"
-	cont "secret."
-
-	para "Hey, that sounds"
-	line "pretty cool!"
-
-	para "Maybe I'll become"
-	line "a poet!"
-	done
-
-CeladonUniversityClassroom1AndyScript:
-	jumptextfaceplayer .Text
-
-.Text:
+CeladonUniversityClassroom1AndyText:
 	text "Hello there!"
 	line "I'm Prof.Andy,"
 
@@ -143,19 +146,13 @@ CeladonUniversityClassroom1AndyScript:
 	cont "how things look."
 	done
 
-CeladonUniversityClassroom1Dragon_tamerScript:
-	jumptextfaceplayer .Text
-
-.Text:
+CeladonUniversityClassroom1Dragon_tamerText:
 	text "I've been holding"
 	line "this pose for a"
 	cont "while now."
 	done
 
-CeladonUniversityClassroom1LadyScript:
-	jumptextfaceplayer .Text
-
-.Text:
+CeladonUniversityClassroom1LadyText:
 	text "You meet some"
 	line "unique people in"
 	cont "art class, but"
@@ -165,19 +162,13 @@ CeladonUniversityClassroom1LadyScript:
 	cont "really suspicious!"
 	done
 
-CeladonUniversityClassroom1Artist1Script:
-	jumptextfaceplayer .Text
-
-.Text:
+CeladonUniversityClassroom1Artist1Text:
 	text "It's tough getting"
 	line "the folds of this"
 	cont "cape just right."
 	done
 
-CeladonUniversityClassroom1Artist2Script:
-	jumptextfaceplayer .Text
-
-.Text:
+CeladonUniversityClassroom1Artist2Text:
 	text "Aah-choo!"
 
 	para "Ugh. We just had a"
@@ -191,10 +182,7 @@ CeladonUniversityClassroom1Artist2Script:
 	line "gic…"
 	done
 
-CeladonUniversityClassroom1Artist3Script:
-	jumptextfaceplayer .Text
-
-.Text:
+CeladonUniversityClassroom1Artist3Text:
 	text "I work a lot dur-"
 	line "ing the day, so I"
 
@@ -202,10 +190,7 @@ CeladonUniversityClassroom1Artist3Script:
 	line "the evenings."
 	done
 
-CeladonUniversityClassroom1Blackboard:
-	jumptext .Text
-
-.Text:
+CeladonUniversityClassroom1BlackboardText:
 	text "There's a descrip-"
 	line "tion of two-point"
 
@@ -213,10 +198,7 @@ CeladonUniversityClassroom1Blackboard:
 	line "perspective."
 	done
 
-CeladonUniversityClassroom1Bookshelf1:
-	jumptext .Text
-
-.Text:
+CeladonUniversityClassroom1Bookshelf1Text:
 	text "It's a book about"
 	line "Smeargle, a"
 	cont "#mon artist."
@@ -225,10 +207,7 @@ CeladonUniversityClassroom1Bookshelf1:
 	line "tiful drawings."
 	done
 
-CeladonUniversityClassroom1Bookshelf2:
-	jumptext .Text
-
-.Text:
+CeladonUniversityClassroom1Bookshelf2Text:
 	text "It's a brochure"
 	line "showcasing fine"
 	cont "art from a place"
@@ -236,30 +215,3 @@ CeladonUniversityClassroom1Bookshelf2:
 	para "called Lilycove"
 	line "Museum."
 	done
-
-CeladonUniversityClassroom1_MapEventHeader:
-.Warps:
-	db 2
-	warp_def $b, $2, 6, CELADON_UNIVERSITY_1F
-	warp_def $b, $3, 6, CELADON_UNIVERSITY_1F
-
-.XYTriggers:
-	db 0
-
-.Signposts:
-	db 5
-	signpost 0, 2, SIGNPOST_READ, CeladonUniversityClassroom1Blackboard
-	signpost 0, 3, SIGNPOST_READ, CeladonUniversityClassroom1Blackboard
-	signpost 0, 4, SIGNPOST_READ, CeladonUniversityClassroom1Blackboard
-	signpost 1, 6, SIGNPOST_READ, CeladonUniversityClassroom1Bookshelf1
-	signpost 1, 7, SIGNPOST_READ, CeladonUniversityClassroom1Bookshelf2
-
-.PersonEvents:
-	db 7
-	person_event SPRITE_IMAKUNI, 7, 0, SPRITEMOVEDATA_WALK_UP_DOWN, 1, 0, -1, -1, 0, PERSONTYPE_SCRIPT, 0, CeladonUniversityClassroom1ImakuniScript, -1
-	person_event SPRITE_ANDY, 2, 1, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, -1, 0, PERSONTYPE_SCRIPT, 0, CeladonUniversityClassroom1AndyScript, -1
-	person_event SPRITE_DRAGON_TAMER, 2, 5, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, -1, (1 << 3) | PAL_OW_RED, PERSONTYPE_SCRIPT, 0, CeladonUniversityClassroom1Dragon_tamerScript, -1
-	person_event SPRITE_LADY, 5, 2, SPRITEMOVEDATA_STANDING_LEFT, 0, 0, -1, -1, (1 << 3) | PAL_OW_GREEN, PERSONTYPE_SCRIPT, 0, CeladonUniversityClassroom1LadyScript, -1
-	person_event SPRITE_ARTIST, 5, 5, SPRITEMOVEDATA_STANDING_UP, 0, 0, -1, -1, (1 << 3) | PAL_OW_BLUE, PERSONTYPE_SCRIPT, 0, CeladonUniversityClassroom1Artist1Script, -1
-	person_event SPRITE_ARTIST, 7, 4, SPRITEMOVEDATA_STANDING_UP, 0, 0, -1, (1 << MORN) | (1 << DAY), (1 << 3) | PAL_OW_PURPLE, PERSONTYPE_SCRIPT, 0, CeladonUniversityClassroom1Artist2Script, -1
-	person_event SPRITE_ARTIST, 9, 3, SPRITEMOVEDATA_STANDING_UP, 0, 0, -1, (1 << NITE), (1 << 3) | PAL_OW_PURPLE, PERSONTYPE_SCRIPT, 0, CeladonUniversityClassroom1Artist3Script, -1

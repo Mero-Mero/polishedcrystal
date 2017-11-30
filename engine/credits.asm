@@ -1,7 +1,7 @@
 INCLUDE "includes.asm"
 
-SECTION "Credits", ROMX, BANK[CREDITS]
 
+SECTION "Credits", ROMX
 
 	const_def
 	const SATOSHI_TAJIRI
@@ -143,7 +143,7 @@ Credits:: ; 109847
 
 	ld hl, wCreditsFaux2bpp
 	ld c, $80
-	ld de, $ff00
+	lb de, %11111111, %00000000 ; solid light gray hue
 
 .load_loop
 	ld a, e
@@ -203,7 +203,7 @@ Credits:: ; 109847
 	xor a
 	ld [hBGMapMode], a
 	ld [CreditsPos], a
-	ld [wcd21], a
+	ld [CreditsPos+1], a
 	ld [CreditsTimer], a
 
 .execution_loop
@@ -319,7 +319,7 @@ Credits_UpdateGFXRequestPath: ; 109964 (42:5964)
 	ld [Requested2bppDest], a
 	ld a, VTiles2 / $100
 	ld [Requested2bppDest + 1], a
-	jr Credits_RequestGFX
+	; fallthrough
 
 Credits_RequestGFX: ; 10997b (42:597b)
 	xor a
@@ -587,8 +587,7 @@ ConstructCreditsTilemap: ; 109a95 (42:5a95)
 	ld [hBGMapAddress], a
 	hlcoord 0, 0
 	call .InitTopPortion
-	call WaitBGMap2
-	ret
+	jp WaitBGMap2
 
 .InitTopPortion: ; 109aff (42:5aff)
 	ld b, 5
@@ -679,6 +678,7 @@ endr
 
 CreditsPalettes:
 
+if !DEF(MONOCHROME)
 ; Pichu
 	RGB 31, 00, 31
 	RGB 31, 25, 00
@@ -806,6 +806,39 @@ CreditsPalettes:
 	RGB 09, 15, 07
 	RGB 09, 15, 07
 	RGB 00, 00, 00
+else
+	MONOCHROME_RGB_FOUR
+	MONOCHROME_RGB_FOUR
+	MONOCHROME_RGB_FOUR
+
+	MONOCHROME_RGB_FOUR
+	MONOCHROME_RGB_FOUR
+	MONOCHROME_RGB_FOUR
+
+	MONOCHROME_RGB_FOUR
+	MONOCHROME_RGB_FOUR
+	MONOCHROME_RGB_FOUR
+
+	MONOCHROME_RGB_FOUR
+	MONOCHROME_RGB_FOUR
+	MONOCHROME_RGB_FOUR
+
+	MONOCHROME_RGB_FOUR
+	MONOCHROME_RGB_FOUR
+	MONOCHROME_RGB_FOUR
+
+	MONOCHROME_RGB_FOUR
+	MONOCHROME_RGB_FOUR
+	MONOCHROME_RGB_FOUR
+
+	MONOCHROME_RGB_FOUR
+	MONOCHROME_RGB_FOUR
+	MONOCHROME_RGB_FOUR
+
+	MONOCHROME_RGB_FOUR
+	MONOCHROME_RGB_FOUR
+	MONOCHROME_RGB_FOUR
+endc
 ; 109bca
 
 Credits_LoadBorderGFX: ; 109bca (42:5bca)
@@ -1388,7 +1421,7 @@ CreditsStrings:
 .GakuziNomoto:        db "   Gakuzi Nomoto@"
 .AiMashima:           db "     Ai Mashima@"
 .MikihiroIshikawa:    db " Mikihiro Ishikawa@"
-.HideyukiHashimoto:   db " Hideyuki hHashimoto@"
+.HideyukiHashimoto:   db " Hideyuki Hashimoto@"
 .SatoshiYamato:       db "   Satoshi Yamato@"
 .ShigeruMiyamoto:     db "  Shigeru Miyamoto@"
 .End:                 db "        End@"

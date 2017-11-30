@@ -1,9 +1,8 @@
 RefreshScreen:: ; 2dba
-
 	call ClearWindowData
 	ld a, [hROMBank]
 	push af
-	ld a, BANK(ReanchorBGMap_NoOAMUpdate) ; and BANK(LoadFonts_NoOAMUpdate)
+	ld a, BANK(ReanchorBGMap_NoOAMUpdate) ; BANK(LoadFonts_NoOAMUpdate)
 	rst Bankswitch
 
 	call ReanchorBGMap_NoOAMUpdate
@@ -15,6 +14,10 @@ RefreshScreen:: ; 2dba
 	ret
 ; 2dcf
 
+RefreshScreen_BridgeUpdate::
+	call GetMovementPermissions
+	call ClearWindowData
+	farjp ReanchorBGMap_NoOAMUpdate_NoDelay
 
 CloseText:: ; 2dcf
 	ld a, [hOAMUpdate]

@@ -1,24 +1,41 @@
-const_value set 2
-	const CELADONUNIVERSITYCLASSROOM4_RAYMOND
-	const CELADONUNIVERSITYCLASSROOM4_CANDELA
-	const CELADONUNIVERSITYCLASSROOM4_TEACHER
-	const CELADONUNIVERSITYCLASSROOM4_BUG_CATCHER
-	const CELADONUNIVERSITYCLASSROOM4_FISHER
-	const CELADONUNIVERSITYCLASSROOM4_LADY
-	const CELADONUNIVERSITYCLASSROOM4_RICH_BOY
-
 CeladonUniversityClassroom4_MapScriptHeader:
-.MapTriggers:
-	db 0
 
-.MapCallbacks:
-	db 0
+.MapTriggers: db 0
+
+.MapCallbacks: db 0
+
+CeladonUniversityClassroom4_MapEventHeader:
+
+.Warps: db 2
+	warp_def 11, 2, 9, CELADON_UNIVERSITY_1F
+	warp_def 11, 3, 9, CELADON_UNIVERSITY_1F
+
+.XYTriggers: db 0
+
+.Signposts: db 5
+	signpost 0, 2, SIGNPOST_JUMPTEXT, CeladonUniversityClassroom4BlackboardText
+	signpost 0, 3, SIGNPOST_JUMPTEXT, CeladonUniversityClassroom4BlackboardText
+	signpost 0, 4, SIGNPOST_JUMPTEXT, CeladonUniversityClassroom4BlackboardText
+	signpost 1, 6, SIGNPOST_READ, CeladonUniversityClassroom4Bookshelf1
+	signpost 1, 7, SIGNPOST_JUMPTEXT, CeladonUniversityClassroom4Bookshelf2Text
+
+.PersonEvents: db 7
+	person_event SPRITE_COOLTRAINER_M, 2, 5, SPRITEMOVEDATA_SPINRANDOM_FAST, 0, 0, -1, -1, (1 << 3) | PAL_OW_RED, PERSONTYPE_SCRIPT, 0, CeladonUniversityClassroom4RaymondScript, -1
+	person_event SPRITE_CANDELA, 1, 2, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, -1, (1 << 3) | PAL_OW_RED, PERSONTYPE_COMMAND, jumptextfaceplayer, CeladonUniversityClassroom4CandelaText, EVENT_CELADON_UNIVERSITY_CANDELA
+	person_event SPRITE_TEACHER, 1, 2, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, -1, (1 << 3) | PAL_OW_RED, PERSONTYPE_COMMAND, jumptextfaceplayer, CeladonUniversityClassroom4TeacherText, EVENT_SHAMOUTI_COAST_CANDELA
+	person_event SPRITE_BUG_CATCHER, 5, 2, SPRITEMOVEDATA_STANDING_UP, 0, 0, -1, -1, (1 << 3) | PAL_OW_BROWN, PERSONTYPE_COMMAND, jumptextfaceplayer, CeladonUniversityClassroom4Bug_catcherText, -1
+	person_event SPRITE_FISHER, 7, 3, SPRITEMOVEDATA_STANDING_UP, 0, 0, -1, -1, (1 << 3) | PAL_OW_GREEN, PERSONTYPE_COMMAND, jumptextfaceplayer, CeladonUniversityClassroom4FisherText, -1
+	person_event SPRITE_LADY, 7, 5, SPRITEMOVEDATA_STANDING_UP, 0, 0, -1, -1, (1 << 3) | PAL_OW_RED, PERSONTYPE_COMMAND, jumptextfaceplayer, CeladonUniversityClassroom4LadyText, -1
+	person_event SPRITE_RICH_BOY, 9, 4, SPRITEMOVEDATA_SPINRANDOM_SLOW, 0, 0, -1, -1, (1 << 3) | PAL_OW_BLUE, PERSONTYPE_SCRIPT, 0, CeladonUniversityClassroom4Rich_boyScript, -1
+
+const_value set 1
+	const CELADONUNIVERSITYCLASSROOM4_RAYMOND
 
 CeladonUniversityClassroom4RaymondScript:
 	faceplayer
-	opentext
 	checkevent EVENT_BEAT_COOLTRAINERM_RAYMOND
 	iftrue .Beaten
+	opentext
 	checkevent EVENT_INTRODUCED_CELADON_FOUR
 	iftrue .IntroducedCeladonFour1
 	writetext .IntroText1
@@ -27,7 +44,7 @@ CeladonUniversityClassroom4RaymondScript:
 	writetext .IntroText2
 .AfterIntro
 	yesorno
-	iffalse .NoBattle
+	iffalse_jumpopenedtext .NoBattleText
 	writetext .SeenText
 	waitbutton
 	closetext
@@ -37,40 +54,23 @@ CeladonUniversityClassroom4RaymondScript:
 	startbattle
 	reloadmapafterbattle
 	setevent EVENT_BEAT_COOLTRAINERM_RAYMOND
-	opentext
 .Beaten
+	opentext
 	setevent EVENT_INTRODUCED_CELADON_FOUR
 	checkevent EVENT_BEAT_COOLTRAINERM_COREY
-	iffalse .NotFinished
+	iffalse_jumpopenedtext .AfterText1
 	checkevent EVENT_BEAT_COOLTRAINERM_RAYMOND
-	iffalse .NotFinished
+	iffalse_jumpopenedtext .AfterText1
 	checkevent EVENT_BEAT_COOLTRAINERM_FERGUS
-	iffalse .NotFinished
+	iffalse_jumpopenedtext .AfterText1
 	checkevent EVENT_GOT_CHOICE_BAND_FROM_CELADON_FOUR
-	iftrue .GotItem
+	iftrue_jumpopenedtext .FinalText
 	writetext .AfterText2
 	buttonsound
 	verbosegiveitem CHOICE_BAND
-	iffalse .Done
+	iffalse_endtext
 	setevent EVENT_GOT_CHOICE_BAND_FROM_CELADON_FOUR
-.GotItem:
-	writetext .FinalText
-	waitbutton
-.Done:
-	closetext
-	end
-
-.NoBattle:
-	writetext .NoBattleText
-	waitbutton
-	closetext
-	end
-
-.NotFinished:
-	writetext .AfterText1
-	waitbutton
-	closetext
-	end
+	jumpopenedtext .FinalText
 
 .IntroText1:
 	text "Hey! I'm Raymond!"
@@ -151,10 +151,7 @@ CeladonUniversityClassroom4RaymondScript:
 	line "burden."
 	done
 
-CeladonUniversityClassroom4CandelaScript:
-	jumptextfaceplayer .Text
-
-.Text:
+CeladonUniversityClassroom4CandelaText:
 	text "Hi! I'm Candela."
 	line "I teach #mon"
 	cont "Battling!"
@@ -167,10 +164,7 @@ CeladonUniversityClassroom4CandelaScript:
 	cont "suit of strength."
 	done
 
-CeladonUniversityClassroom4TeacherScript:
-	jumptextfaceplayer .Text
-
-.Text:
+CeladonUniversityClassroom4TeacherText:
 	text "I'm just a sub-"
 	line "stitute."
 
@@ -182,10 +176,7 @@ CeladonUniversityClassroom4TeacherScript:
 	cont "reason."
 	done
 
-CeladonUniversityClassroom4Bug_catcherScript:
-	jumptextfaceplayer .Text
-
-.Text:
+CeladonUniversityClassroom4Bug_catcherText:
 	text "My lecturer said"
 	line "my #mon could"
 
@@ -197,10 +188,7 @@ CeladonUniversityClassroom4Bug_catcherScript:
 	cont "ever seen!"
 	done
 
-CeladonUniversityClassroom4FisherScript:
-	jumptextfaceplayer .Text
-
-.Text:
+CeladonUniversityClassroom4FisherText:
 	text "The prof said my"
 	line "#mon was a"
 	cont "wonder!"
@@ -209,10 +197,7 @@ CeladonUniversityClassroom4FisherScript:
 	line "taking #mon."
 	done
 
-CeladonUniversityClassroom4LadyScript:
-	jumptextfaceplayer .Text
-
-.Text:
+CeladonUniversityClassroom4LadyText:
 	text "The professor said"
 	line "my #mon simply"
 	cont "amazed her."
@@ -230,14 +215,11 @@ CeladonUniversityClassroom4Rich_boyScript:
 	writetext .Text1
 	buttonsound
 	verbosegiveitem ABILITY_CAP
-	iffalse .Done
+	iffalse_endtext
 	setevent EVENT_GOT_ABILITY_CAP_IN_UNIVERSITY
 .GotItem:
 	writetext .Text2
-	waitbutton
-.Done:
-	closetext
-	end
+	waitendtext
 
 .Text1:
 	text "We're learning"
@@ -259,12 +241,18 @@ CeladonUniversityClassroom4Rich_boyScript:
 
 	para "an Ability Cap"
 	line "can't change."
+
+	para "But! If a #-"
+	line "mon holding an"
+
+	para "Ability Cap has"
+	line "an Egg, its baby"
+
+	para "might have a"
+	line "hidden ability!"
 	done
 
-CeladonUniversityClassroom4Blackboard:
-	jumptext .Text
-
-.Text:
+CeladonUniversityClassroom4BlackboardText:
 	text "Be aware of these"
 	line "factors in battle:"
 	cont "- Type chart"
@@ -282,19 +270,14 @@ CeladonUniversityClassroom4Blackboard:
 
 CeladonUniversityClassroom4Bookshelf1:
 	checkevent EVENT_GOT_X_SPCL_ATK_IN_UNIVERSITY
-	iftrue .GotItem
+	iftrue_jumptext .Text2
 	opentext
 	writetext .Text1
 	buttonsound
 	verbosegiveitem X_SPCL_ATK
-	iffalse .Done
+	iffalse_endtext
 	setevent EVENT_GOT_X_SPCL_ATK_IN_UNIVERSITY
-.Done
-	closetext
-	end
-
-.GotItem:
-	jumptext .Text2
+	endtext
 
 .Text1:
 	text "This bookcase is"
@@ -311,40 +294,10 @@ CeladonUniversityClassroom4Bookshelf1:
 	line "all neat and tidy."
 	done
 
-CeladonUniversityClassroom4Bookshelf2:
-	jumptext .Text
-
-.Text:
+CeladonUniversityClassroom4Bookshelf2Text:
 	text "It's a #mon"
 	line "coloring book."
 
 	para "What's this doing"
 	line "here?"
 	done
-
-CeladonUniversityClassroom4_MapEventHeader:
-.Warps:
-	db 2
-	warp_def $b, $2, 9, CELADON_UNIVERSITY_1F
-	warp_def $b, $3, 9, CELADON_UNIVERSITY_1F
-
-.XYTriggers:
-	db 0
-
-.Signposts:
-	db 5
-	signpost 0, 2, SIGNPOST_READ, CeladonUniversityClassroom4Blackboard
-	signpost 0, 3, SIGNPOST_READ, CeladonUniversityClassroom4Blackboard
-	signpost 0, 4, SIGNPOST_READ, CeladonUniversityClassroom4Blackboard
-	signpost 1, 6, SIGNPOST_READ, CeladonUniversityClassroom4Bookshelf1
-	signpost 1, 7, SIGNPOST_READ, CeladonUniversityClassroom4Bookshelf2
-
-.PersonEvents:
-	db 7
-	person_event SPRITE_COOLTRAINER_M, 2, 5, SPRITEMOVEDATA_SPINRANDOM_FAST, 0, 0, -1, -1, (1 << 3) | PAL_OW_RED, PERSONTYPE_SCRIPT, 0, CeladonUniversityClassroom4RaymondScript, -1
-	person_event SPRITE_CANDELA, 1, 2, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, -1, (1 << 3) | PAL_OW_RED, PERSONTYPE_SCRIPT, 0, CeladonUniversityClassroom4CandelaScript, EVENT_CELADON_UNIVERSITY_CANDELA
-	person_event SPRITE_TEACHER, 1, 2, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, -1, (1 << 3) | PAL_OW_RED, PERSONTYPE_SCRIPT, 0, CeladonUniversityClassroom4TeacherScript, EVENT_SHAMOUTI_COAST_CANDELA
-	person_event SPRITE_BUG_CATCHER, 5, 2, SPRITEMOVEDATA_STANDING_UP, 0, 0, -1, -1, (1 << 3) | PAL_OW_BROWN, PERSONTYPE_SCRIPT, 0, CeladonUniversityClassroom4Bug_catcherScript, -1
-	person_event SPRITE_FISHER, 7, 3, SPRITEMOVEDATA_STANDING_UP, 0, 0, -1, -1, (1 << 3) | PAL_OW_GREEN, PERSONTYPE_SCRIPT, 0, CeladonUniversityClassroom4FisherScript, -1
-	person_event SPRITE_LADY, 7, 5, SPRITEMOVEDATA_STANDING_UP, 0, 0, -1, -1, (1 << 3) | PAL_OW_RED, PERSONTYPE_SCRIPT, 0, CeladonUniversityClassroom4LadyScript, -1
-	person_event SPRITE_RICH_BOY, 9, 4, SPRITEMOVEDATA_SPINRANDOM_SLOW, 0, 0, -1, -1, (1 << 3) | PAL_OW_BLUE, PERSONTYPE_SCRIPT, 0, CeladonUniversityClassroom4Rich_boyScript, -1

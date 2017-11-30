@@ -71,7 +71,7 @@ LimberAbility:
 InsomniaAbility:
 VitalSpiritAbility:
 	ld a, SLP
-	jr HealStatusAbility
+	; fallthrough
 HealStatusAbility:
 	ld b, a
 	ld a, BATTLE_VARS_STATUS
@@ -83,20 +83,12 @@ HealStatusAbility:
 	call GetBattleVarAddr
 	xor a
 	ld [hl], a
-	ld a, BATTLE_VARS_SUBSTATUS2
-	call GetBattleVarAddr
-	and [hl]
-	res SUBSTATUS_TOXIC, [hl]
 	ld hl, BecameHealthyText
 	call StdBattleTextBox
 	ld a, [hBattleTurn]
 	and a
-	jr z, .is_player
-	farcall CalcEnemyStats
+	jp z, UpdateBattleMonInParty
 	jp UpdateEnemyMonInParty
-.is_player
-	farcall CalcPlayerStats
-	jp UpdateBattleMonInParty
 
 OwnTempoAbility:
 	ld a, BATTLE_VARS_SUBSTATUS3
@@ -155,7 +147,7 @@ SandStreamAbility:
 	jr WeatherAbility
 SnowWarningAbility:
 	ld a, WEATHER_HAIL
-	jr WeatherAbility
+	; fallthrough
 WeatherAbility:
 	ld b, a
 	ld a, [Weather]
@@ -328,8 +320,7 @@ AnticipationAbility:
 .got_move_struct2
 	ld a, BANK(Moves)
 	call FarCopyBytes
-	call SwitchTurn
-	ret
+	jp SwitchTurn
 
 ForewarnAbility:
 ; A note on moves with non-regular damage: Bulbapedia and Showdown has conflicting info on
@@ -486,8 +477,8 @@ RunFaintAbilities:
 	call SwitchTurn
 	pop af
 	call .opponent_abilities
-	call SwitchTurn
-	ret
+	jp SwitchTurn
+
 .user_abilities
 	cp MOXIE
 	jp z, MoxieAbility
@@ -505,17 +496,11 @@ AftermathAbility:
 	ret z
 	; Only contact moves proc Aftermath
 	call SwitchTurn
-	ld a, BATTLE_VARS_MOVE
-	call GetBattleVar
-	cp STRUGGLE
+	call CheckContactMove
 	push af
 	call SwitchTurn
 	pop af
-	jr z, .is_contact
-	ld hl, ContactMoves
-	ld de, 1
-	call IsInArray
-	ret nc
+	ret c
 .is_contact
 	call ShowAbilityActivation
 	call SwitchTurn
@@ -525,17 +510,8 @@ AftermathAbility:
 
 RunHitAbilities:
 ; abilities that run on hitting the enemy with an offensive attack
-	; First, check contact moves. Struggle makes contact, but can't be part of
-	; the array check, being 0xFF (the array terminator)
-	ld a, BATTLE_VARS_MOVE
-	call GetBattleVar
-	cp STRUGGLE
-	jr z, .run_contact_abilities
-	ld hl, ContactMoves
-	ld de, 1
-	call IsInArray
-	jr nc, .skip_contact_abilities
-.run_contact_abilities
+	call CheckContactMove
+	jr c, .skip_contact_abilities
 	call RunContactAbilities
 .skip_contact_abilities
 	; Store type and category (phy/spe/sta) so that abilities can check on them
@@ -552,11 +528,18 @@ RunHitAbilities:
 	pop af
 	pop bc
 	call .do_enemy_abilities
-	call SwitchTurn
-	ret
+	jp SwitchTurn
+
 .do_enemy_abilities
 	cp CURSED_BODY
 	jp z, CursedBodyAbility
+	push bc
+	push af
+	call HasUserFainted
+	pop bc
+	ld a, b
+	pop bc
+	ret z
 	cp JUSTIFIED
 	jp z, JustifiedAbility
 	cp RATTLED
@@ -576,14 +559,7 @@ RunContactAbilities:
 	cp POISON_TOUCH
 	call z, PoisonTouchAbility
 .skip_user_ability
-	call GetOpponentAbilityAfterMoldBreaker
-	cp PICKPOCKET
-	jr nz, .not_pickpocket
-	call SwitchTurn
-	call PickPocketAbility
-	jp SwitchTurn
-.not_pickpocket
-; other abilities only trigger 30% of the time
+; abilities only trigger 30% of the time
 ;
 ; Abilities always run from the ability user's perspective. This is
 ; consistent. Thus, a switchturn happens here. Feel free to rework
@@ -596,10 +572,9 @@ RunContactAbilities:
 	call SwitchTurn
 	call .do_enemy_abilities
 	jp SwitchTurn
+
 .do_enemy_abilities
 	ld a, b
-	cp CUTE_CHARM
-	jp z, CuteCharmAbility
 	cp EFFECT_SPORE
 	jp z, EffectSporeAbility
 	cp FLAME_BODY
@@ -608,22 +583,27 @@ RunContactAbilities:
 	jp z, PoisonPointAbility
 	cp STATIC
 	jp z, StaticAbility
+	cp CUTE_CHARM
+	jp z, CuteCharmAbility
 	ret
 
 CursedBodyAbility:
+	ld a, 10
+	call BattleRandomRange
+	cp 3
+	ret nc
 	call DisableAnimations
 	; this runs ShowAbilityActivation when relevant
 	farcall BattleCommand_Disable
 	jp EnableAnimations
 
 CuteCharmAbility:
+	call HasUserFainted
+	ret z
 	call DisableAnimations
 	; this runs ShowAbilityActivation when relevant
 	farcall BattleCommand_Attract
 	jp EnableAnimations
-
-PickPocketAbility:
-	ret
 
 EffectSporeAbility:
 	call CheckIfTargetIsGrassType
@@ -642,15 +622,13 @@ EffectSporeAbility:
 	call GetBattleVar
 	cp VITAL_SPIRIT
 	ret z
-	ld b, INSOMNIA
-	ld c, HELD_PREVENT_SLEEP
+	lb bc, INSOMNIA, HELD_PREVENT_SLEEP
 	ld d, SLP
 	jr AfflictStatusAbility
 FlameBodyAbility:
 	call CheckIfTargetIsFireType
 	ret z
-	ld b, WATER_VEIL
-	ld c, HELD_PREVENT_BURN
+	lb bc, WATER_VEIL, HELD_PREVENT_BURN
 	ld d, BRN
 	jr AfflictStatusAbility
 PoisonTouchAbility:
@@ -661,21 +639,21 @@ PoisonPointAbility:
 	ret z
 	call CheckIfTargetIsSteelType
 	ret z
-	ld b, IMMUNITY
-	ld c, HELD_PREVENT_POISON
+	lb bc, IMMUNITY, HELD_PREVENT_POISON
 	ld d, PSN
 	jr AfflictStatusAbility
 StaticAbility:
 	call CheckIfTargetIsElectricType
 	ret z
-	ld b, LIMBER
-	ld c, HELD_PREVENT_PARALYZE
+	lb bc, LIMBER, HELD_PREVENT_PARALYZE
 	ld d, PAR
 AfflictStatusAbility
 ; While BattleCommand_Whatever already does all these checks,
 ; duplicating them here is minor logic, and it avoids spamming
 ; needless ability activations that ends up not actually doing
 ; anything.
+	call HasEnemyFainted
+	ret z
 	ld a, BATTLE_VARS_ABILITY_OPP
 	push de
 	call GetBattleVar
@@ -796,8 +774,7 @@ RunEnemyNullificationAbilities:
 	call SwitchTurn
 	ld hl, DoesntAffectText
 	call StdBattleTextBox
-	call SwitchTurn
-	ret
+	jp SwitchTurn
 
 NullificationAbilities:
 	dbw DRY_SKIN, DrySkinAbility
@@ -838,8 +815,20 @@ JustifiedAbility:
 	ld a, c
 	cp DARK
 	ret nz
+	jr AttackUpAbility
 MoxieAbility:
+	; Don't run if battle is over
+	ld a, [hBattleTurn]
+	and a
+	jr nz, .enemy
+	ld a, [wBattleMode]
+	dec a
+	ret z
+.enemy
+	farcall CheckAnyOtherAliveOpponentMons
+	ret z
 SapSipperAbility:
+AttackUpAbility:
 	ld b, ATTACK
 	jr StatUpAbility
 LightningRodAbility:
@@ -862,6 +851,8 @@ SteadfastAbility:
 SpeedBoostAbility:
 	ld b, SPEED
 StatUpAbility:
+	call HasUserFainted
+	ret z
 	ld a, [AttackMissed]
 	push af
 	xor a
@@ -878,6 +869,7 @@ StatUpAbility:
 .cant_raise
 ; Lightning Rod, Motor Drive and Sap Sipper prints a "doesn't affect" message instead.
 	ld a, BATTLE_VARS_ABILITY
+	call GetBattleVar
 	cp LIGHTNING_ROD
 	jr z, .print_immunity
 	cp MOTOR_DRIVE
@@ -898,13 +890,13 @@ StatUpAbility:
 WeakArmorAbility:
 	; only physical moves activate this
 	ld a, b
-	cp PHYSICAL
+	and a ; cp PHYSICAL
 	ret nz
 
 	ld b, DEFENSE
 	call DisableAnimations
 	farcall ResetMiss
-	farcall LowerStat
+	farcall LowerStat ; can't be resisted
 	ld a, [FailedMessage]
 	and a
 	jr nz, .failed_defensedown
@@ -918,8 +910,7 @@ WeakArmorAbility:
 	and a
 	jp nz, EnableAnimations
 .speedupmessage
-	farcall BattleCommand_StatUpMessage
-	ret
+	farjp BattleCommand_StatUpMessage
 .failed_defensedown
 ; If we can still raise Speed, do that and show ability activation anyway
 	farcall ResetMiss
@@ -951,14 +942,13 @@ WaterAbsorbAbility:
 	farcall CheckFullHP
 	jr z, .full_hp
 	farcall GetQuarterMaxHP
-	farcall RestoreHP
-	ret
+	farjp RestoreHP
 .full_hp
 	ld hl, HPIsFullText
 	jp StdBattleTextBox
 
 ApplySpeedAbilities:
-; Passive speed boost abilities. Speed in bc
+; Passive speed boost abilities
 	ld a, BATTLE_VARS_ABILITY
 	call GetBattleVar
 	cp SWIFT_SWIM
@@ -972,7 +962,8 @@ ApplySpeedAbilities:
 	ld a, BATTLE_VARS_STATUS
 	and a
 	ret z
-	jr .semidouble
+	ld a, $32
+	jr .apply_mod
 .swift_swim
 	ld h, WEATHER_RAIN
 	jr .weather_ability
@@ -985,104 +976,58 @@ ApplySpeedAbilities:
 	call GetWeatherAfterCloudNine
 	cp h
 	ret nz
-	; double
-	sla c
-	rl b
-	ret
-.semidouble
-	; 50% boost
-	ld h, b
-	ld l, c
-	srl b
-	rr c
-	add hl, bc
-	ld b, h
-	ld c, l
-	ret
+	ld a, $21
+.apply_mod
+	jp ApplyDamageMod
 
 ApplyAccuracyAbilities:
-; Passive accuracy boost/reduction abilities.
-; Current accuracy is in mul/div addresses
 	ld a, BATTLE_VARS_ABILITY
 	call GetBattleVar
-	call .user_abilities
+	ld hl, UserAccuracyAbilities
+	call AbilityJumptable
 	call GetOpponentAbilityAfterMoldBreaker
-	ld b, a
-	call SwitchTurn
-	ld a, b
-	call .enemy_abilities
-	call SwitchTurn
-	ret
+	ld hl, TargetAccuracyAbilities
+	jp AbilityJumptable
 
-.user_abilities
-	ld hl, hMultiplier
-	cp COMPOUND_EYES
-	jr z, CompoundEyesAbility
-	cp HUSTLE
-	jr z, HustleAccuracyAbility
-	ret
+UserAccuracyAbilities:
+	dbw COMPOUND_EYES, CompoundEyesAbility
+	dbw HUSTLE, HustleAccuracyAbility
+	dbw -1, -1
 
-.enemy_abilities
-	ld hl, hMultiplier
-	cp SAND_VEIL
-	jr z, SandVeilAbility
-	cp TANGLED_FEET
-	jr z, TangledFeetAbility
-	cp SNOW_CLOAK
-	jr z, SnowCloakAbility
-	cp WONDER_SKIN
-	jr z, WonderSkinAbility
-	ret
+TargetAccuracyAbilities:
+	dbw TANGLED_FEET, TangledFeetAbility
+	dbw WONDER_SKIN, WonderSkinAbility
+	dbw SAND_VEIL, SandVeilAbility
+	dbw SNOW_CLOAK, SnowCloakAbility
+	dbw -1, -1
 
 CompoundEyesAbility:
 ; Increase accuracy by 30%
-	ld [hl], 13
-	call Multiply
-	ld [hl], 10
-	ld b, 4
-	jp Divide
+	ld a, $da
+	jp ApplyDamageMod
 
 HustleAccuracyAbility:
 ; Decrease accuracy for physical attacks by 20%
-	ld a, BATTLE_VARS_MOVE_CATEGORY
-	call GetBattleVar
-	cp PHYSICAL
-	ret nz
-	ld [hl], 5
-	call Multiply
-	ld [hl], 6
-	ld b, 4
-	jp Divide
+	ld a, $45
+	jp ApplyPhysicalAttackDamageMod
 
 TangledFeetAbility:
-; Decrease accuracy by 50% while confused
-	push hl
-	ld a, BATTLE_VARS_SUBSTATUS3
-	call GetBattleVarAddr
-	bit SUBSTATUS_CONFUSED, [hl]
-	pop hl
+; Double evasion if confused
+	ld a, BATTLE_VARS_SUBSTATUS3_OPP
+	call GetBattleVar
+	bit SUBSTATUS_CONFUSED, a
 	ret z
-	ld [hl], 2
-	ld b, 4
-	jp Divide
+	ld a, $12
+	jp ApplyDamageMod
 
 WonderSkinAbility:
-; Decrease accuracy by 50% for status moves
-	ld a, [wEnemyMoveStructCategory]
-	ld b, a
-	ld a, [hBattleTurn]
-	and a
-	jr z, .got_cat
-	ld a, [wPlayerMoveStructCategory]
-	ld b, a
-.got_cat
-	ld a, b
+; Double evasion for status moves
+	ld a, BATTLE_VARS_MOVE_CATEGORY
+	call GetBattleVar
 	cp STATUS
 	ret nz
-
-	ld [hl], 2
-	ld b, 4
-	jp Divide
+	ld a, $12
+	jp ApplyDamageMod
 
 SandVeilAbility:
 	ld b, WEATHER_SANDSTORM
@@ -1090,15 +1035,12 @@ SandVeilAbility:
 SnowCloakAbility:
 	ld b, WEATHER_HAIL
 WeatherAccAbility:
-; Decrease accuracy by 20% in relevant weather
+; Decrease target accuracy by 20% in relevant weather
 	call GetWeatherAfterCloudNine
 	cp b
 	ret nz
-	ld [hl], 4
-	call Multiply
-	ld [hl], 5
-	ld b, 4
-	jp Divide
+	ld a, $45
+	jp ApplyDamageMod
 
 RunWeatherAbilities:
 	ld hl, WeatherAbilities
@@ -1121,8 +1063,7 @@ SolarPowerWeatherAbility:
 	ret nz
 	call ShowAbilityActivation
 	farcall GetEighthMaxHP
-	farcall SubtractHPFromUser
-	ret
+	farjp SubtractHPFromUser
 
 IceBodyAbility:
 	ld b, WEATHER_HAIL
@@ -1146,8 +1087,7 @@ WeatherRecoveryAbility:
 .eighth_max_hp
 	farcall GetEighthMaxHP
 .restore
-	farcall RestoreHP
-	ret
+	farjp RestoreHP
 
 HandleAbilities:
 ; Abilities handled at the end of the turn.
@@ -1222,7 +1162,13 @@ HarvestAbility:
 	ld [de], a
 
 	ld hl, HarvestedItemText
-	jr RegainItemByAbility
+	call RegainItemByAbility
+
+	; For the player, update backup items
+	ld a, [hBattleTurn]
+	and a
+	ret nz
+	jp SetBackupItem
 
 PickupAbility:
 ; At end of turn, pickup consumed opponent items if we don't have any
@@ -1273,13 +1219,9 @@ RegainItemByAbility:
 	ld a, [CurOTMon]
 	ld hl, OTPartyMon1Item
 .got_item_addr
-	push bc
 	call GetPartyLocation
-	pop bc
 	ld [hl], b
-
-	; Yes, also in trainer battles (unlike Pickup)
-	jp SetBackupItem
+	ret
 
 MoodyAbility:
 ; Moody raises one stat by 2 stages and lowers another (not the same one!) by 1.
@@ -1296,10 +1238,8 @@ MoodyAbility:
 	jr z, .got_stat_levels
 	ld hl, EnemyStatLevels
 .got_stat_levels
-	ld b, 0 ; bitfield of nonmaxed stats
-	ld c, 0 ; bitfield of nonminimized stats
-	ld d, 1 ; bit to OR into b/c
-	ld e, 0 ; loop counter
+	lb bc, 0, 0 ; bitfield of nonmaxed stats, bitfield of nonminimized stats
+	lb de, 1, 0 ; bit to OR into b/c, loop counter
 .loop1
 	ld a, [hl]
 	cp 13
@@ -1333,8 +1273,7 @@ MoodyAbility:
 	and $7
 	cp 7
 	jr z, .loop2 ; there are only 7 stats (0-6)
-	ld d, 1
-	ld e, 0 ; counter
+	lb de, 1, 0 ; e = counter
 .loop3
 	cp e
 	jr z, .loop3_done
@@ -1371,8 +1310,7 @@ MoodyAbility:
 	and $7
 	cp 7
 	jr z, .loop4
-	ld d, 1
-	ld e, 0 ; counter
+	lb de, 1, 0 ; e = counter
 .loop5
 	cp e
 	jr z, .loop5_done
@@ -1402,6 +1340,7 @@ ApplyDamageAbilities:
 	jp AbilityJumptable
 
 OffensiveDamageAbilities:
+	dbw TECHNICIAN, TechnicianAbility
 	dbw HUGE_POWER, HugePowerAbility
 	dbw HUSTLE, HustleAbility
 	dbw OVERGROW, OvergrowAbility
@@ -1429,6 +1368,13 @@ DefensiveDamageAbilities:
 	dbw DRY_SKIN, EnemyDrySkinAbility
 	dbw FUR_COAT, EnemyFurCoatAbility
 	dbw -1, -1
+
+TechnicianAbility:
+	ld a, d
+	cp 61
+	ret nc
+	ld a, $32
+	jp ApplyDamageMod
 
 HugePowerAbility:
 ; Doubles physical attack
@@ -1561,7 +1507,7 @@ GutsAbility:
 PixilateAbility:
 	ld a, BATTLE_VARS_MOVE_TYPE
 	call GetBattleVar
-	cp NORMAL
+	and a ; cp NORMAL
 	ret nz
 	ld a, $65
 	jp ApplyDamageMod
@@ -1637,7 +1583,7 @@ ShedSkinAbility:
 	; fallthrough
 NaturalCureAbility:
 HealAllStatusAbility:
-	ld a, 1 << PSN | 1 << BRN | 1 << FRZ | 1 << PAR | SLP
+	ld a, ALL_STATUS
 	jp HealStatusAbility
 
 AngerPointAbility:
@@ -1712,24 +1658,18 @@ ShowAbilityActivation::
 	pop bc
 	ret
 
-RunOverworldPickupAbility::
-; iterates the party and checks for potentially picking up items.
-	ld a, [PartyMons]
-	and a
-	ret z ; no Pokémon in party?
+RunPostBattleAbilities::
+; Checks party for potentially finding items (Pickup) or curing status (Natural Cure)
+	ld a, [PartyCount]
+	jr .first_pass
 .loop
+	ld a, [CurPartyMon]
+.first_pass
 	dec a
 	cp $ff
 	ret z
 
 	ld [CurPartyMon], a
-
-	ld a, MON_ITEM
-	call GetPartyParamLocation
-	ld a, [hl]
-	and a
-	ld a, [CurPartyMon]
-	jr nz, .loop
 
 	push bc
 	ld a, MON_ABILITY
@@ -1741,59 +1681,35 @@ RunOverworldPickupAbility::
 	farcall GetAbility
 	ld a, b
 	pop bc
+	cp NATURAL_CURE
+	jr z, .natural_cure
 	cp PICKUP
-	ld a, [CurPartyMon]
-	jr nz, .loop
+	call z, .Pickup
+	jr .loop
 
-	call Random
-	cp 1 + (10 percent)
-	ld a, [CurPartyMon]
-	jr nc, .loop
-
-	call .Pickup
-	ld a, [CurPartyMon]
+.natural_cure
+	; Heal status
+	ld a, MON_STATUS
+	call GetPartyParamLocation
+	xor a
+	ld [hl], a
 	jr .loop
 
 .Pickup:
-	ld b, 0
-	ld c, 0
-; Pickup selects from a table, giving better rewards scaling with level and randomness
+	ld a, MON_ITEM
+	call GetPartyParamLocation
+	ld a, [hl]
+	and a
+	ret nz
+
 	call Random
-	cp 1 + (2 percent)
-	jr c, .RarePickup
-	cp 1 + (6 percent)
-	call c, .IncBC
 	cp 1 + (10 percent)
-	call c, .IncBC
-	cp 1 + (20 percent)
-	call c, .IncBC
-	cp 1 + (30 percent)
-	call c, .IncBC
-	cp 1 + (40 percent)
-	call c, .IncBC
-	cp 1 + (50 percent)
-	call c, .IncBC
-	cp 1 + (60 percent)
-	call c, .IncBC
-	cp 1 + (70 percent)
-	call c, .IncBC
-	ld hl, BasePickupTable
-.DoneRandomizing:
-; Increase bc based on level
-	push hl
+	ret nc
+
 	ld a, MON_LEVEL
 	call GetPartyParamLocation
 	ld a, [hl]
-	dec a ; 1-10, 11-20, ..., not 0-9, 10-19, ...
-.level_loop
-	sub 10
-	jr c, .level_loop_done
-	inc bc
-	jr .level_loop
-.level_loop_done
-	pop hl
-	add hl, bc
-	ld a, [hl]
+	call GetRandomPickupItem
 	ld b, a
 	ld a, MON_ITEM
 	call GetPartyParamLocation
@@ -1801,20 +1717,59 @@ RunOverworldPickupAbility::
 	ld [hl], a
 	ret
 
-.RarePickup:
-; 2% of Pickup results use a different table with generally better items.
+GetRandomPickupItem::
+; a = level
+
+; bc = floor((level - 1) / 10)
+	ld bc, 0
+	dec a ; 1-10 → 0-9, etc
+.loop
+	sub 10
+	jr c, .done
+	inc bc
+	jr .loop
+.done
+
+; Pickup selects from a table, giving better rewards scaling with level and randomness
+	ld a, 100
+	call RandomRange
+	cp 2
+	jr c, .rare
+	cp 6
+	call c, .inc_bc
+	cp 10
+	call c, .inc_bc
+	cp 20
+	call c, .inc_bc
+	cp 30
+	call c, .inc_bc
+	cp 40
+	call c, .inc_bc
+	cp 50
+	call c, .inc_bc
+	cp 60
+	call c, .inc_bc
+	cp 70
+	call c, .inc_bc
+	ld hl, .BasePickupTable
+	jr .ok
+
+.rare:
+; 2% of Pickup results use a different table with generally better items
 	call Random
 	cp 1 + 50 percent
-	call c, .IncBC
-	ld hl, RarePickupTable
-	jr .DoneRandomizing
+	call c, .inc_bc
+	ld hl, .RarePickupTable
+.ok:
+	add hl, bc
+	ld a, [hl]
+	ret
 
-.IncBC:
-; This just exists to avoid a million labels
+.inc_bc:
 	inc bc
 	ret
 
-BasePickupTable:
+.BasePickupTable:
 	db POTION
 	db ANTIDOTE
 	db SUPER_POTION
@@ -1834,7 +1789,7 @@ BasePickupTable:
 	db PP_UP
 	db MAX_ELIXER
 
-RarePickupTable:
+.RarePickupTable:
 	db HYPER_POTION
 	db NUGGET
 	db KINGS_ROCK

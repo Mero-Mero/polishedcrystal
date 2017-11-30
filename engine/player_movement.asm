@@ -3,8 +3,6 @@ DoPlayerMovement:: ; 80000
 	call .GetDPad
 	ld a, movement_step_sleep_1
 	ld [MovementAnimation], a
-	xor a
-	ld [wd041], a
 	call .TranslateIntoMovement
 	ld c, a
 	ld a, [MovementAnimation]
@@ -34,7 +32,7 @@ DoPlayerMovement:: ; 80000
 
 .TranslateIntoMovement:
 	ld a, [PlayerState]
-	cp PLAYER_NORMAL
+	and a ; cp PLAYER_NORMAL
 	jr z, .Normal
 	cp PLAYER_SURF
 	jr z, .Surf
@@ -120,8 +118,8 @@ DoPlayerMovement:: ; 80000
 
 	ld a, [PlayerStandingTile]
 	ld c, a
-	call CheckWhirlpoolTile
-	jr c, .not_whirlpool
+	cp COLL_WHIRLPOOL
+	jr nz, .not_whirlpool
 	ld a, 3
 	scf
 	ret
@@ -130,10 +128,6 @@ DoPlayerMovement:: ; 80000
 	and $f0
 	cp $30 ; moving water
 	jr z, .water
-	cp $40 ; moving land 1
-	jr z, .land1
-	cp $50 ; moving land 2
-	jr z, .land2
 	cp $70 ; warps
 	jr z, .warps
 	jr .no_walk
@@ -147,7 +141,8 @@ DoPlayerMovement:: ; 80000
 	add hl, bc
 	ld a, [hl]
 	ld [WalkingDirection], a
-	jr .continue_walk
+	ld a, STEP_BIKE
+	jr .finish
 
 .water_table
 	db RIGHT
@@ -155,65 +150,23 @@ DoPlayerMovement:: ; 80000
 	db UP
 	db DOWN
 
-.land1
-	ld a, c
-	and 7
-	ld c, a
-	ld b, 0
-	ld hl, .land1_table
-	add hl, bc
-	ld a, [hl]
-	cp STANDING
-	jr z, .no_walk
-	ld [WalkingDirection], a
-	jr .continue_walk
-
-.land1_table
-	db STANDING
-	db RIGHT
-	db LEFT
-	db UP
-	db DOWN
-	db STANDING
-	db STANDING
-	db STANDING
-
-.land2
-	ld a, c
-	and 7
-	ld c, a
-	ld b, 0
-	ld hl, .land2_table
-	add hl, bc
-	ld a, [hl]
-	cp STANDING
-	jr z, .no_walk
-	ld [WalkingDirection], a
-	jr .continue_walk
-
-.land2_table
-	db RIGHT
-	db LEFT
-	db UP
-	db DOWN
-	db STANDING
-	db STANDING
-	db STANDING
-	db STANDING
-
 .warps
 	ld a, c
-	cp $71 ; door
+	cp COLL_AWNING
+	jr z, .up
+	cp COLL_DOOR
 	jr z, .down
-	cp $79
+	cp COLL_STAIRCASE
 	jr z, .down
-	cp $7a ; stairs
-	jr z, .down
-	cp $7b ; cave
+	cp COLL_CAVE
 	jr nz, .no_walk
 
 .down
-	ld a, DOWN
+	xor a ; DOWN
+	jr .set_direction
+.up
+	ld a, UP
+.set_direction
 	ld [WalkingDirection], a
 	jr .continue_walk
 
@@ -223,6 +176,7 @@ DoPlayerMovement:: ; 80000
 
 .continue_walk
 	ld a, STEP_WALK
+.finish
 	call .DoStep
 	ld a, 5
 	scf
@@ -282,8 +236,8 @@ DoPlayerMovement:: ; 80000
 	jr nz, .spin
 
 	ld a, [PlayerStandingTile]
-	call CheckIceTile
-	jr nc, .ice
+	cp COLL_ICE
+	jr z, .ice
 
 	ld a, [Options2]
 	and 1 << RUNNING_SHOES
@@ -349,18 +303,15 @@ DoPlayerMovement:: ; 80000
 
 .TrySurf: ; 801c0
 
-	call .CheckSurfPerms
-	ld [wd040], a
-	jr c, .surf_bump
-
 	call .CheckNPC
-	ld [wd03f], a
 	and a
 	jr z, .surf_bump
 	cp 2
 	jr z, .surf_bump
 
-	ld a, [wd040]
+	call .CheckSurfPerms
+	jr c, .surf_bump
+
 	and a
 	jr nz, .ExitWater
 
@@ -436,8 +387,6 @@ DoPlayerMovement:: ; 80000
 	cp [hl]
 	jr nz, .not_warp
 
-	ld a, 1
-	ld [wd041], a
 	ld a, [WalkingDirection]
 	cp STANDING
 	jr z, .not_warp
@@ -462,7 +411,10 @@ DoPlayerMovement:: ; 80000
 	ret
 
 .EdgeWarps:
-	db $70, $78, $76, $7e
+	db COLL_WARP_CARPET_DOWN
+	db COLL_WARP_CARPET_UP
+	db COLL_WARP_CARPET_LEFT
+	db COLL_WARP_CARPET_RIGHT
 ; 8025f
 
 .DoStep:
@@ -789,7 +741,7 @@ DoPlayerMovement:: ; 80000
 .RunCheck:
 
 	ld a, [PlayerState]
-	cp PLAYER_NORMAL
+	and a ; cp PLAYER_NORMAL
 	ret nz
 	ld a, [hJoypadDown]
 	and B_BUTTON
@@ -800,7 +752,7 @@ DoPlayerMovement:: ; 80000
 ; Return 0 if tile a is land. Otherwise, return carry.
 
 	call GetTileCollision
-	and a ; land
+	and a ; cp LANDTILE
 	ret z
 	scf
 	ret
@@ -811,11 +763,11 @@ DoPlayerMovement:: ; 80000
 ; Otherwise, return carry.
 
 	call GetTileCollision
-	cp 1
+	cp WATERTILE
 	jr z, .Water
 
 ; Can walk back onto land from water.
-	and a
+	and a ; cp LANDTILE
 	jr z, .Land
 
 	jr .Neither
@@ -858,13 +810,13 @@ CheckStandingOnIce:: ; 80404
 	cp $f0
 	jr z, .not_ice
 	ld a, [PlayerStandingTile]
-	call CheckIceTile
-	jr nc, .yep
+	cp COLL_ICE
+	jr z, .ice
 	ld a, [PlayerState]
 	cp PLAYER_SLIP
 	jr nz, .not_ice
 
-.yep
+.ice
 	scf
 	ret
 
@@ -877,7 +829,7 @@ CheckSpinning::
 	ld a, [PlayerStandingTile]
 	call CheckSpinTile
 	jr z, .start_spin
-	call CheckStopSpinTile
+	cp COLL_STOP_SPIN
 	jr z, .stop_spin
 	ld a, [wSpinning]
 	and a

@@ -1,22 +1,38 @@
-const_value set 2
+DimCave5F_MapScriptHeader:
+
+.MapTriggers: db 0
+
+.MapCallbacks: db 1
+	dbw MAPCALLBACK_CMDQUEUE, DimCave5FSetUpStoneTable
+
+DimCave5F_MapEventHeader:
+
+.Warps: db 4
+	warp_def 31, 13, 5, ROUTE_10_NORTH
+	warp_def 16, 2, 1, DIM_CAVE_4F
+	warp_def 29, 27, 2, DIM_CAVE_4F
+	warp_def 25, 28, 3, DIM_CAVE_4F
+
+.XYTriggers: db 0
+
+.Signposts: db 1
+	signpost 28, 12, SIGNPOST_ITEM + X_SPCL_ATK, EVENT_DIM_CAVE_5F_HIDDEN_X_SPCL_ATK
+
+.PersonEvents: db 8
+	strengthboulder_event 5, 25, EVENT_BOULDER_IN_DIM_CAVE_5F
+	person_event SPRITE_RILEY, 4, 13, SPRITEMOVEDATA_WANDER, 1, 1, -1, -1, 0, PERSONTYPE_SCRIPT, 0, DimCave5FRileyScript, EVENT_DIM_CAVE_RILEY
+	person_event SPRITE_SUPER_NERD, 17, 24, SPRITEMOVEDATA_SPINCOUNTERCLOCKWISE, 0, 0, -1, -1, (1 << 3) | PAL_OW_BROWN, PERSONTYPE_TRAINER, 3, TrainerSuper_nerdFoote, -1
+	person_event SPRITE_ENGINEER, 25, 13, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, -1, (1 << 3) | PAL_OW_RED, PERSONTYPE_TRAINER, 3, TrainerEngineerHoward, -1
+	person_event SPRITE_SUPER_NERD, 28, 21, SPRITEMOVEDATA_STANDING_LEFT, 0, 0, -1, -1, (1 << 3) | PAL_OW_BROWN, PERSONTYPE_TRAINER, 5, TrainerSuper_nerdDave, -1
+	itemball_event 13, 13, RARE_CANDY, 1, EVENT_DIM_CAVE_5F_RARE_CANDY
+	itemball_event 26, 25, DUSK_STONE, 1, EVENT_DIM_CAVE_5F_DUSK_STONE
+	itemball_event 30, 9, HYPER_POTION, 1, EVENT_DIM_CAVE_5F_HYPER_POTION
+
+const_value set 1
 	const DIMCAVE5F_BOULDER
 	const DIMCAVE5F_RILEY
-	const DIMCAVE5F_SUPER_NERD1
-	const DIMCAVE5F_ENGINEER
-	const DIMCAVE5F_SUPER_NERD2
-	const DIMCAVE5F_POKE_BALL1
-	const DIMCAVE5F_POKE_BALL2
-	const DIMCAVE5F_POKE_BALL3
 
-DimCave5F_MapScriptHeader:
-.MapTriggers:
-	db 0
-
-.MapCallbacks:
-	db 1
-	dbw MAPCALLBACK_CMDQUEUE, .SetUpStoneTable
-
-.SetUpStoneTable:
+DimCave5FSetUpStoneTable:
 	writecmdqueue .CommandQueue
 	return
 
@@ -26,7 +42,7 @@ DimCave5F_MapScriptHeader:
 
 .StoneTable:
 	stonetable 4, DIMCAVE5F_BOULDER, .Boulder
-	db -1
+	db -1 ; end
 
 .Boulder:
 	disappear DIMCAVE5F_BOULDER
@@ -34,13 +50,8 @@ DimCave5F_MapScriptHeader:
 	pause 30
 	playsound SFX_STRENGTH
 	earthquake 80
-	opentext
-	writetext .Text
-	waitbutton
-	closetext
-	end
+	thistext
 
-.Text:
 	text "The boulder fell"
 	line "through."
 	done
@@ -52,7 +63,7 @@ DimCave5FRileyScript:
 	opentext
 	writetext .ChallengeText
 	yesorno
-	iffalse .No
+	iffalse_jumpopenedtext .NoText
 	writetext .YesText
 	waitbutton
 	closetext
@@ -67,7 +78,7 @@ DimCave5FRileyScript:
 	writetext .ItemText
 	buttonsound
 	verbosegiveitem POWER_BRACER
-	iffalse .Done
+	iffalse_endtext
 	writetext .GoodbyeText
 	waitbutton
 	closetext
@@ -77,16 +88,6 @@ DimCave5FRileyScript:
 	pause 15
 	special Special_FadeInQuickly
 	clearevent EVENT_BATTLE_TOWER_RILEY
-	end
-
-.Done:
-	closetext
-	end
-
-.No:
-	writetext .NoText
-	waitbutton
-	closetext
 	end
 
 .ChallengeText:
@@ -170,11 +171,7 @@ TrainerSuper_nerdFoote:
 
 .Script:
 	end_if_just_battled
-	opentext
-	writetext .AfterText
-	waitbutton
-	closetext
-	end
+	jumptextfaceplayer .AfterText
 
 .SeenText:
 	text "I have a conundrum"
@@ -209,11 +206,7 @@ TrainerEngineerHoward:
 
 .Script:
 	end_if_just_battled
-	opentext
-	writetext .AfterText
-	waitbutton
-	closetext
-	end
+	jumptextfaceplayer .AfterText
 
 .SeenText:
 	text "This waterfall"
@@ -239,11 +232,7 @@ TrainerSuper_nerdDave:
 
 .Script:
 	end_if_just_battled
-	opentext
-	writetext .AfterText
-	waitbutton
-	closetext
-	end
+	jumptextfaceplayer .AfterText
 
 .SeenText:
 	text "I've maxed out my"
@@ -265,44 +254,3 @@ TrainerSuper_nerdDave:
 	para "But you can't get"
 	line "them around here."
 	done
-
-DimCave5FBoulder:
-	jumpstd strengthboulder
-
-DimCave5FRareCandy:
-	itemball RARE_CANDY
-
-DimCave5FDuskStone:
-	itemball DUSK_STONE
-
-DimCave5FHyperPotion:
-	itemball HYPER_POTION
-
-DimCave5FHiddenXSpclAtk:
-	dwb EVENT_DIM_CAVE_5F_HIDDEN_X_SPCL_ATK, X_SPCL_ATK
-
-DimCave5F_MapEventHeader:
-.Warps:
-	db 4
-	warp_def $1f, $d, 5, ROUTE_10_NORTH
-	warp_def $10, $2, 1, DIM_CAVE_4F
-	warp_def $1d, $1b, 2, DIM_CAVE_4F
-	warp_def $19, $1c, 3, DIM_CAVE_4F
-
-.XYTriggers:
-	db 0
-
-.Signposts:
-	db 1
-	signpost 28, 12, SIGNPOST_ITEM, DimCave5FHiddenXSpclAtk
-
-.PersonEvents:
-	db 8
-	person_event SPRITE_ROCK_BOULDER_FOSSIL, 5, 25, SPRITEMOVEDATA_STRENGTH_BOULDER, 0, 0, -1, -1, 0, PERSONTYPE_SCRIPT, 0, DimCave5FBoulder, EVENT_BOULDER_IN_DIM_CAVE_5F
-	person_event SPRITE_RILEY, 4, 13, SPRITEMOVEDATA_WANDER, 1, 1, -1, -1, 0, PERSONTYPE_SCRIPT, 0, DimCave5FRileyScript, EVENT_DIM_CAVE_RILEY
-	person_event SPRITE_SUPER_NERD, 17, 24, SPRITEMOVEDATA_SPINCOUNTERCLOCKWISE, 0, 0, -1, -1, (1 << 3) | PAL_OW_BROWN, PERSONTYPE_TRAINER, 3, TrainerSuper_nerdFoote, -1
-	person_event SPRITE_ENGINEER, 25, 13, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, -1, (1 << 3) | PAL_OW_RED, PERSONTYPE_TRAINER, 3, TrainerEngineerHoward, -1
-	person_event SPRITE_SUPER_NERD, 28, 21, SPRITEMOVEDATA_STANDING_LEFT, 0, 0, -1, -1, (1 << 3) | PAL_OW_BROWN, PERSONTYPE_TRAINER, 5, TrainerSuper_nerdDave, -1
-	person_event SPRITE_BALL_CUT_FRUIT, 13, 13, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, -1, (1 << 3) | PAL_OW_RED, PERSONTYPE_ITEMBALL, 0, DimCave5FRareCandy, EVENT_DIM_CAVE_5F_RARE_CANDY
-	person_event SPRITE_BALL_CUT_FRUIT, 26, 25, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, -1, (1 << 3) | PAL_OW_RED, PERSONTYPE_ITEMBALL, 0, DimCave5FDuskStone, EVENT_DIM_CAVE_5F_DUSK_STONE
-	person_event SPRITE_BALL_CUT_FRUIT, 30, 9, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, -1, (1 << 3) | PAL_OW_RED, PERSONTYPE_ITEMBALL, 0, DimCave5FHyperPotion, EVENT_DIM_CAVE_5F_HYPER_POTION

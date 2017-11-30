@@ -16,7 +16,7 @@ StartMenu:: ; 125cd
 
 	call LoadMenuDataHeader
 	call .SetUpMenuItems
-	ld a, [wd0d2]
+	ld a, [wBattleMenuCursorBuffer]
 	ld [wMenuCursorBuffer], a
 	call DrawVariableLengthMenuBox
 	call .DrawBugContestStatusBox
@@ -31,14 +31,14 @@ StartMenu:: ; 125cd
 	call UpdateSprites
 	call UpdateTimePals
 	call .SetUpMenuItems
-	ld a, [wd0d2]
+	ld a, [wBattleMenuCursorBuffer]
 	ld [wMenuCursorBuffer], a
 
 .Select:
 	call .GetInput
 	jr c, .Exit
 	ld a, [wMenuCursorBuffer]
-	ld [wd0d2], a
+	ld [wBattleMenuCursorBuffer], a
 	call PlayClickSFX
 	call PlaceHollowCursor
 	call .OpenMenu
@@ -76,8 +76,7 @@ StartMenu:: ; 125cd
 	call ExitMenu
 .ReturnEnd2:
 	call CloseText
-	call UpdateTimePals
-	ret
+	jp UpdateTimePals
 
 .GetInput:
 ; Return carry on exit, and no-carry on selection.
@@ -124,25 +123,20 @@ StartMenu:: ; 125cd
 	ld h, [hl]
 	ld l, a
 	ld a, [wQueuedScriptBank]
-	rst FarCall
+	call FarCall_hl
 	jr .ReturnEnd2
 ; 126b1
 
 .ReturnRedraw: ; 126b1
-	call .Clear
-	jp .Reopen
-; 126b7
-
-.Clear: ; 126b7
 	call ClearBGPalettes
 	call Call_ExitMenu
 	call ReloadTilesetAndPalettes
 	call DrawVariableLengthMenuBox
 	call .DrawBugContestStatus
 	call UpdateSprites
-	jp FinishExitMenu
-; 126d3
-
+	call FinishExitMenu
+	jp .Reopen
+; 126b7
 
 .MenuDataHeader:
 	db $40 ; tile backup
@@ -309,8 +303,7 @@ endr
 	ld hl, StatusFlags2
 	bit 2, [hl] ; ENGINE_BUG_CONTEST_TIMER
 	ret z
-	farcall StartMenu_DrawBugContestStatusBox
-	ret
+	farjp StartMenu_DrawBugContestStatusBox
 ; 128de
 
 .DrawBugContestStatus: ; 128de
@@ -319,8 +312,7 @@ endr
 	jr nz, .contest
 	ret
 .contest
-	farcall StartMenu_PrintBugContestStatus
-	ret
+	farjp StartMenu_PrintBugContestStatus
 ; 128ed
 
 
@@ -529,7 +521,7 @@ TossItemFromPC: ; 129f4
 	pop af
 	jr c, .quit
 	pop hl
-	ld a, [wd107]
+	ld a, [CurItemQuantity]
 	call TossItem
 	call PartyMonItemName
 	ld hl, .TossedThisMany
@@ -585,8 +577,7 @@ PartyMonItemName: ; 12a6c
 	ld a, [CurItem]
 	ld [wd265], a
 	call GetItemName
-	call CopyName1
-	ret
+	jp CopyName1
 ; 12a79
 
 
@@ -746,7 +737,7 @@ GiveTakePartyMonItem: ; 12b60
 
 	ld a, [wcf66]
 	and a
-	jr z, .quit
+	ret z
 
 	ld a, [wCurrPocket]
 	cp KEY_ITEM - 1
@@ -759,16 +750,12 @@ GiveTakePartyMonItem: ; 12b60
 	and a
 	jr nz, .next
 
-	call TryGiveItemToPartymon
-	jr .quit
+	jp TryGiveItemToPartymon
 
 .next
 	ld hl, CantBeHeldText
 	call MenuTextBoxBackup
 	jr .loop
-
-.quit
-	ret
 ; 12bd9
 
 
@@ -793,8 +780,7 @@ TryGiveItemToPartymon: ; 12bd9
 	call GiveItemToPokemon
 	ld hl, MadeHoldText
 	call MenuTextBoxBackup
-	call GivePartyItem
-	ret
+	jp GivePartyItem
 
 .please_remove_mail
 	ld hl, PleaseRemoveMailText
@@ -805,7 +791,7 @@ TryGiveItemToPartymon: ; 12bd9
 	call GetItemName
 	ld hl, SwitchAlreadyHoldingText
 	call StartMenuYesNo
-	jr c, .abort
+	ret c
 
 	call GiveItemToPokemon
 	ld a, [wd265]
@@ -828,10 +814,7 @@ TryGiveItemToPartymon: ; 12bd9
 	ld [CurItem], a
 	call ReceiveItemFromPokemon
 	ld hl, ItemStorageIsFullText
-	call MenuTextBoxBackup
-
-.abort
-	ret
+	jp MenuTextBoxBackup
 ; 12c4c
 
 
@@ -842,11 +825,8 @@ GivePartyItem: ; 12c4c
 	ld [hl], a
 	ld d, a
 	farcall ItemIsMail
-	jr nc, .done
-	call ComposeMailMessage
-
-.done
-	ret
+	ret nc
+	jp ComposeMailMessage
 ; 12c60
 
 
@@ -869,20 +849,15 @@ TakePartyItem: ; 12c60
 	ld [hl], NO_ITEM
 	call GetItemName
 	ld hl, TookFromText
-	call MenuTextBoxBackup
-	jr .asm_12c9a
+	jp MenuTextBoxBackup
 
 .asm_12c8c
 	ld hl, IsntHoldingAnythingText
-	call MenuTextBoxBackup
-	jr .asm_12c9a
+	jp MenuTextBoxBackup
 
 .asm_12c94
 	ld hl, ItemStorageIsFullText
-	call MenuTextBoxBackup
-
-.asm_12c9a
-	ret
+	jp MenuTextBoxBackup
 ; 12c9b
 
 
@@ -1062,7 +1037,7 @@ MonMailAction: ; 12d45
 .BagIsFull:
 	ld hl, .bagfulltext
 	call MenuTextBoxBackup
-	jr .done
+	; fallthrough
 
 .done
 	ld a, $3
@@ -1141,33 +1116,28 @@ OpenPartyStats: ; 12e00
 
 MonMenu_Cut: ; 12e1b
 	farcall CutFunction
+_MonMenu_StandardCheck:
 	ld a, [wFieldMoveSucceeded]
 	cp $1
-	jr nz, .Fail
+	jr nz, _MonMenu_StandardFail
+_MonMenu_StandardSuccess:
 	ld b, $4
 	ld a, $2
 	ret
 
-.Fail:
+_MonMenu_StandardFail:
 	ld a, $3
 	ret
 ; 12e30
 
-
 MonMenu_Fly: ; 12e30
 	farcall FlyFunction
 	ld a, [wFieldMoveSucceeded]
-	cp $2
-	jr z, .Fail
 	cp $0
 	jr z, .Error
-	ld b, $4
-	ld a, $2
-	ret
-
-.Fail:
-	ld a, $3
-	ret
+	cp $2
+	jr z, _MonMenu_StandardFail
+	jr _MonMenu_StandardSuccess
 
 .Error:
 	xor a
@@ -1175,101 +1145,52 @@ MonMenu_Fly: ; 12e30
 
 MonMenu_Flash: ; 12e55
 	farcall OWFlash
-	ld a, [wFieldMoveSucceeded]
-	cp $1
-	jr nz, .Fail
-	ld b, $4
-	ld a, $2
-	ret
-
-.Fail:
-	ld a, $3
-	ret
+	jr _MonMenu_StandardCheck
 ; 12e6a
 
 MonMenu_Strength: ; 12e6a
 	farcall StrengthFunction
-	ld a, [wFieldMoveSucceeded]
-	cp $1
-	jr nz, .Fail
-	ld b, $4
-	ld a, $2
-	ret
-
-.Fail:
-	ld a, $3
-	ret
+	jr _MonMenu_StandardCheck
 ; 12e7f
 
 MonMenu_Whirlpool: ; 12e7f
 	farcall WhirlpoolFunction
-	ld a, [wFieldMoveSucceeded]
-	cp $1
-	jr nz, .Fail
-	ld b, $4
-	ld a, $2
-	ret
-
-.Fail:
-	ld a, $3
-	ret
+	jr _MonMenu_StandardCheck
 ; 12e94
 
 MonMenu_Waterfall: ; 12e94
 	farcall WaterfallFunction
-	ld a, [wFieldMoveSucceeded]
-	cp $1
-	jr nz, .Fail
-	ld b, $4
-	ld a, $2
-	ret
-
-.Fail:
-	ld a, $3
-	ret
+	jr _MonMenu_StandardCheck
 ; 12ea9
 
 MonMenu_Teleport: ; 12ea9
 	farcall TeleportFunction
+_MonMenu_AlternateCheck:
 	ld a, [wFieldMoveSucceeded]
 	and a
-	jr z, .Fail
-	ld b, $4
-	ld a, $2
-	ret
-
-.Fail:
-	ld a, $3
-	ret
+	jr z, _MonMenu_StandardFail
+	jr _MonMenu_StandardSuccess
 ; 12ebd
 
 MonMenu_Surf: ; 12ebd
 	farcall SurfFunction
-	ld a, [wFieldMoveSucceeded]
-	and a
-	jr z, .Fail
-	ld b, $4
-	ld a, $2
-	ret
-
-.Fail:
-	ld a, $3
-	ret
+	jr _MonMenu_AlternateCheck
 ; 12ed1
 
 MonMenu_Dig: ; 12ed1
 	farcall DigFunction
-	ld a, [wFieldMoveSucceeded]
-	cp $1
-	jr nz, .Fail
-	ld b, $4
-	ld a, $2
-	ret
-
-.Fail:
-	ld a, $3
-	ret
+	jr _MonMenu_StandardCheck
 ; 12ee6
+
+MonMenu_Headbutt: ; 12f26
+	farcall HeadbuttFunction
+	jr _MonMenu_StandardCheck
+; 12f3b
+
+MonMenu_RockSmash: ; 12f3b
+	farcall RockSmashFunction
+	jr _MonMenu_StandardCheck
+; 12f50
 
 MonMenu_Softboiled_MilkDrink: ; 12ee6
 	call .CheckMonHasEnoughHP
@@ -1315,34 +1236,6 @@ MonMenu_Softboiled_MilkDrink: ; 12ee6
 	sbc [hl]
 	ret
 ; 12f26
-
-MonMenu_Headbutt: ; 12f26
-	farcall HeadbuttFunction
-	ld a, [wFieldMoveSucceeded]
-	cp $1
-	jr nz, .Fail
-	ld b, $4
-	ld a, $2
-	ret
-
-.Fail:
-	ld a, $3
-	ret
-; 12f3b
-
-MonMenu_RockSmash: ; 12f3b
-	farcall RockSmashFunction
-	ld a, [wFieldMoveSucceeded]
-	cp $1
-	jr nz, .Fail
-	ld b, $4
-	ld a, $2
-	ret
-
-.Fail:
-	ld a, $3
-	ret
-; 12f50
 
 ChooseMoveToDelete: ; 12f5b
 	ld hl, Options1
@@ -1853,8 +1746,7 @@ String_PowAcc:
 
 Function132d3: ; 132d3
 	call Function132da
-	call Function132fe
-	ret
+	jp Function132fe
 ; 132da
 
 Function132da: ; 132da

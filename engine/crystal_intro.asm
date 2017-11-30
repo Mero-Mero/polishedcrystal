@@ -23,7 +23,7 @@ Copyright_GFPresents: ; e4579
 	ld c, 100
 	call DelayFrames
 	call ClearTileMap
-	farcall GBCOnlyScreen
+	farcall BSOD
 	call .GetGFLogoGFX
 .joy_loop
 	call JoyTextDelay
@@ -181,11 +181,10 @@ PlaceGameFreakPresents_2: ; e46ba
 .place_presents
 	ld [hl], 0
 	ld hl, .presents
-	decoord 7,11
+	decoord 7, 11
 	ld bc, .end - .presents
 	call CopyBytes
-	call PlaceGameFreakPresents_AdvanceIndex
-	ret
+	jp PlaceGameFreakPresents_AdvanceIndex
 ; e46d6
 
 .presents
@@ -319,9 +318,9 @@ endr
 	ld a, $5
 	ld [rSVBK], a
 	ld a, [hli]
-	ld [OBPals + 12], a
+	ld [OBPals palette 1 + 4], a
 	ld a, [hli]
-	ld [OBPals + 13], a
+	ld [OBPals palette 1 + 5], a
 	pop af
 	ld [rSVBK], a
 	ld a, $1
@@ -341,6 +340,7 @@ GameFreakLogoPalettes: ; e47ac
 ; Ditto's color as it turns into the Game Freak logo.
 ; Fade from pink to orange.
 ; One color per step.
+if !DEF(MONOCHROME)
 	RGB 23, 12, 28
 	RGB 23, 12, 27
 	RGB 23, 13, 26
@@ -360,7 +360,14 @@ GameFreakLogoPalettes: ; e47ac
 	RGB 26, 18, 04
 	RGB 26, 19, 02
 	RGB 26, 19, 00
-
+else
+rept 4
+	RGB_MONOCHROME_LIGHT
+	RGB_MONOCHROME_LIGHT
+	RGB_MONOCHROME_LIGHT
+	RGB_MONOCHROME_LIGHT
+endr
+endc
 ; e47cc
 
 GameFreakLogo: ; e47cc
@@ -503,11 +510,11 @@ IntroScene1: ; e495b (39:495b)
 	ld [rSVBK], a
 	ld hl, Palette_365ad
 	ld de, UnknBGPals
-	ld bc, $80
+	ld bc, 16 palettes
 	call CopyBytes
 	ld hl, Palette_365ad
 	ld de, BGPals
-	ld bc, $80
+	ld bc, 16 palettes
 	call CopyBytes
 	pop af
 	ld [rSVBK], a
@@ -834,11 +841,11 @@ IntroScene11: ; e4c86 (39:4c86)
 	ld [rSVBK], a
 	ld hl, Palette_365ad
 	ld de, UnknBGPals
-	ld bc, $80
+	ld bc, 16 palettes
 	call CopyBytes
 	ld hl, Palette_365ad
 	ld de, BGPals
-	ld bc, $80
+	ld bc, 16 palettes
 	call CopyBytes
 	pop af
 	ld [rSVBK], a
@@ -992,8 +999,7 @@ IntroScene14: ; e4dfa (39:4dfa)
 	ret
 
 .asm_e4e2c
-	farcall DeinitializeAllSprites
-	ret
+	farjp DeinitializeAllSprites
 
 .asm_e4e33
 	ld a, [wGlobalAnimXOffset]
@@ -1038,11 +1044,11 @@ IntroScene15: ; e4e40 (39:4e40)
 	ld [rSVBK], a
 	ld hl, Palette_e77dd
 	ld de, UnknBGPals
-	ld bc, $80
+	ld bc, 16 palettes
 	call CopyBytes
 	ld hl, Palette_e77dd
 	ld de, BGPals
-	ld bc, $80
+	ld bc, 16 palettes
 	call CopyBytes
 	pop af
 	ld [rSVBK], a
@@ -1110,11 +1116,11 @@ IntroScene17: ; e4ef5 (39:4ef5)
 	ld [rSVBK], a
 	ld hl, Palette_e6d6d
 	ld de, UnknBGPals
-	ld bc, $80
+	ld bc, 16 palettes
 	call CopyBytes
 	ld hl, Palette_e6d6d
 	ld de, BGPals
-	ld bc, $80
+	ld bc, 16 palettes
 	call CopyBytes
 	pop af
 	ld [rSVBK], a
@@ -1182,11 +1188,11 @@ IntroScene19: ; e4f7e (39:4f7e)
 	ld [rSVBK], a
 	ld hl, Palette_e77dd
 	ld de, UnknBGPals
-	ld bc, $80
+	ld bc, 16 palettes
 	call CopyBytes
 	ld hl, Palette_e77dd
 	ld de, BGPals
-	ld bc, $80
+	ld bc, 16 palettes
 	call CopyBytes
 	pop af
 	ld [rSVBK], a
@@ -1334,11 +1340,11 @@ IntroScene26: ; e50bb (39:50bb)
 	ld [rSVBK], a
 	ld hl, Palette_e679d
 	ld de, UnknBGPals
-	ld bc, $80
+	ld bc, 16 palettes
 	call CopyBytes
 	ld hl, Palette_e679d
 	ld de, BGPals
-	ld bc, $80
+	ld bc, 16 palettes
 	call CopyBytes
 	pop af
 	ld [rSVBK], a
@@ -1439,6 +1445,7 @@ Intro_Scene24_ApplyPaletteFade: ; e5172 (39:5172)
 
 .FadePals: ; e519c
 ; Fade to white.
+if !DEF(MONOCHROME)
 	RGB 24, 12, 09
 	RGB 31, 31, 31
 	RGB 12, 00, 31
@@ -1478,7 +1485,47 @@ Intro_Scene24_ApplyPaletteFade: ; e5172 (39:5172)
 	RGB 31, 31, 31
 	RGB 31, 31, 31
 	RGB 31, 31, 31
+else
+	RGB_MONOCHROME_LIGHT
+	RGB_MONOCHROME_WHITE
+	RGB_MONOCHROME_DARK
+	RGB_MONOCHROME_BLACK
 
+	RGB_MONOCHROME_WHITE
+	RGB_MONOCHROME_WHITE
+	RGB_MONOCHROME_DARK
+	RGB_MONOCHROME_BLACK
+
+	RGB_MONOCHROME_WHITE
+	RGB_MONOCHROME_WHITE
+	RGB_MONOCHROME_LIGHT
+	RGB_MONOCHROME_DARK
+
+	RGB_MONOCHROME_WHITE
+	RGB_MONOCHROME_WHITE
+	RGB_MONOCHROME_LIGHT
+	RGB_MONOCHROME_DARK
+
+	RGB_MONOCHROME_WHITE
+	RGB_MONOCHROME_WHITE
+	RGB_MONOCHROME_LIGHT
+	RGB_MONOCHROME_LIGHT
+
+	RGB_MONOCHROME_WHITE
+	RGB_MONOCHROME_WHITE
+	RGB_MONOCHROME_LIGHT
+	RGB_MONOCHROME_LIGHT
+
+	RGB_MONOCHROME_WHITE
+	RGB_MONOCHROME_WHITE
+	RGB_MONOCHROME_WHITE
+	RGB_MONOCHROME_WHITE
+
+	RGB_MONOCHROME_WHITE
+	RGB_MONOCHROME_WHITE
+	RGB_MONOCHROME_WHITE
+	RGB_MONOCHROME_WHITE
+endc
 ; e51dc
 
 CrystalIntro_InitUnownAnim: ; e51dc (39:51dc)
@@ -1551,9 +1598,20 @@ endr
 	push hl
 	push bc
 	ld hl, BGPals
-	ld bc, 4 * 16
+if !DEF(MONOCHROME)
+	ld bc, 8 palettes
 	xor a
 	call ByteFill
+else
+	ld b, (8 palettes) / 2
+.mono_loop
+	ld a, PAL_MONOCHROME_BLACK % $100
+	ld [hli], a
+	ld a, PAL_MONOCHROME_BLACK / $100
+	ld [hli], a
+	dec b
+	jr nz, .mono_loop
+endc
 	pop bc
 	pop hl
 
@@ -1608,29 +1666,74 @@ endr
 
 .BWFade: ; e5288
 ; Fade between black and white.
+if !DEF(MONOCHROME)
 hue = 0
 rept 32
 	RGB hue, hue, hue
 hue = hue + 1
 endr
+else
+rept 8
+	RGB_MONOCHROME_BLACK
+endr
+rept 8
+	RGB_MONOCHROME_DARK
+endr
+rept 8
+	RGB_MONOCHROME_LIGHT
+endr
+rept 8
+	RGB_MONOCHROME_WHITE
+endr
+endc
 ; e52c8
 
 .BlackLBlueFade: ; e52c8
 ; Fade between black and light blue.
+if !DEF(MONOCHROME)
 hue = 0
 rept 32
 	RGB 0, hue / 2, hue
 hue = hue + 1
 endr
+else
+rept 8
+	RGB_MONOCHROME_BLACK
+endr
+rept 8
+	RGB_MONOCHROME_DARK
+endr
+rept 8
+	RGB_MONOCHROME_LIGHT
+endr
+rept 8
+	RGB_MONOCHROME_LIGHT
+endr
+endc
 ; e5308
 
 .BlackBlueFade: ; e5308
 ; Fade between black and blue.
+if !DEF(MONOCHROME)
 hue = 0
 rept 32
 	RGB 0, 0, hue
 hue = hue + 1
 endr
+else
+rept 8
+	RGB_MONOCHROME_BLACK
+endr
+rept 8
+	RGB_MONOCHROME_DARK
+endr
+rept 8
+	RGB_MONOCHROME_DARK
+endr
+rept 8
+	RGB_MONOCHROME_DARK
+endr
+endc
 ; e5348
 
 Intro_Scene20_AppearUnown: ; e5348 (39:5348)
@@ -1689,19 +1792,31 @@ endr
 ; e538d (39:538d)
 
 .pal1 ; e538d
+if !DEF(MONOCHROME)
 	RGB 24, 12, 09
 	RGB 31, 31, 31
 	RGB 12, 00, 31
 	RGB 00, 00, 00
-
+else
+	RGB_MONOCHROME_LIGHT
+	RGB_MONOCHROME_WHITE
+	RGB_MONOCHROME_DARK
+	RGB_MONOCHROME_BLACK
+endc
 ; e5395
 
 .pal2 ; e5395
+if !DEF(MONOCHROME)
 	RGB 24, 12, 09
 	RGB 31, 31, 31
 	RGB 31, 31, 31
 	RGB 31, 31, 31
-
+else
+	RGB_MONOCHROME_LIGHT
+	RGB_MONOCHROME_WHITE
+	RGB_MONOCHROME_WHITE
+	RGB_MONOCHROME_WHITE
+endc
 ; e539d
 
 Intro_FadeUnownWordPals: ; e539d (39:539d)
@@ -1757,6 +1872,7 @@ endr
 ; e53db (39:53db)
 
 .FastFadePalettes: ; e53db
+if !DEF(MONOCHROME)
 hue = 31
 rept 8
 	RGB hue, hue, hue
@@ -1764,14 +1880,37 @@ hue = hue + -1
 	RGB hue, hue, hue
 hue = hue + -2
 endr
+else
+rept 4
+	RGB_MONOCHROME_WHITE
+endr
+rept 4
+	RGB_MONOCHROME_LIGHT
+endr
+rept 4
+	RGB_MONOCHROME_DARK
+endr
+rept 4
+	RGB_MONOCHROME_BLACK
+endr
+endc
 ; e53fb
 
 .SlowFadePalettes: ; e53fb
+if !DEF(MONOCHROME)
 hue = 31
 rept 16
 	RGB hue, hue, hue
 hue = hue + -1
 endr
+else
+rept 8
+	RGB_MONOCHROME_WHITE
+endr
+rept 8
+	RGB_MONOCHROME_DARK
+endr
+endc
 ; e541b
 
 Intro_LoadTilemap: ; e541b (39:541b)
@@ -1780,7 +1919,7 @@ Intro_LoadTilemap: ; e541b (39:541b)
 	ld a, $6
 	ld [rSVBK], a
 
-	ld hl, wDecompressScratch
+	ld hl, wScratchTileMap
 	decoord 0, 0
 	ld b, SCREEN_HEIGHT
 .row
@@ -1880,70 +2019,54 @@ Intro_ClearBGPals: ; e54a3 (39:54a3)
 	ld a, $5
 	ld [rSVBK], a
 
+; Fill BGPals and OBPals with $0000 (black)
 	ld hl, BGPals
-	ld bc, 16 * 8
+if !DEF(MONOCHROME)
+	ld bc, 16 palettes
 	xor a
 	call ByteFill
+else
+	ld b, (16 palettes) / 2
+.mono_loop
+	ld a, PAL_MONOCHROME_BLACK % $100
+	ld [hli], a
+	ld a, PAL_MONOCHROME_BLACK / $100
+	ld [hli], a
+	dec b
+	jr nz, .mono_loop
+endc
 
 	pop af
 	ld [rSVBK], a
 	ld a, $1
 	ld [hCGBPalUpdate], a
 	call DelayFrame
-	call DelayFrame
-	ret
-
-Intro_DecompressRequest2bpp_128Tiles: ; e54c2 (39:54c2)
-	ld a, [rSVBK]
-	push af
-	ld a, $6
-	ld [rSVBK], a
-
-	push de
-	ld de, wDecompressScratch
-	call Decompress
-	pop hl
-
-	ld de, wDecompressScratch
-	lb bc, $01, $80
-	call Request2bpp
-
-	pop af
-	ld [rSVBK], a
-	ret
-
-Intro_DecompressRequest2bpp_255Tiles: ; e54de (39:54de)
-	ld a, [rSVBK]
-	push af
-	ld a, $6
-	ld [rSVBK], a
-
-	push de
-	ld de, wDecompressScratch
-	call Decompress
-	pop hl
-
-	ld de, wDecompressScratch
-	lb bc, $01, $ff
-	call Request2bpp
-
-	pop af
-	ld [rSVBK], a
-	ret
+	jp DelayFrame
 
 Intro_DecompressRequest2bpp_64Tiles: ; e54fa (39:54fa)
+	lb bc, 1, 64
+	jr Intro_DecompressRequest2bpp
+
+Intro_DecompressRequest2bpp_128Tiles: ; e54c2 (39:54c2)
+	lb bc, 1, 128
+	jr Intro_DecompressRequest2bpp
+
+Intro_DecompressRequest2bpp_255Tiles: ; e54de (39:54de)
+	lb bc, 1, 255
+Intro_DecompressRequest2bpp:
 	ld a, [rSVBK]
 	push af
 	ld a, $6
 	ld [rSVBK], a
 
+	push bc
 	push de
 	ld de, wDecompressScratch
 	call Decompress
 	pop hl
+	pop bc
 
 	ld de, wDecompressScratch
-	lb bc, $01, $40
 	call Request2bpp
 
 	pop af
@@ -2058,6 +2181,7 @@ INCBIN "gfx/intro/004.tilemap.lz"
 ; e5ecd
 
 Palette_e5edd: ; e5edd
+if !DEF(MONOCHROME)
 	RGB 31, 31, 31
 	RGB 20, 20, 20
 	RGB 11, 11, 11
@@ -2137,6 +2261,42 @@ Palette_e5edd: ; e5edd
 	RGB 20, 20, 20
 	RGB 11, 11, 11
 	RGB  0,  0,  0
+else
+	MONOCHROME_RGB_FOUR
+	RGB_MONOCHROME_BLACK
+	RGB_MONOCHROME_DARK
+	RGB_MONOCHROME_DARK
+	RGB_MONOCHROME_LIGHT
+	RGB_MONOCHROME_BLACK
+	RGB_MONOCHROME_LIGHT
+	RGB_MONOCHROME_LIGHT
+	RGB_MONOCHROME_DARK
+	RGB_MONOCHROME_WHITE
+	RGB_MONOCHROME_LIGHT
+	RGB_MONOCHROME_WHITE
+	RGB_MONOCHROME_WHITE
+	MONOCHROME_RGB_FOUR
+	MONOCHROME_RGB_FOUR
+	MONOCHROME_RGB_FOUR
+	MONOCHROME_RGB_FOUR
+	RGB_MONOCHROME_WHITE
+	RGB_MONOCHROME_WHITE
+	RGB_MONOCHROME_DARK
+	RGB_MONOCHROME_DARK
+	RGB_MONOCHROME_WHITE
+	RGB_MONOCHROME_DARK
+	RGB_MONOCHROME_LIGHT
+	RGB_MONOCHROME_BLACK
+	RGB_MONOCHROME_WHITE
+	RGB_MONOCHROME_LIGHT
+	RGB_MONOCHROME_LIGHT
+	RGB_MONOCHROME_BLACK
+	MONOCHROME_RGB_FOUR
+	MONOCHROME_RGB_FOUR
+	MONOCHROME_RGB_FOUR
+	MONOCHROME_RGB_FOUR
+	MONOCHROME_RGB_FOUR
+endc
 
 IntroUnownsGFX: ; e5f5d
 INCBIN "gfx/intro/unowns.2bpp.lz"
@@ -2171,6 +2331,7 @@ INCBIN "gfx/intro/007.tilemap.lz"
 ; e65ad
 
 Palette_365ad: ; e65ad
+if !DEF(MONOCHROME)
 	RGB  0,  0,  0
 	RGB  0,  0,  0
 	RGB  0,  0,  0
@@ -2250,6 +2411,25 @@ Palette_365ad: ; e65ad
 	RGB 20, 20, 20
 	RGB 11, 11, 11
 	RGB  0,  0,  0
+else
+rept 8
+	RGB_MONOCHROME_BLACK
+	RGB_MONOCHROME_BLACK
+	RGB_MONOCHROME_BLACK
+	RGB_MONOCHROME_BLACK
+endr
+	RGB_MONOCHROME_WHITE
+	RGB_MONOCHROME_LIGHT
+	RGB_MONOCHROME_LIGHT
+	RGB_MONOCHROME_LIGHT
+	MONOCHROME_RGB_FOUR
+	MONOCHROME_RGB_FOUR
+	MONOCHROME_RGB_FOUR
+	MONOCHROME_RGB_FOUR
+	MONOCHROME_RGB_FOUR
+	MONOCHROME_RGB_FOUR
+	MONOCHROME_RGB_FOUR
+endc
 
 IntroCrystalUnownsGFX: ; e662d
 INCBIN "gfx/intro/crystal_unowns.2bpp.lz"
@@ -2264,6 +2444,7 @@ INCBIN "gfx/intro/015.tilemap.lz"
 ; e679d
 
 Palette_e679d: ; e679d
+if !DEF(MONOCHROME)
 	RGB 31, 31, 31
 	RGB 31, 31, 31
 	RGB 31, 31, 31
@@ -2343,6 +2524,22 @@ Palette_e679d: ; e679d
 	RGB 20, 20, 20
 	RGB 11, 11, 11
 	RGB  0,  0,  0
+else
+rept 8
+	RGB_MONOCHROME_WHITE
+	RGB_MONOCHROME_WHITE
+	RGB_MONOCHROME_WHITE
+	RGB_MONOCHROME_WHITE
+endr
+	MONOCHROME_RGB_FOUR
+	MONOCHROME_RGB_FOUR
+	MONOCHROME_RGB_FOUR
+	MONOCHROME_RGB_FOUR
+	MONOCHROME_RGB_FOUR
+	MONOCHROME_RGB_FOUR
+	MONOCHROME_RGB_FOUR
+	MONOCHROME_RGB_FOUR
+endc
 
 IntroSuicuneCloseGFX: ; e681d
 INCBIN "gfx/intro/suicune_close.2bpp.lz"
@@ -2357,6 +2554,7 @@ INCBIN "gfx/intro/011.tilemap.lz"
 ; e6d6d
 
 Palette_e6d6d: ; e6d6d
+if !DEF(MONOCHROME)
 	RGB 24, 12,  9
 	RGB 20, 20, 20
 	RGB 11, 11, 11
@@ -2436,6 +2634,36 @@ Palette_e6d6d: ; e6d6d
 	RGB 20, 20, 20
 	RGB 11, 11, 11
 	RGB  0,  0,  0
+else
+	RGB_MONOCHROME_LIGHT
+	RGB_MONOCHROME_LIGHT
+	RGB_MONOCHROME_DARK
+	RGB_MONOCHROME_BLACK
+	RGB_MONOCHROME_LIGHT
+	RGB_MONOCHROME_WHITE
+	RGB_MONOCHROME_DARK
+	RGB_MONOCHROME_BLACK
+	RGB_MONOCHROME_LIGHT
+	RGB_MONOCHROME_LIGHT
+	RGB_MONOCHROME_DARK
+	RGB_MONOCHROME_BLACK
+	RGB_MONOCHROME_LIGHT
+	RGB_MONOCHROME_DARK
+	RGB_MONOCHROME_DARK
+	RGB_MONOCHROME_BLACK
+	MONOCHROME_RGB_FOUR
+	MONOCHROME_RGB_FOUR
+	MONOCHROME_RGB_FOUR
+	MONOCHROME_RGB_FOUR
+	MONOCHROME_RGB_FOUR
+	MONOCHROME_RGB_FOUR
+	MONOCHROME_RGB_FOUR
+	MONOCHROME_RGB_FOUR
+	MONOCHROME_RGB_FOUR
+	MONOCHROME_RGB_FOUR
+	MONOCHROME_RGB_FOUR
+	MONOCHROME_RGB_FOUR
+endc
 
 IntroSuicuneJumpGFX: ; e6ded
 INCBIN "gfx/intro/suicune_jump.2bpp.lz"
@@ -2462,6 +2690,7 @@ INCBIN "gfx/intro/013.tilemap.lz"
 ; e77dd
 
 Palette_e77dd: ; e77dd
+if !DEF(MONOCHROME)
 	RGB 24, 12,  9
 	RGB 20, 20, 20
 	RGB 11, 11, 11
@@ -2541,6 +2770,36 @@ Palette_e77dd: ; e77dd
 	RGB 20, 20, 20
 	RGB 11, 11, 11
 	RGB  0,  0,  0
+else
+	RGB_MONOCHROME_LIGHT
+	RGB_MONOCHROME_LIGHT
+	RGB_MONOCHROME_DARK
+	RGB_MONOCHROME_BLACK
+	RGB_MONOCHROME_LIGHT
+	RGB_MONOCHROME_WHITE
+	RGB_MONOCHROME_DARK
+	RGB_MONOCHROME_BLACK
+rept 6
+	RGB_MONOCHROME_LIGHT
+	RGB_MONOCHROME_LIGHT
+	RGB_MONOCHROME_LIGHT
+	RGB_MONOCHROME_LIGHT
+endr
+	RGB_MONOCHROME_WHITE
+	RGB_MONOCHROME_WHITE
+	RGB_MONOCHROME_DARK
+	RGB_MONOCHROME_BLACK
+	RGB_MONOCHROME_WHITE
+	RGB_MONOCHROME_DARK
+	RGB_MONOCHROME_DARK
+	RGB_MONOCHROME_BLACK
+	MONOCHROME_RGB_FOUR
+	MONOCHROME_RGB_FOUR
+	MONOCHROME_RGB_FOUR
+	MONOCHROME_RGB_FOUR
+	MONOCHROME_RGB_FOUR
+	MONOCHROME_RGB_FOUR
+endc
 
 IntroUnownBackGFX: ; e785d
 INCBIN "gfx/intro/unown_back.2bpp.lz"
@@ -2554,4 +2813,3 @@ IntroGrass3GFX: ; e7a1d
 INCBIN "gfx/intro/grass3.2bpp"
 IntroGrass4GFX: ; e7a5d
 INCBIN "gfx/intro/grass4.2bpp"
-

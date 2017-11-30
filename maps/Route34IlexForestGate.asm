@@ -1,16 +1,32 @@
-const_value set 2
-	const ROUTE34ILEXFORESTGATE_TEACHER1
-	const ROUTE34ILEXFORESTGATE_HERACROSS
-	const ROUTE34ILEXFORESTGATE_LASS
-	const ROUTE34ILEXFORESTGATE_TEACHER2
-
 Route34IlexForestGate_MapScriptHeader:
-.MapTriggers:
-	db 0
 
-.MapCallbacks:
-	db 1
+.MapTriggers: db 0
+
+.MapCallbacks: db 1
 	dbw MAPCALLBACK_OBJECTS, UnknownScript_0x62d2d
+
+Route34IlexForestGate_MapEventHeader:
+
+.Warps: db 4
+	warp_def 0, 4, 1, ROUTE_34
+	warp_def 0, 5, 2, ROUTE_34
+	warp_def 7, 4, 1, ILEX_FOREST
+	warp_def 7, 5, 1, ILEX_FOREST
+
+.XYTriggers: db 1
+	xy_trigger 0, 7, 4, UnknownScript_0x62d3d
+
+.Signposts: db 0
+
+.PersonEvents: db 4
+	person_event SPRITE_TEACHER, 3, 9, SPRITEMOVEDATA_STANDING_LEFT, 0, 0, -1, -1, (1 << 3) | PAL_OW_BLUE, PERSONTYPE_SCRIPT, 0, TeacherScript_0x62d63, EVENT_ROUTE_34_ILEX_FOREST_GATE_TEACHER_BEHIND_COUNTER
+	person_event SPRITE_TEACHER, 7, 5, SPRITEMOVEDATA_STANDING_UP, 0, 0, -1, -1, (1 << 3) | PAL_OW_BLUE, PERSONTYPE_SCRIPT, 0, TeacherScript_0x62d63, EVENT_ROUTE_34_ILEX_FOREST_GATE_TEACHER_IN_WALKWAY
+	person_event SPRITE_HERACROSS, 4, 9, SPRITEMOVEDATA_POKEMON, 0, 0, -1, -1, (1 << 3) | PAL_OW_BLUE, PERSONTYPE_POKEMON, HERACROSS, UnknownText_0x62e83, -1
+	person_event SPRITE_LASS, 4, 3, SPRITEMOVEDATA_WALK_UP_DOWN, 1, 0, -1, -1, (1 << 3) | PAL_OW_GREEN, PERSONTYPE_COMMAND, jumptextfaceplayer, UnknownText_0x62e97, EVENT_ROUTE_34_ILEX_FOREST_GATE_LASS
+
+const_value set 1
+	const ROUTE34ILEXFORESTGATE_TEACHER1
+	const ROUTE34ILEXFORESTGATE_TEACHER2
 
 UnknownScript_0x62d2d:
 	checkevent EVENT_FOREST_IS_RESTLESS
@@ -34,10 +50,7 @@ UnknownScript_0x62d3d:
 	applymovement PLAYER, MovementData_0x62d97
 	stopfollow
 	spriteface PLAYER, DOWN
-	opentext
-	writetext UnknownText_0x62e41
-	waitbutton
-	closetext
+	showtext UnknownText_0x62e41
 	applymovement ROUTE34ILEXFORESTGATE_TEACHER2, MovementData_0x62d9a
 UnknownScript_0x62d62:
 	end
@@ -54,27 +67,12 @@ TeacherScript_0x62d63:
 	verbosegivetmhm TM_FALSE_SWIPE
 	setevent EVENT_GOT_TM54_FALSE_SWIPE
 UnknownScript_0x62d7e:
-	writetext UnknownText_0x62df6
-	waitbutton
-	closetext
-	end
+	jumpopenedtext UnknownText_0x62df6
 
 UnknownScript_0x62d84:
 	writetext UnknownText_0x62e41
 	buttonsound
-	closetext
-	end
-
-IlexGateHeracross:
-	opentext
-	writetext UnknownText_0x62e83
-	cry HERACROSS
-	waitbutton
-	closetext
-	end
-
-LassScript_0x62d94:
-	jumptextfaceplayer UnknownText_0x62e97
+	endtext
 
 MovementData_0x62d97:
 	step_up
@@ -130,25 +128,3 @@ UnknownText_0x62e97:
 	line "must be a Grass-"
 	cont "type #mon."
 	done
-
-Route34IlexForestGate_MapEventHeader:
-.Warps:
-	db 4
-	warp_def $0, $4, 1, ROUTE_34
-	warp_def $0, $5, 2, ROUTE_34
-	warp_def $7, $4, 1, ILEX_FOREST
-	warp_def $7, $5, 1, ILEX_FOREST
-
-.XYTriggers:
-	db 1
-	xy_trigger 0, $7, $4, UnknownScript_0x62d3d
-
-.Signposts:
-	db 0
-
-.PersonEvents:
-	db 4
-	person_event SPRITE_TEACHER, 3, 9, SPRITEMOVEDATA_STANDING_LEFT, 0, 0, -1, -1, (1 << 3) | PAL_OW_BLUE, PERSONTYPE_SCRIPT, 0, TeacherScript_0x62d63, EVENT_ROUTE_34_ILEX_FOREST_GATE_TEACHER_BEHIND_COUNTER
-	person_event SPRITE_HERACROSS, 4, 9, SPRITEMOVEDATA_POKEMON, 0, 0, -1, -1, (1 << 3) | PAL_OW_BLUE, PERSONTYPE_SCRIPT, 0, IlexGateHeracross, -1
-	person_event SPRITE_LASS, 4, 3, SPRITEMOVEDATA_WALK_UP_DOWN, 1, 0, -1, -1, (1 << 3) | PAL_OW_GREEN, PERSONTYPE_SCRIPT, 0, LassScript_0x62d94, EVENT_ROUTE_34_ILEX_FOREST_GATE_LASS
-	person_event SPRITE_TEACHER, 7, 5, SPRITEMOVEDATA_STANDING_UP, 0, 0, -1, -1, (1 << 3) | PAL_OW_BLUE, PERSONTYPE_SCRIPT, 0, TeacherScript_0x62d63, EVENT_ROUTE_34_ILEX_FOREST_GATE_TEACHER_IN_WALKWAY

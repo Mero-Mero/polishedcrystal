@@ -1,32 +1,57 @@
-const_value set 2
-	const ROUTE34_RICH_BOY
-	const ROUTE34_YOUNGSTER
-	const ROUTE34_BREEDER
-	const ROUTE34_LASS
-	const ROUTE34_OFFICER_F
-	const ROUTE34_POKEFAN_M
-	const ROUTE34_GRAMPS1
-	const ROUTE34_DAYCARE_MON_1
-	const ROUTE34_DAYCARE_MON_2
-	const ROUTE34_COOLTRAINER_F1
-	const ROUTE34_COOLTRAINER_F2
-	const ROUTE34_COOLTRAINER_F3
-	const ROUTE34_POKE_BALL
-	const ROUTE34_LYRA
-	const ROUTE34_GRAMPS2
-
 Route34_MapScriptHeader:
-.MapTriggers:
-	db 0
 
-.MapCallbacks:
-	db 1
-	dbw MAPCALLBACK_OBJECTS, .EggCheckCallback
+.MapTriggers: db 0
 
-.EggCheckCallback:
+.MapCallbacks: db 1
+	dbw MAPCALLBACK_OBJECTS, Route34RebattleBreederAndEggCheckCallback
+
+Route34_MapEventHeader:
+
+.Warps: db 5
+	warp_def 37, 13, 1, ROUTE_34_ILEX_FOREST_GATE
+	warp_def 37, 14, 2, ROUTE_34_ILEX_FOREST_GATE
+	warp_def 14, 11, 1, DAYCARE
+	warp_def 15, 11, 2, DAYCARE
+	warp_def 15, 13, 3, DAYCARE
+
+.XYTriggers: db 3
+	xy_trigger 1, 17, 8, Route34LyraTrigger1
+	xy_trigger 1, 17, 9, Route34LyraTrigger2
+	xy_trigger 1, 17, 10, Route34LyraTrigger3
+
+.Signposts: db 5
+	signpost 6, 12, SIGNPOST_JUMPTEXT, Route34SignText
+	signpost 33, 13, SIGNPOST_JUMPTEXT, Route34TrainerTipsText
+	signpost 13, 10, SIGNPOST_JUMPTEXT, DayCareSignText
+	signpost 32, 8, SIGNPOST_ITEM + RARE_CANDY, EVENT_ROUTE_34_HIDDEN_RARE_CANDY
+	signpost 19, 17, SIGNPOST_ITEM + SUPER_POTION, EVENT_ROUTE_34_HIDDEN_SUPER_POTION
+
+.PersonEvents: db 14
+	person_event SPRITE_RICH_BOY, 20, 11, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, -1, (1 << 3) | PAL_OW_BLUE, PERSONTYPE_SCRIPT, 0, Route34RichBoyIrvingScript, -1
+	person_event SPRITE_GRAMPS, 15, 10, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, -1, 0, PERSONTYPE_SCRIPT, 0, DayCareManScript_Outside, EVENT_DAYCARE_MAN_ON_ROUTE_34
+	person_event SPRITE_GOLDENROD_LYRA, 12, 8, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, -1, (1 << 3) | PAL_OW_RED, PERSONTYPE_SCRIPT, 0, ObjectEvent, EVENT_LYRA_ROUTE_34
+	person_event SPRITE_YOUNGSTER, 7, 13, SPRITEMOVEDATA_STANDING_LEFT, 0, 0, -1, -1, (1 << 3) | PAL_OW_GREEN, PERSONTYPE_TRAINER, 5, TrainerCamperTodd1, -1
+	person_event SPRITE_BREEDER, 32, 15, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, -1, (1 << 3) | PAL_OW_GREEN, PERSONTYPE_TRAINER, 3, TrainerBreederJulie, -1
+	person_event SPRITE_LASS, 26, 10, SPRITEMOVEDATA_STANDING_RIGHT, 0, 0, -1, -1, (1 << 3) | PAL_OW_GREEN, PERSONTYPE_TRAINER, 3, TrainerPicnickerGina1, -1
+	person_event SPRITE_OFFICER_F, 10, 6, SPRITEMOVEDATA_STANDING_RIGHT, 0, 0, -1, -1, (1 << 3) | PAL_OW_BLUE, PERSONTYPE_SCRIPT, 0, OfficerfMaraScript, -1
+	person_event SPRITE_POKEFAN_M, 28, 18, SPRITEMOVEDATA_SPINCOUNTERCLOCKWISE, 0, 0, -1, -1, (1 << 3) | PAL_OW_RED, PERSONTYPE_TRAINER, 3, TrainerPokefanmBrandon, -1
+	person_event SPRITE_DAYCARE_MON_1, 18, 14, SPRITEMOVEDATA_POKEMON, 2, 2, -1, -1, 0, PERSONTYPE_SCRIPT, 0, DaycareMon1Script, EVENT_DAYCARE_MON_1
+	person_event SPRITE_DAYCARE_MON_2, 19, 17, SPRITEMOVEDATA_POKEMON, 2, 2, -1, -1, 0, PERSONTYPE_SCRIPT, 0, DaycareMon2Script, EVENT_DAYCARE_MON_2
+	person_event SPRITE_COOLTRAINER_F, 48, 11, SPRITEMOVEDATA_STANDING_LEFT, 0, 0, -1, -1, (1 << 3) | PAL_OW_RED, PERSONTYPE_TRAINER, 5, TrainerCooltrainerfIrene, -1
+	person_event SPRITE_COOLTRAINER_F, 48, 3, SPRITEMOVEDATA_STANDING_RIGHT, 0, 0, -1, -1, (1 << 3) | PAL_OW_RED, PERSONTYPE_TRAINER, 3, TrainerCooltrainerfJenn, -1
+	person_event SPRITE_COOLTRAINER_F, 51, 6, SPRITEMOVEDATA_STANDING_UP, 0, 0, -1, -1, (1 << 3) | PAL_OW_RED, PERSONTYPE_TRAINER, 2, TrainerCooltrainerfKate, -1
+	itemball_event 30, 7, NUGGET, 1, EVENT_ROUTE_34_NUGGET
+
+const_value set 1
+	const ROUTE34_RICH_BOY
+	const ROUTE34_GRAMPS
+	const ROUTE34_LYRA
+
+Route34RebattleBreederAndEggCheckCallback:
 	clearevent EVENT_BEAT_BREEDER_JULIE
-
 	checkflag ENGINE_DAYCARE_MAN_HAS_EGG
+	iftrue .PutDaycareManOutside
+	checktriggers
 	iftrue .PutDaycareManOutside
 	clearevent EVENT_DAYCARE_MAN_IN_DAYCARE
 	setevent EVENT_DAYCARE_MAN_ON_ROUTE_34
@@ -58,35 +83,27 @@ Route34_MapScriptHeader:
 	return
 
 Route34LyraTrigger1:
-	applymovement PLAYER, Route34MovementData_AdjustPlayer1
+	applyonemovement PLAYER, step_right
 	jump Route34LyraTrigger2
 
 Route34LyraTrigger3:
-	applymovement PLAYER, Route34MovementData_AdjustPlayer2
+	applyonemovement PLAYER, step_left
 Route34LyraTrigger2:
+	spriteface PLAYER, UP
 	special Special_FadeOutMusic
-	opentext
-	writetext Route34LyraText_Grandpa
-	waitbutton
-	closetext
+	showtext Route34LyraText_Grandpa
 	playmusic MUSIC_LYRA_ENCOUNTER_HGSS
 	appear ROUTE34_LYRA
-	spriteface ROUTE34_GRAMPS2, UP
+	spriteface ROUTE34_GRAMPS, UP
 	pause 10
 	applymovement ROUTE34_LYRA, Route34MovementData_LyraComesDown
-	spriteface ROUTE34_GRAMPS2, LEFT
-	opentext
-	writetext Route34LyraGoodWorkText
-	waitbutton
-	closetext
+	spriteface ROUTE34_GRAMPS, LEFT
+	showtext Route34LyraGoodWorkText
 	showemote EMOTE_SHOCK, ROUTE34_LYRA, 15
 	pause 15
 	spriteface ROUTE34_LYRA, DOWN
-	opentext
-	writetext Route34LyraGreetingText
-	waitbutton
-	closetext
-	applymovement PLAYER, Route34MovementData_PlayerApproachesLyra
+	showtext Route34LyraGreetingText
+	applyonemovement PLAYER, step_up
 	pause 10
 	spriteface ROUTE34_LYRA, RIGHT
 	opentext
@@ -101,10 +118,7 @@ Route34LyraTrigger2:
 	closetext
 	spriteface ROUTE34_LYRA, DOWN
 	pause 10
-	opentext
-	writetext Route34LyraChallengeText
-	waitbutton
-	closetext
+	showtext Route34LyraChallengeText
 	setevent EVENT_LYRA_ROUTE_34
 	checkevent EVENT_GOT_TOTODILE_FROM_ELM
 	iftrue .Totodile
@@ -139,26 +153,23 @@ Route34LyraTrigger2:
 	reloadmapafterbattle
 	playmusic MUSIC_LYRA_DEPARTURE_HGSS
 .AfterBattle
-	opentext
-	writetext Route34LyraFollowMeText
-	waitbutton
-	closetext
-	applymovement ROUTE34_GRAMPS2, Route34MovementData_GrampsEntersDayCare
+	showtext Route34LyraFollowMeText
+	applyonemovement ROUTE34_GRAMPS, slow_step_right
 	playsound SFX_EXIT_BUILDING
-	disappear ROUTE34_GRAMPS2
+	disappear ROUTE34_GRAMPS
 	follow ROUTE34_LYRA, PLAYER
 	applymovement ROUTE34_LYRA, Route34MovementData_LyraEntersDayCare
 	stopfollow
 	playsound SFX_EXIT_BUILDING
 	disappear ROUTE34_LYRA
-	applymovement PLAYER, Route34MovementData_PlayerEntersDayCare
+	applyonemovement PLAYER, step_right
 	playsound SFX_EXIT_BUILDING
 	disappear PLAYER
 	dotrigger $0
 	special FadeOutPalettes
 	pause 15
 	variablesprite SPRITE_GOLDENROD_LYRA, SPRITE_SWIMMER_GIRL
-	warpfacing RIGHT, DAYCARE, $0, $4
+	warpfacing RIGHT, DAYCARE, 0, 4
 	end
 
 DayCareManScript_Outside:
@@ -170,37 +181,34 @@ DayCareManScript_Outside:
 	if_equal $1, .end_fail
 	clearflag ENGINE_DAYCARE_MAN_HAS_EGG
 	checkcode VAR_FACING
-	if_equal RIGHT, .walk_around_player
-	applymovement ROUTE34_GRAMPS1, Route34MovementData_DayCareManWalksBackInside
+	if_equal LEFT, .walk_around_player
+	applyonemovement ROUTE34_GRAMPS, slow_step_right
 	playsound SFX_ENTER_DOOR
-	disappear ROUTE34_GRAMPS1
+	disappear ROUTE34_GRAMPS
 .end_fail
 	end
 
 .walk_around_player
-	applymovement ROUTE34_GRAMPS1, Route34MovementData_DayCareManWalksBackInside_WalkAroundPlayer
+	applymovement ROUTE34_GRAMPS, Route34MovementData_DayCareManWalksBackInside_WalkAroundPlayer
 	playsound SFX_ENTER_DOOR
-	disappear ROUTE34_GRAMPS1
+	disappear ROUTE34_GRAMPS
 	end
 
 DaycareMon1Script:
 	opentext
 	special Special_DayCareMon1
-	closetext
-	end
+	endtext
 
 DaycareMon2Script:
 	opentext
 	special Special_DayCareMon2
-	closetext
-	end
+	endtext
 
 TrainerCamperTodd1:
 	trainer EVENT_BEAT_CAMPER_TODD, CAMPER, TODD1, CamperTodd1SeenText, CamperTodd1BeatenText, 0, .Script
 
 .Script:
 	writecode VAR_CALLERID, PHONE_CAMPER_TODD
-	end_if_just_battled
 	opentext
 	checkflag ENGINE_TODD
 	iftrue .Rematch
@@ -287,10 +295,7 @@ TrainerCamperTodd1:
 	end
 
 .SaleIsOn:
-	writetext CamperToddSaleText
-	waitbutton
-	closetext
-	end
+	jumpopenedtext CamperToddSaleText
 
 .AskNumber:
 	jumpstd asknumber1m
@@ -475,20 +480,13 @@ OfficerfMaraScript:
 	startbattle
 	reloadmapafterbattle
 	setevent EVENT_BEAT_OFFICERF_MARA
-	closetext
-	end
+	endtext
 
 .AfterScript:
-	writetext OfficerfMaraAfterText
-	waitbutton
-	closetext
-	end
+	jumpopenedtext OfficerfMaraAfterText
 
 .NoFight:
-	writetext OfficerfMaraDaytimeText
-	waitbutton
-	closetext
-	end
+	jumpopenedtext OfficerfMaraDaytimeText
 
 TrainerBreederJulie:
 	trainer EVENT_BEAT_BREEDER_JULIE, BREEDER, JULIE, BreederJulieSeenText, BreederJulieBeatenText, 0, .Script
@@ -496,32 +494,28 @@ TrainerBreederJulie:
 .Script:
 	setevent EVENT_BEAT_BREEDER_JULIE_ONCE
 	end_if_just_battled
-	opentext
-	writetext BreederJulieAfterText
-	waitbutton
-	closetext
-	end
+	jumptextfaceplayer BreederJulieAfterText
 
-Route34RichBoyScript:
-	faceplayer
-	opentext
+Route34RichBoyIrvingScript:
 	checkevent EVENT_GOT_BIG_NUGGET_FROM_ROUTE_34_LEADER
-	iftrue .GotBigNugget
+	iftrue_jumptextfaceplayer .AfterText2
+	faceplayer
 	checkevent EVENT_BEAT_RICH_BOY_IRVING
 	iftrue .Beaten
 	checkevent EVENT_BEAT_CAMPER_TODD
-	iffalse .RouteNotCleared
+	iffalse_jumptext .IntroText
 	checkevent EVENT_BEAT_PICNICKER_GINA
-	iffalse .RouteNotCleared
+	iffalse_jumptext .IntroText
 	checkevent EVENT_BEAT_OFFICERF_MARA
-	iffalse .RouteNotCleared
+	iffalse_jumptext .IntroText
 	checkevent EVENT_BEAT_POKEFANM_BRANDON
-	iffalse .RouteNotCleared
+	iffalse_jumptext .IntroText
 	checkevent EVENT_BEAT_BREEDER_JULIE_ONCE
-	iffalse .RouteNotCleared
+	iffalse_jumptext .IntroText
+	opentext
 	writetext .QuestionText
 	yesorno
-	iffalse .NoBattle
+	iffalse_jumpopenedtext .RefusedText
 	writetext .SeenText
 	waitbutton
 	closetext
@@ -531,31 +525,20 @@ Route34RichBoyScript:
 	startbattle
 	reloadmapafterbattle
 	setevent EVENT_BEAT_RICH_BOY_IRVING
-	opentext
 .Beaten:
+	opentext
 	writetext .AfterText1
 	buttonsound
 	verbosegiveitem BIG_NUGGET
-	iffalse .Done
+	iffalse_endtext
 	setevent EVENT_GOT_BIG_NUGGET_FROM_ROUTE_34_LEADER
-.GotBigNugget:
-	writetext .AfterText2
-	waitbutton
-.Done:
-	closetext
-	end
+	thisopenedtext
 
-.RouteNotCleared:
-	writetext .IntroText
-	waitbutton
-	closetext
-	end
-
-.NoBattle:
-	writetext .RefusedText
-	waitbutton
-	closetext
-	end
+.AfterText2:
+	text "There are some"
+	line "things that money"
+	cont "can't buy."
+	done
 
 .IntroText:
 	text "I don't need to"
@@ -564,6 +547,10 @@ Route34RichBoyScript:
 	para "I'm rich, so I"
 	line "bought my #-"
 	cont "mon with cash!"
+
+	para "They're strong"
+	line "enough that we"
+	cont "beat Azalea's Gym!"
 
 	para "You want to battle"
 	line "them? Fine--just"
@@ -611,22 +598,12 @@ Route34RichBoyScript:
 	cont "battle."
 	done
 
-.AfterText2:
-	text "There are some"
-	line "things that money"
-	cont "can't buy."
-	done
-
 TrainerPokefanmBrandon:
 	trainer EVENT_BEAT_POKEFANM_BRANDON, POKEFANM, BRANDON, PokefanmBrandonSeenText, PokefanmBrandonBeatenText, 0, .Script
 
 .Script:
 	end_if_just_battled
-	opentext
-	writetext PokefanmBrandonAfterText
-	waitbutton
-	closetext
-	end
+	jumptextfaceplayer PokefanmBrandonAfterText
 
 TrainerCooltrainerfIrene:
 	trainer EVENT_BEAT_COOLTRAINERF_IRENE, COOLTRAINERF, IRENE, CooltrainerfIreneSeenText, CooltrainerfIreneBeatenText, 0, .Script
@@ -636,16 +613,10 @@ TrainerCooltrainerfIrene:
 	opentext
 	checkevent EVENT_GOT_POWER_HERB_FROM_KATE
 	iftrue .GotPowerHerb
-	writetext CooltrainerfIreneAfterText1
-	waitbutton
-	closetext
-	end
+	jumpopenedtext CooltrainerfIreneAfterText1
 
 .GotPowerHerb:
-	writetext CooltrainerfIreneAfterText2
-	waitbutton
-	closetext
-	end
+	jumpopenedtext CooltrainerfIreneAfterText2
 
 TrainerCooltrainerfJenn:
 	trainer EVENT_BEAT_COOLTRAINERF_JENN, COOLTRAINERF, JENN, CooltrainerfJennSeenText, CooltrainerfJennBeatenText, 0, .Script
@@ -655,16 +626,10 @@ TrainerCooltrainerfJenn:
 	opentext
 	checkevent EVENT_GOT_POWER_HERB_FROM_KATE
 	iftrue .GotPowerHerb
-	writetext CooltrainerfJennAfterText1
-	waitbutton
-	closetext
-	end
+	jumpopenedtext CooltrainerfJennAfterText1
 
 .GotPowerHerb:
-	writetext CooltrainerfJennAfterText2
-	waitbutton
-	closetext
-	end
+	jumpopenedtext CooltrainerfJennAfterText2
 
 TrainerCooltrainerfKate:
 	trainer EVENT_BEAT_COOLTRAINERF_KATE, COOLTRAINERF, KATE, CooltrainerfKateSeenText, CooltrainerfKateBeatenText, 0, .Script
@@ -683,49 +648,11 @@ TrainerCooltrainerfKate:
 	writetext CooltrainerfKateAfterText
 	waitbutton
 .BagFull:
-	closetext
-	end
-
-Route34Sign:
-	jumptext Route34SignText
-
-Route34TrainerTips:
-	jumptext Route34TrainerTipsText
-
-DayCareSign:
-	jumptext DayCareSignText
-
-Route34Nugget:
-	itemball NUGGET
-
-Route34HiddenRareCandy:
-	dwb EVENT_ROUTE_34_HIDDEN_RARE_CANDY, RARE_CANDY
-
-Route34HiddenSuperPotion:
-	dwb EVENT_ROUTE_34_HIDDEN_SUPER_POTION, SUPER_POTION
-
-Route34MovementData_DayCareManWalksBackInside:
-	slow_step_left
-	slow_step_left
-	slow_step_up
-	step_end
+	endtext
 
 Route34MovementData_DayCareManWalksBackInside_WalkAroundPlayer:
-	slow_step_down
-	slow_step_left
-	slow_step_left
 	slow_step_up
-	slow_step_up
-	step_end
-
-Route34MovementData_AdjustPlayer1:
-	step_right
-	turn_head_up
-	step_end
-
-Route34MovementData_AdjustPlayer2:
-	step_left
-	turn_head_up
+	slow_step_right
 	step_end
 
 Route34MovementData_LyraComesDown:
@@ -735,17 +662,8 @@ Route34MovementData_LyraComesDown:
 	step_right
 	step_end
 
-Route34MovementData_PlayerApproachesLyra:
-	step_up
-	step_end
-
-Route34MovementData_GrampsEntersDayCare:
-	slow_step_right
-	step_end
-
 Route34MovementData_LyraEntersDayCare:
 	step_right
-Route34MovementData_PlayerEntersDayCare:
 	step_right
 	step_end
 
@@ -1037,44 +955,3 @@ DayCareSignText:
 	para "Let Us Raise Your"
 	line "#mon For You!"
 	done
-
-Route34_MapEventHeader:
-.Warps:
-	db 5
-	warp_def $25, $d, 1, ROUTE_34_ILEX_FOREST_GATE
-	warp_def $25, $e, 2, ROUTE_34_ILEX_FOREST_GATE
-	warp_def $e, $b, 1, DAYCARE
-	warp_def $f, $b, 2, DAYCARE
-	warp_def $f, $d, 3, DAYCARE
-
-.XYTriggers:
-	db 3
-	xy_trigger 1, $11, $8, Route34LyraTrigger1
-	xy_trigger 1, $11, $9, Route34LyraTrigger2
-	xy_trigger 1, $11, $a, Route34LyraTrigger3
-
-.Signposts:
-	db 5
-	signpost 6, 12, SIGNPOST_READ, Route34Sign
-	signpost 33, 13, SIGNPOST_READ, Route34TrainerTips
-	signpost 13, 10, SIGNPOST_READ, DayCareSign
-	signpost 32, 8, SIGNPOST_ITEM, Route34HiddenRareCandy
-	signpost 19, 17, SIGNPOST_ITEM, Route34HiddenSuperPotion
-
-.PersonEvents:
-	db 15
-	person_event SPRITE_RICH_BOY, 20, 11, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, -1, (1 << 3) | PAL_OW_BLUE, PERSONTYPE_SCRIPT, 0, Route34RichBoyScript, -1
-	person_event SPRITE_YOUNGSTER, 7, 13, SPRITEMOVEDATA_STANDING_LEFT, 0, 0, -1, -1, (1 << 3) | PAL_OW_GREEN, PERSONTYPE_TRAINER, 5, TrainerCamperTodd1, -1
-	person_event SPRITE_BREEDER, 32, 15, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, -1, (1 << 3) | PAL_OW_GREEN, PERSONTYPE_TRAINER, 3, TrainerBreederJulie, -1
-	person_event SPRITE_LASS, 26, 10, SPRITEMOVEDATA_STANDING_RIGHT, 0, 0, -1, -1, (1 << 3) | PAL_OW_GREEN, PERSONTYPE_TRAINER, 3, TrainerPicnickerGina1, -1
-	person_event SPRITE_OFFICER_F, 11, 9, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, -1, (1 << 3) | PAL_OW_BLUE, PERSONTYPE_SCRIPT, 0, OfficerfMaraScript, -1
-	person_event SPRITE_POKEFAN_M, 28, 18, SPRITEMOVEDATA_SPINCOUNTERCLOCKWISE, 0, 0, -1, -1, (1 << 3) | PAL_OW_RED, PERSONTYPE_TRAINER, 3, TrainerPokefanmBrandon, -1
-	person_event SPRITE_GRAMPS, 16, 15, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, -1, 0, PERSONTYPE_SCRIPT, 0, DayCareManScript_Outside, EVENT_DAYCARE_MAN_ON_ROUTE_34
-	person_event SPRITE_DAYCARE_MON_1, 18, 14, SPRITEMOVEDATA_POKEMON, 2, 2, -1, -1, 0, PERSONTYPE_SCRIPT, 0, DaycareMon1Script, EVENT_DAYCARE_MON_1
-	person_event SPRITE_DAYCARE_MON_2, 19, 17, SPRITEMOVEDATA_POKEMON, 2, 2, -1, -1, 0, PERSONTYPE_SCRIPT, 0, DaycareMon2Script, EVENT_DAYCARE_MON_2
-	person_event SPRITE_COOLTRAINER_F, 48, 11, SPRITEMOVEDATA_STANDING_LEFT, 0, 0, -1, -1, (1 << 3) | PAL_OW_RED, PERSONTYPE_TRAINER, 5, TrainerCooltrainerfIrene, -1
-	person_event SPRITE_COOLTRAINER_F, 48, 3, SPRITEMOVEDATA_STANDING_RIGHT, 0, 0, -1, -1, (1 << 3) | PAL_OW_RED, PERSONTYPE_TRAINER, 3, TrainerCooltrainerfJenn, -1
-	person_event SPRITE_COOLTRAINER_F, 51, 6, SPRITEMOVEDATA_STANDING_UP, 0, 0, -1, -1, (1 << 3) | PAL_OW_RED, PERSONTYPE_TRAINER, 2, TrainerCooltrainerfKate, -1
-	person_event SPRITE_BALL_CUT_FRUIT, 30, 7, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, -1, (1 << 3) | PAL_OW_RED, PERSONTYPE_ITEMBALL, 0, Route34Nugget, EVENT_ROUTE_34_NUGGET
-	person_event SPRITE_GOLDENROD_LYRA, 12, 8, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, -1, (1 << 3) | PAL_OW_RED, PERSONTYPE_SCRIPT, 0, ObjectEvent, EVENT_LYRA_ROUTE_34
-	person_event SPRITE_GRAMPS, 15, 10, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, -1, 0, PERSONTYPE_SCRIPT, 0, ObjectEvent, EVENT_GRANDPA_ROUTE_34

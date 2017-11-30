@@ -12,6 +12,11 @@ AI_SwitchOrTryItem: ; 38000
 	farcall CheckEnemyLockedIn
 	ret nz
 
+	farcall GetEnemyItem
+	ld a, b
+	cp HELD_SHED_SHELL
+	jr z, .can_switch
+
 	; check if we're trapped by an ability
 	ld a, [hBattleTurn]
 	push af
@@ -32,6 +37,7 @@ AI_SwitchOrTryItem: ; 38000
 	and a
 	jr nz, DontSwitch
 
+.can_switch
 	ld hl, TrainerClassAttributes + TRNATTR_AI_ITEM_SWITCH
 	ld a, [InBattleTowerBattle] ; Load always the first TrainerClass for BattleTower-Trainers
 	and a
@@ -55,7 +61,7 @@ DontSwitch: ; 38041
 ; 38045
 
 SwitchOften: ; 38045
-	farcall CheckAbleToSwitch
+	farcall AIWantsSwitchCheck
 	ld a, [wEnemySwitchMonParam]
 	and $f0
 	jp z, DontSwitch
@@ -91,7 +97,7 @@ SwitchOften: ; 38045
 ; 38083
 
 SwitchRarely: ; 38083
-	farcall CheckAbleToSwitch
+	farcall AIWantsSwitchCheck
 	ld a, [wEnemySwitchMonParam]
 	and $f0
 	jp z, DontSwitch
@@ -126,7 +132,7 @@ SwitchRarely: ; 38083
 ; 380c1
 
 SwitchSometimes: ; 380c1
-	farcall CheckAbleToSwitch
+	farcall AIWantsSwitchCheck
 	ld a, [wEnemySwitchMonParam]
 	and $f0
 	jp z, DontSwitch
@@ -184,9 +190,10 @@ AI_TryItem: ; 38105
 	ld b, h
 	ld c, l
 	ld hl, AI_Items
-	ld de, wEnemyTrainerItem1
 .loop
+	ld de, wEnemyTrainerItem1
 	ld a, [hl]
+	; Reset carry so the battle loop doesn't think we ended up performing a move...
 	and a
 	inc a
 	ret z
@@ -199,7 +206,6 @@ AI_TryItem: ; 38105
 	cp [hl]
 	jr z, .has_item
 
-	dec de
 rept 3
 	inc hl
 endr
@@ -232,15 +238,12 @@ endr
 	ld [wEnemyGoesFirst], a
 
 	xor a
-	ld [EnemyFuryCutterCount], a
 	ld [EnemyProtectCount], a
-	ld [wEnemyRageCounter], a
 
 	ld hl, EnemySubStatus4
 	res SUBSTATUS_RAGE, [hl]
 
 	xor a
-	ld [EnemySelectedMove], a
 	ld [LastPlayerCounterMove], a
 
 	scf
@@ -322,8 +325,8 @@ AI_Items: ; 39196
 	jp .DontUse
 
 .StatusCheckContext:
-	ld a, [EnemySubStatus2]
-	bit SUBSTATUS_TOXIC, a
+	ld a, [EnemyMonStatus]
+	bit TOX, a
 	jr z, .FailToxicCheck
 	ld a, [EnemyToxicCount]
 	cp 4
@@ -721,8 +724,8 @@ AI_HealStatus: ; 384e0
 	xor a
 	ld [hl], a
 	ld [EnemyMonStatus], a
-	ld hl, EnemySubStatus2
-	res SUBSTATUS_TOXIC, [hl]
+	ld hl, EnemySubStatus3
+	res SUBSTATUS_CONFUSED, [hl]
 	ret
 ; 384f7
 
@@ -780,7 +783,7 @@ EnemyUsedXAccuracy: ; 384f7
 ; a = ITEM_CONSTANT
 ; b = BATTLE_CONSTANT (ATTACK, DEFENSE, SPEED, SP_ATTACK, SP_DEFENSE, ACCURACY, EVASION)
 EnemyUsedXItem:
-	ld [wd1f1], a
+	ld [CurEnemyItem], a
 	push bc
 	call PrintText_UsedItemOn
 	pop bc
@@ -792,13 +795,13 @@ EnemyUsedXItem:
 ; Parameter
 ; a = ITEM_CONSTANT
 PrintText_UsedItemOn_AND_AIUpdateHUD: ; 38568
-	ld [wd1f1], a
+	ld [CurEnemyItem], a
 	call PrintText_UsedItemOn
 	jp AIUpdateHUD
 ; 38571
 
 PrintText_UsedItemOn: ; 38571
-	ld a, [wd1f1]
+	ld a, [CurEnemyItem]
 	ld [wd265], a
 	call GetItemName
 	ld hl, StringBuffer1

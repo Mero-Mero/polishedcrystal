@@ -8,6 +8,22 @@ BattleCommand_Transform: ; 371cd
 	bit SUBSTATUS_TRANSFORMED, [hl]
 	jp nz, BattleEffect_ButItFailed
 
+	ld hl, BattleMonSpecies
+	ld de, BattleMonItem
+	ld a, [hBattleTurn]
+	and a
+	jr nz, .got_mon_item
+	ld hl, EnemyMonSpecies
+	ld de, EnemyMonItem
+.got_mon_item
+	ld a, [hl]
+	cp MEWTWO
+	jr nz, .not_armored_mewtwo
+	ld a, [de]
+	cp ARMOR_SUIT
+	jp z, BattleEffect_ButItFailed
+.not_armored_mewtwo
+
 	ld a, BATTLE_VARS_ABILITY
 	call GetBattleVar
 	cp INFILTRATOR
@@ -57,29 +73,8 @@ BattleCommand_Transform: ; 371cd
 	inc de
 	ld bc, NUM_MOVES
 	call CopyBytes
-	ld a, [hBattleTurn]
-	and a
-	jr z, .mimic_enemy_backup
-	ld a, [de]
-	ld [wEnemyBackupDVs], a
-	inc de
-	ld a, [de]
-	ld [wEnemyBackupDVs + 1], a
-	inc de
-	ld a, [de]
-	ld [wEnemyBackupDVs + 2], a
-	inc de
-	ld a, [de]
-	ld [wEnemyBackupPersonality], a
-	inc de
-	ld a, [de]
-	ld [wEnemyBackupPersonality + 1], a
-	dec de
-	dec de
-	dec de
-	dec de
-.mimic_enemy_backup
-; copy DVs and personality
+
+	; copy DVs and personality
 	ld a, [hli]
 	ld [de], a
 	inc de
@@ -134,10 +129,6 @@ BattleCommand_Transform: ; 371cd
 	ld a, [hl]
 	ld [wNamedObjectIndexBuffer], a
 	call GetPokemonName
-	ld hl, EnemyStats
-	ld de, PlayerStats
-	ld bc, 2 * 5
-	call BattleSideCopy
 	ld hl, EnemyStatLevels
 	ld de, PlayerStatLevels
 	ld bc, 8
@@ -173,6 +164,16 @@ BattleCommand_Transform: ; 371cd
 	ld hl, TransformedText
 	call StdBattleTextBox
 
+	; Update revealed moves if player transformed: the AI knows what its own moves are...
+	ld a, [hBattleTurn]
+	and a
+	jr nz, .move_reveal_done
+	ld hl, BattleMonMoves
+	ld de, PlayerUsedMoves
+	ld bc, NUM_MOVES
+	call CopyBytes
+
+.move_reveal_done
 	; Copy ability
 	ld a, [hBattleTurn]
 	and a
@@ -188,7 +189,6 @@ BattleCommand_Transform: ; 371cd
 	call GetBattleVar
 	cp IMPOSTER
 	ret z ; avoid infinite loop
-	farcall RunActivationAbilitiesInner
-	ret
+	farjp RunActivationAbilitiesInner
 
 ; 372c6

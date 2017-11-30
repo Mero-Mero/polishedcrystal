@@ -1,12 +1,5 @@
 ; Functions dealing with rendering and interacting with maps.
 
-Clearwc7e8:: ; 210f
-	ld hl, wc7e8
-	ld bc, 15
-	xor a
-	jp ByteFill
-; 211b
-
 CheckTriggers:: ; 211b
 ; Checks wCurrentMapTriggerPointer.  If it's empty, returns -1 in a.  Otherwise, returns the active trigger ID in a.
 	push hl
@@ -96,8 +89,7 @@ GetMapTrigger:: ; 2147
 
 OverworldTextModeSwitch:: ; 2173
 	call LoadMapPart
-	call FarCallSwapTextboxPalettes
-	ret
+	jp FarCallSwapTextboxPalettes
 ; 217a
 
 LoadMapPart:: ; 217a
@@ -108,10 +100,6 @@ LoadMapPart:: ; 217a
 	rst Bankswitch
 
 	call LoadMetatiles
-	ld a, $60
-	hlcoord 0, 0
-	ld bc, SCREEN_WIDTH * SCREEN_HEIGHT
-	call ByteFill
 
 	ld a, BANK(_LoadMapPart)
 	rst Bankswitch
@@ -360,6 +348,9 @@ CopyWarpData:: ; 22a7
 	ret
 ; 22ee
 
+CheckOutdoorMapOrPerm5::
+	cp PERM_5
+	ret z
 CheckOutdoorMap:: ; 22ee
 	cp ROUTE
 	ret z
@@ -425,8 +416,7 @@ ReadMapScripts:: ; 234f
 	ld h, [hl]
 	ld l, a
 	call ReadMapTriggers
-	call ReadMapCallbacks
-	ret
+	jp ReadMapCallbacks
 ; 235c
 
 CopySecondMapHeader:: ; 235c
@@ -470,13 +460,9 @@ GetMapConnections:: ; 2368
 .no_west
 
 	bit EAST_F, b
-	jr z, .no_east
+	ret z
 	ld de, EastMapConnection
-	call GetMapConnection
-.no_east
-
-	ret
-; 23a3
+	; fallthrough
 
 GetMapConnection:: ; 23a3
 ; Load map connection struct at hl into de.
@@ -622,7 +608,7 @@ CopyMapObjectHeaders:: ; 2457
 	push hl
 	ld a, $ff
 	ld [hli], a
-	ld b, MAPOBJECT_E - MAPOBJECT_SPRITE
+	ld b, MAPOBJECT_FLAG_HI - MAPOBJECT_SPRITE + 1 ; size of person_event
 .loop2
 	ld a, [de]
 	inc de
@@ -647,8 +633,7 @@ ClearObjectStructs:: ; 2471
 ; 248a
 
 RestoreFacingAfterWarp:: ; 248a
-	call GetMapScriptHeaderBank
-	rst Bankswitch
+	call SwitchToMapScriptHeaderBank
 
 	ld hl, MapEventHeaderPointer
 	ld a, [hli]
@@ -667,13 +652,12 @@ RestoreFacingAfterWarp:: ; 248a
 	ld [XCoord], a
 	; destination warp number
 	ld a, [hli]
-	cp $ff
+	cp -1
 	jr nz, .skip
 	call .backup
 
 .skip
-	farcall GetCoordOfUpperLeftCorner
-	ret
+	farjp GetCoordOfUpperLeftCorner
 ; 24ba
 
 .backup
@@ -821,7 +805,7 @@ FillMapConnections:: ; 2524
 .East:
 	ld a, [EastConnectedMapGroup]
 	cp $ff
-	jr z, .Done
+	ret z
 	ld b, a
 	ld a, [EastConnectedMapNumber]
 	ld c, a
@@ -839,10 +823,7 @@ FillMapConnections:: ; 2524
 	ld b, a
 	ld a, [EastConnectedMapWidth]
 	ld [hConnectionStripLength], a
-	call FillEastConnectionStrip
-
-.Done:
-	ret
+	jp FillEastConnectionStrip
 ; 25d3
 
 FillNorthConnectionStrip::
@@ -946,7 +927,7 @@ CallMapScript:: ; 2631
 	ld a, [ScriptRunning]
 	and a
 	ret nz
-	call GetMapScriptHeaderBank
+	ld a, [MapScriptHeaderBank]
 	jr CallScript
 ; 263b
 
@@ -959,7 +940,7 @@ RunMapCallback:: ; 263b
 	call .FindCallback
 	jr nc, .done
 
-	call GetMapScriptHeaderBank
+	ld a, [MapScriptHeaderBank]
 	ld b, a
 	ld d, h
 	ld e, l
@@ -1118,6 +1099,9 @@ ObjectEventText::
 	text_jump _ObjectEventText
 	db "@"
 ; 0x26f7
+
+EndEvent::
+	end
 
 CheckObjectMask:: ; 2707
 	ld a, [hMapObjectIndexBuffer]
@@ -1338,7 +1322,7 @@ LoadTileset:: ; 2821
 
 	ld hl, wDecompressScratch
 	ld de, VTiles2
-	ld bc, $70 tiles
+	ld bc, $7f tiles
 	call CopyBytes
 
 	ld a, [rVBK]
@@ -1346,7 +1330,7 @@ LoadTileset:: ; 2821
 	ld a, $1
 	ld [rVBK], a
 
-	ld hl, wDecompressScratch + $70 tiles
+	ld hl, wDecompressScratch + $80 tiles
 	ld de, VTiles2
 	ld bc, $80 tiles
 	call CopyBytes
@@ -1358,9 +1342,9 @@ LoadTileset:: ; 2821
 	ld [rSVBK], a
 
 	ld a, [wTileset]
-	cp TILESET_JOHTO_1
+	cp TILESET_JOHTO_TRADITIONAL
 	jr z, .load_roof
-	cp TILESET_JOHTO_2
+	cp TILESET_JOHTO_MODERN
 	jr z, .load_roof
 	jr .skip_roof
 
@@ -1904,8 +1888,7 @@ FadeToMenu:: ; 2b29
 	call LoadStandardMenuDataHeader
 	farcall FadeOutPalettes
 	call ClearSprites
-	call DisableSpriteUpdates
-	ret
+	jp DisableSpriteUpdates
 ; 2b3c
 
 CloseSubmenu:: ; 2b3c
@@ -1990,7 +1973,6 @@ GetAnyMapHeaderPointer:: ; 0x2bed
 
 ; inputs:
 ; b = map group, c = map number
-; XXX de = ???
 
 ; outputs:
 ; hl points to the map header
@@ -2095,11 +2077,6 @@ SwitchToMapScriptHeaderBank:: ; 2c52
 	ret
 ; 2c57
 
-GetMapScriptHeaderBank:: ; 2c57
-	ld a, [MapScriptHeaderBank]
-	ret
-; 2c5b
-
 GetAnyMapBlockdataBank:: ; 2c5b
 ; Return the blockdata bank for group b map c.
 	push hl
@@ -2198,7 +2175,7 @@ GetCurrentLandmark::
 	ld a, [MapNumber]
 	ld c, a
 	call GetWorldMapLocation
-	cp SPECIAL_MAP
+	and a ; cp SPECIAL_MAP
 	ret nz
 
 ; In a special map, get the backup map group / map id
@@ -2219,6 +2196,8 @@ GetMapHeaderMusic:: ; 2cbd
 	jr z, .radiotower
 	cp MUSIC_MAHOGANY_MART
 	jr z, .mahoganymart
+	cp MUSIC_LAVENDER
+	jr z, .lavender
 	call Function8b342
 	ld e, c
 	ld d, 0
@@ -2247,6 +2226,17 @@ GetMapHeaderMusic:: ; 2cbd
 
 .clearedmahogany
 	ld de, MUSIC_CHERRYGROVE_CITY
+	jr .done
+
+.lavender
+	ld a, [StatusFlags2]
+	bit 6, a ; ENGINE_EXORCISED_LAV_RADIO_TOWER
+	jr z, .exorcisedlavradiotower
+	ld de, MUSIC_LAVENDER_TOWN_RBY
+	jr .done
+
+.exorcisedlavradiotower
+	ld de, MUSIC_LAVENDER_TOWN
 	jr .done
 ; 2cff
 
@@ -2303,12 +2293,12 @@ LoadTilesetHeader:: ; 2d27
 	push bc
 
 	ld hl, Tilesets
-	ld bc, Tileset01 - Tileset00
+	ld bc, Tileset00End - Tileset00
 	ld a, [wTileset]
 	call AddNTimes
 
 	ld de, TilesetHeader
-	ld bc, Tileset01 - Tileset00
+	ld bc, Tileset00End - Tileset00
 
 	ld a, BANK(Tilesets)
 	call FarCopyBytes
@@ -2317,3 +2307,81 @@ LoadTilesetHeader:: ; 2d27
 	pop hl
 	ret
 ; 2d43
+
+GetOvercastIndex::
+; Some maps are overcast, depending on certain conditions
+	ld a, [MapGroup]
+	cp GROUP_AZALEA_TOWN ; GROUP_ROUTE_33
+	jr z, .azalea_route_33
+	cp GROUP_LAKE_OF_RAGE ; GROUP_ROUTE_43
+	jr z, .lake_of_rage_route_43
+	cp GROUP_STORMY_BEACH ; GROUP_GOLDENROD_CITY, GROUP_ROUTE_34, GROUP_ROUTE_34_COAST
+	jr z, .stormy_beach
+.not_overcast:
+	xor a ; NOT_OVERCAST
+	ret
+
+.azalea_route_33:
+; Azalea Town and Route 33
+	ld a, [MapNumber]
+	cp MAP_AZALEA_TOWN
+	jr z, .azalea_town
+	cp MAP_ROUTE_33
+	jr nz, .not_overcast
+.azalea_town
+; Not overcast until Slowpokes appear (Team ROcket beaten)
+	eventflagcheck EVENT_AZALEA_TOWN_SLOWPOKES
+	jr nz, .not_overcast
+; Overcast on Sunday, Tuesday, Thursday, and Saturday
+	call GetWeekday
+	cp MONDAY
+	jr z, .not_overcast
+	cp WEDNESDAY
+	jr z, .not_overcast
+	cp FRIDAY
+	jr z, .not_overcast
+	ld a, AZALEA_OVERCAST
+	ret
+
+.lake_of_rage_route_43:
+; Lake of Rage and Route 43
+	ld a, [MapNumber]
+	cp MAP_LAKE_OF_RAGE
+	jr z, .lake_of_rage
+	cp MAP_ROUTE_43
+	jr nz, .not_overcast
+.lake_of_rage
+; Always overcast until civilians appear (Team Rocket beaten)
+	eventflagcheck EVENT_LAKE_OF_RAGE_CIVILIANS
+	jr nz, .overcast_lake_of_rage
+; Overcast on Monday, Wednesday, and Friday
+	call GetWeekday
+	cp MONDAY
+	jr z, .overcast_lake_of_rage
+	cp WEDNESDAY
+	jr z, .overcast_lake_of_rage
+	cp FRIDAY
+	jr nz, .not_overcast
+.overcast_lake_of_rage
+	ld a, LAKE_OF_RAGE_OVERCAST
+	ret
+
+.stormy_beach:
+; Stormy Beach or Goldenrod City, Route 34, and ROute 34 Coast
+	ld a, [MapNumber]
+; Stormy Beach is always overcast
+	cp MAP_STORMY_BEACH
+	jr z, .overcast_stormy_beach
+	cp MAP_ROUTE_34_COAST
+	jr z, .maybe_stormy_beach
+	cp MAP_ROUTE_34
+	jr z, .maybe_stormy_beach
+	cp MAP_GOLDENROD_CITY
+	jr nz, .not_overcast
+; Only overcast while Team Rocket is present
+.maybe_stormy_beach
+	eventflagcheck EVENT_GOLDENROD_CITY_ROCKET_TAKEOVER
+	jr nz, .not_overcast
+.overcast_stormy_beach
+	ld a, STORMY_BEACH_OVERCAST
+	ret

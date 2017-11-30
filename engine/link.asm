@@ -39,8 +39,8 @@ Gen2ToGen2LinkComms: ; 28177
 	ld a, [ScriptVar]
 	and a
 	jp z, LinkTimeout
-	ld a, [hLinkPlayerNumber]
-	cp $2
+	ld a, [hSerialConnectionStatus]
+	cp USING_INTERNAL_CLOCK
 	jr nz, .Player1
 	ld c, 3
 	call DelayFrames
@@ -48,14 +48,14 @@ Gen2ToGen2LinkComms: ; 28177
 	ld [hSerialSend], a
 	ld a, $1
 	ld [rSC], a
-	ld a, $81
+	ld a, START_TRANSFER_INTERNAL_CLOCK
 	ld [rSC], a
 	call DelayFrame
 	xor a
 	ld [hSerialSend], a
 	ld a, $1
 	ld [rSC], a
-	ld a, $81
+	ld a, START_TRANSFER_INTERNAL_CLOCK
 	ld [rSC], a
 
 .Player1:
@@ -67,22 +67,22 @@ Gen2ToGen2LinkComms: ; 28177
 	ld [rIF], a
 	ld a, $8
 	ld [rIE], a
-	ld hl, wd1f3
-	ld de, EnemyMonSpecies
-	ld bc, $11
-	call Function75f
-	ld a, $fe
+	ld hl, wLinkBuffer
+	ld de, wLinkBufferEnd
+	ld bc, 17
+	call Serial_ExchangeBytes
+	ld a, SERIAL_NO_DATA_BYTE
 	ld [de], a
 	ld hl, wLinkData
 	ld de, OTPlayerName
 	ld bc, $1c2
-	call Function75f
-	ld a, $fe
+	call Serial_ExchangeBytes
+	ld a, SERIAL_NO_DATA_BYTE
 	ld [de], a
-	ld hl, wMisc
+	ld hl, wLinkMisc
 	ld de, wPlayerTrademonSpecies
-	ld bc, $c8
-	call Function75f
+	ld bc, wPlayerTrademonSpecies - wLinkMisc
+	call Serial_ExchangeBytes
 	ld a, [wLinkMode]
 	cp LINK_TRADECENTER
 	jr nz, .not_trading
@@ -112,11 +112,11 @@ Gen2ToGen2LinkComms: ; 28177
 	inc de
 	and a
 	jr z, .loop1
-	cp $fd
+	cp SERIAL_PREAMBLE_BYTE
 	jr z, .loop1
-	cp $fe
+	cp SERIAL_NO_DATA_BYTE
 	jr z, .loop1
-	cp $ff
+	cp SERIAL_PATCH_LIST_PART_TERMINATOR
 	jr z, .next1
 	push hl
 	push bc
@@ -124,7 +124,7 @@ Gen2ToGen2LinkComms: ; 28177
 	dec a
 	ld c, a
 	add hl, bc
-	ld a, $fe
+	ld a, SERIAL_NO_DATA_BYTE
 	ld [hl], a
 	pop bc
 	pop hl
@@ -144,7 +144,7 @@ Gen2ToGen2LinkComms: ; 28177
 	jr nz, .loop2
 .loop3
 	ld a, [hli]
-	cp $fe
+	cp SERIAL_NO_DATA_BYTE
 	jr z, .loop3
 	cp $20
 	jr z, .loop3
@@ -158,7 +158,7 @@ Gen2ToGen2LinkComms: ; 28177
 	ld a, [hl]
 	cp $21
 	jr nz, .okay1
-	ld [hl], $fe
+	ld [hl], SERIAL_NO_DATA_BYTE
 .okay1
 	inc hl
 	dec bc
@@ -169,14 +169,14 @@ Gen2ToGen2LinkComms: ; 28177
 .loop5
 	ld a, [de]
 	inc de
-	cp $ff
+	cp SERIAL_PATCH_LIST_PART_TERMINATOR
 	jr z, .start_copying_mail
 	ld hl, wcc4a
 	dec a
 	ld b, $0
 	ld c, a
 	add hl, bc
-	ld [hl], $fe
+	ld [hl], SERIAL_NO_DATA_BYTE
 	jr .loop5
 
 .start_copying_mail
@@ -242,8 +242,8 @@ Gen2ToGen2LinkComms: ; 28177
 	call CopyBytes
 	ld de, MUSIC_NONE
 	call PlayMusic
-	ld a, [hLinkPlayerNumber]
-	cp $2
+	ld a, [hSerialConnectionStatus]
+	cp USING_INTERNAL_CLOCK
 	ld c, 66
 	call z, DelayFrames
 	ld a, [wLinkMode]
@@ -327,8 +327,7 @@ LinkTimeout: ; 283b2
 	call ClearScreen
 	ld b, SCGB_DIPLOMA
 	call GetSGBLayout
-	call WaitBGMap2
-	ret
+	jp WaitBGMap2
 ; 283ed
 
 .TooMuchTimeHasElapsed: ; 0x283ed
@@ -339,11 +338,11 @@ LinkTimeout: ; 283b2
 
 Function283f2: ; 283f2
 	ld a, $1
-	ld [hFFCC], a
+	ld [hSerialIgnoringInitialData], a
 .loop
 	ld a, [hl]
 	ld [hSerialSend], a
-	call Function78a
+	call Serial_ExchangeByte
 	push bc
 	ld b, a
 	inc hl
@@ -351,14 +350,14 @@ Function283f2: ; 283f2
 .delay_cycles
 	dec a
 	jr nz, .delay_cycles
-	ld a, [hFFCC]
+	ld a, [hSerialIgnoringInitialData]
 	and a
 	ld a, b
 	pop bc
 	jr z, .load
 	dec hl
 	xor a
-	ld [hFFCC], a
+	ld [hSerialIgnoringInitialData], a
 	jr .loop
 
 .load
@@ -389,23 +388,23 @@ ClearLinkData: ; 28426
 ; 28434
 
 FixDataForLinkTransfer: ; 28434
-	ld hl, wd1f3
-	ld a, $fd
-	ld b, LinkBattleRNs - wd1f3
+	ld hl, wLinkBuffer
+	ld a, SERIAL_PREAMBLE_BYTE
+	ld b, LinkBattleRNs - wLinkBuffer
 .loop1
 	ld [hli], a
 	dec b
 	jr nz, .loop1
-	ld b, TempEnemyMonSpecies - LinkBattleRNs
+	ld b, LinkBattleEarlyEnd - LinkBattleRNs
 .loop2
 	call Random
-	cp $fd
+	cp SERIAL_PREAMBLE_BYTE
 	jr nc, .loop2
 	ld [hli], a
 	dec b
 	jr nz, .loop2
-	ld hl, wMisc
-	ld a, $fd
+	ld hl, wLinkMisc
+	ld a, SERIAL_PREAMBLE_BYTE
 rept 3
 	ld [hli], a
 endr
@@ -415,13 +414,13 @@ endr
 	ld [hli], a
 	dec b
 	jr nz, .loop3
-	ld hl, wLinkPlayerData + 5
-	ld de, wc612
+	ld hl, wLinkPlayerPartyMon1ID - 1
+	ld de, wLinkPlayerFixedPartyMon1ID
 	lb bc, 0, 0
 .loop4
 	inc c
 	ld a, c
-	cp $fd
+	cp SERIAL_PREAMBLE_BYTE
 	jr z, .next1
 	ld a, b
 	dec a
@@ -435,30 +434,30 @@ endr
 .next2
 	inc hl
 	ld a, [hl]
-	cp $fe
+	cp SERIAL_NO_DATA_BYTE
 	jr nz, .loop4
 	ld a, c
 	ld [de], a
 	inc de
-	ld [hl], $ff
+	ld [hl], SERIAL_PATCH_LIST_PART_TERMINATOR
 	jr .loop4
 
 .next1
-	ld a, $ff
+	ld a, SERIAL_PATCH_LIST_PART_TERMINATOR
 	ld [de], a
 	inc de
 	lb bc, 1, 0
 	jr .loop4
 
 .done
-	ld a, $ff
+	ld a, SERIAL_PATCH_LIST_PART_TERMINATOR
 	ld [de], a
 	ret
 ; 28499
 
 Link_PrepPartyData_Gen2: ; 28595
 	ld de, wLinkData
-	ld a, $fd
+	ld a, SERIAL_PREAMBLE_BYTE
 	ld b, 6
 .loop1
 	ld [de], a
@@ -549,7 +548,7 @@ Link_PrepPartyData_Gen2: ; 28595
 	ld bc, PARTY_LENGTH * (sPartyMon1MailAuthor - sPartyMon1Mail)
 .loop5
 	ld a, [hl]
-	cp $fe
+	cp SERIAL_NO_DATA_BYTE
 	jr nz, .skip2
 	ld [hl], sPartyMon1MailAuthor - sPartyMon1Mail
 
@@ -565,9 +564,9 @@ Link_PrepPartyData_Gen2: ; 28595
 .loop6
 	inc c
 	ld a, [hl]
-	cp $fe
+	cp SERIAL_NO_DATA_BYTE
 	jr nz, .skip3
-	ld [hl], $ff
+	ld [hl], SERIAL_PATCH_LIST_PART_TERMINATOR
 	ld a, c
 	ld [de], a
 	inc de
@@ -576,7 +575,7 @@ Link_PrepPartyData_Gen2: ; 28595
 	inc hl
 	dec b
 	jr nz, .loop6
-	ld a, $ff
+	ld a, SERIAL_PATCH_LIST_PART_TERMINATOR
 	ld [de], a
 	ret
 ; 28682
@@ -594,7 +593,7 @@ Function28682: ; 28682
 Link_CopyOTData: ; 2879e
 .loop
 	ld a, [hli]
-	cp $fe
+	cp SERIAL_NO_DATA_BYTE
 	jr z, .loop
 	ld [de], a
 	inc de
@@ -606,18 +605,18 @@ Link_CopyOTData: ; 2879e
 ; 287ab
 
 Link_CopyRandomNumbers: ; 287ab
-	ld a, [hLinkPlayerNumber]
-	cp $2
+	ld a, [hSerialConnectionStatus]
+	cp USING_INTERNAL_CLOCK
 	ret z
-	ld hl, EnemyMonSpecies
+	ld hl, wLinkBufferEnd
 	call Link_FindFirstNonControlCharacter_AllowZero
 	ld de, LinkBattleRNs
 	ld c, 10
 .loop
 	ld a, [hli]
-	cp $fe
+	cp SERIAL_NO_DATA_BYTE
 	jr z, .loop
-	cp $fd
+	cp SERIAL_PREAMBLE_BYTE
 	jr z, .loop
 	ld [de], a
 	inc de
@@ -631,9 +630,9 @@ Link_FindFirstNonControlCharacter_SkipZero: ; 287ca
 	ld a, [hli]
 	and a
 	jr z, .loop
-	cp $fd
+	cp SERIAL_PREAMBLE_BYTE
 	jr z, .loop
-	cp $fe
+	cp SERIAL_NO_DATA_BYTE
 	jr z, .loop
 	dec hl
 	ret
@@ -642,9 +641,9 @@ Link_FindFirstNonControlCharacter_SkipZero: ; 287ca
 Link_FindFirstNonControlCharacter_AllowZero: ; 287d8
 .loop
 	ld a, [hli]
-	cp $fd
+	cp SERIAL_PREAMBLE_BYTE
 	jr z, .loop
-	cp $fe
+	cp SERIAL_NO_DATA_BYTE
 	jr z, .loop
 	dec hl
 	ret
@@ -696,9 +695,10 @@ LinkTradeOTPartymonMenuLoop: ; 28835
 	jp z, LinkTradePartiesMenuMasterLoop
 	bit A_BUTTON_F, a
 	jr z, .not_a_button
-	ld a, $1
-	ld [wInitListType], a
-	farcall InitList
+	ld hl, OTPartyCount
+	ld de, OTPartyMonOT
+	ld a, ENEMY_OT_NAME
+	ld [wNamedObjectTypeBuffer], a
 	ld hl, OTPartyMon1Species
 	farcall LinkMonStatsScreen
 	jp LinkTradePartiesMenuMasterLoop
@@ -888,9 +888,10 @@ Function28926: ; 28926
 .show_stats
 	pop af
 	ld [wMenuCursorY], a
-	ld a, $4
-	ld [wInitListType], a
-	farcall InitList
+	ld hl, PartyCount
+	ld de, PartyMonOT
+	ld a, PARTY_OT_NAME
+	ld [wNamedObjectTypeBuffer], a
 	farcall LinkMonStatsScreen
 	call Call_LoadTempTileMapToTileMap
 	hlcoord 6, 1
@@ -1040,12 +1041,11 @@ Function28b22: ; 28b22
 	call GetSGBLayout
 	call WaitBGMap2
 	xor a
-	ld [wcfbb], a
 	ld [rSB], a
 	ld [hSerialSend], a
 	ld a, $1
 	ld [rSC], a
-	ld a, $81
+	ld a, START_TRANSFER_INTERNAL_CLOCK
 	ld [rSC], a
 	ret
 ; 28b42
@@ -1323,8 +1323,8 @@ LinkTrade: ; 28b87
 	call LoadFontsBattleExtra
 	ld b, SCGB_DIPLOMA
 	call GetSGBLayout
-	ld a, [hLinkPlayerNumber]
-	cp $1
+	ld a, [hSerialConnectionStatus]
+	cp USING_EXTERNAL_CLOCK
 	jr z, .player_2
 	predef TradeAnimation
 	jr .done_animation
@@ -1378,7 +1378,7 @@ LinkTrade: ; 28b87
 	ld a, b
 	ld [wPlayerLinkAction], a
 	push bc
-	call Function862
+	call Serial_PlaceWaitingTextAndSyncAndExchangeNybble
 	pop bc
 	ld a, b
 	and a
@@ -1430,13 +1430,11 @@ String_TooBadTheTradeWasCanceled: ; 28ece
 Predef_LinkTextbox: ; 28eef
 	ld d, h
 	ld e, l
-	farcall LinkTextbox
-	ret
+	farjp LinkTextbox
 ; 28ef8
 
 LoadTradeScreenBorder: ; 28ef8
-	farcall _LoadTradeScreenBorder
-	ret
+	farjp _LoadTradeScreenBorder
 ; 28eff
 
 SetTradeRoomBGPals: ; 28eff
@@ -1449,14 +1447,14 @@ INCLUDE "engine/trade_animation.asm"
 WaitForOtherPlayerToExit: ; 29c92
 	ld c, 3
 	call DelayFrames
-	ld a, -1
-	ld [hLinkPlayerNumber], a
+	ld a, CONNECTION_NOT_ESTABLISHED
+	ld [hSerialConnectionStatus], a
 	xor a
 	ld [rSB], a
 	ld [hSerialReceive], a
 	ld a, $1
 	ld [rSC], a
-	ld a, $81
+	ld a, START_TRANSFER_INTERNAL_CLOCK
 	ld [rSC], a
 	ld c, 3
 	call DelayFrames
@@ -1465,9 +1463,9 @@ WaitForOtherPlayerToExit: ; 29c92
 	ld [hSerialReceive], a
 	xor a ; redundant?
 	ld [rSC], a
-	ld a, $80
+	ld a, START_TRANSFER_EXTERNAL_CLOCK
 	ld [rSC], a
-	ld c, $3
+	ld c, 3
 	call DelayFrames
 	xor a
 	ld [rSB], a
@@ -1475,8 +1473,8 @@ WaitForOtherPlayerToExit: ; 29c92
 	ld [rSC], a
 	ld c, 3
 	call DelayFrames
-	ld a, -1
-	ld [hLinkPlayerNumber], a
+	ld a, CONNECTION_NOT_ESTABLISHED
+	ld [hSerialConnectionStatus], a
 	ld a, [rIF]
 	push af
 	xor a
@@ -1518,7 +1516,7 @@ Special_WaitForLinkedFriend: ; 29d11
 	ld [hSerialReceive], a
 	xor a ; redundant?
 	ld [rSC], a
-	ld a, $80
+	ld a, START_TRANSFER_EXTERNAL_CLOCK
 	ld [rSC], a
 	call DelayFrame
 	call DelayFrame
@@ -1527,23 +1525,23 @@ Special_WaitForLinkedFriend: ; 29d11
 .no_link_action
 	ld a, $2
 	ld [wLinkTimeoutFrames + 1], a
-	ld a, $ff
+	ld a, SERIAL_PATCH_LIST_PART_TERMINATOR
 	ld [wLinkTimeoutFrames], a
 .loop
-	ld a, [hLinkPlayerNumber]
-	cp $2
+	ld a, [hSerialConnectionStatus]
+	cp USING_INTERNAL_CLOCK
 	jr z, .connected
-	cp $1
+	cp USING_EXTERNAL_CLOCK
 	jr z, .connected
-	ld a, -1
-	ld [hLinkPlayerNumber], a
+	ld a, CONNECTION_NOT_ESTABLISHED
+	ld [hSerialConnectionStatus], a
 	ld a, $2
 	ld [rSB], a
 	xor a
 	ld [hSerialReceive], a
-	xor a ; redundant ?
+	xor a ; redundant?
 	ld [rSC], a
-	ld a, $80
+	ld a, START_TRANSFER_EXTERNAL_CLOCK
 	ld [rSC], a
 	ld a, [wLinkTimeoutFrames]
 	dec a
@@ -1559,7 +1557,7 @@ Special_WaitForLinkedFriend: ; 29d11
 	ld [rSB], a
 	ld a, $1
 	ld [rSC], a
-	ld a, $81
+	ld a, START_TRANSFER_INTERNAL_CLOCK
 	ld [rSC], a
 	call DelayFrame
 	jr .loop
@@ -1652,7 +1650,7 @@ Function29dba: ; 29dba
 
 Link_CheckCommunicationError: ; 29e0c
 	xor a
-	ld [hFFCA], a
+	ld [hSerialReceivedNewData], a
 	ld a, [wLinkTimeoutFrames]
 	ld h, a
 	ld a, [wLinkTimeoutFrames + 1]
@@ -1682,7 +1680,7 @@ Link_CheckCommunicationError: ; 29e0c
 ; 29e3b
 
 .CheckConnected: ; 29e3b
-	call WaitLinkTransfer
+	call Serial_SyncAndExchangeNybble
 	ld hl, wLinkTimeoutFrames
 	ld a, [hli]
 	inc a
@@ -1725,7 +1723,7 @@ Special_TryQuickSave: ; 29e66
 	xor a
 .return_result
 	ld [ScriptVar], a
-	ld c, $1e
+	ld c, 30
 	call DelayFrames
 	pop af
 	ld [wd265], a
@@ -1799,8 +1797,8 @@ Special_FailedLinkToPast: ; 29efa
 Link_ResetSerialRegistersAfterLinkClosure: ; 29f04
 	ld c, 3
 	call DelayFrames
-	ld a, -1
-	ld [hLinkPlayerNumber], a
+	ld a, CONNECTION_NOT_ESTABLISHED
+	ld [hSerialConnectionStatus], a
 	ld a, $2
 	ld [rSB], a
 	xor a
@@ -1818,7 +1816,7 @@ Link_EnsureSync: ; 29f17
 	call DelayFrame
 	call DelayFrame
 .receive_loop
-	call Function83b
+	call Serial_ExchangeLinkMenuSelection
 	ld a, [wOtherPlayerLinkMode]
 	ld b, a
 	and $f0
@@ -1839,8 +1837,8 @@ Link_EnsureSync: ; 29f17
 ; 29f47
 
 Special_CableClubCheckWhichChris: ; 29f47
-	ld a, [hLinkPlayerNumber]
-	cp $1
+	ld a, [hSerialConnectionStatus]
+	cp USING_EXTERNAL_CLOCK
 	ld a, $1
 	jr z, .yes
 	dec a

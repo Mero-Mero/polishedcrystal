@@ -1,6 +1,7 @@
 INCLUDE "includes.asm"
 
-SECTION "bank1", ROMX, BANK[$1]
+
+SECTION "bank1", ROMX
 
 PlaceWaitingText:: ; 4000
 	hlcoord 4, 10
@@ -27,8 +28,7 @@ PlaceWaitingText:: ; 4000
 	db "Waiting…!@"
 
 LoadPushOAM:: ; 4031
-	ld b, PushOAMEnd - PushOAM
-	ld c, hPushOAM - $ff00
+	lb bc, (PushOAMEnd - PushOAM), (hPushOAM - $ff00)
 	ld hl, PushOAM
 .loop
 	ld a, [hli]
@@ -56,6 +56,7 @@ INCLUDE "engine/init_options.asm"
 
 ReanchorBGMap_NoOAMUpdate:: ; 6454
 	call DelayFrame
+
 	ld a, [hOAMUpdate]
 	push af
 
@@ -63,10 +64,39 @@ ReanchorBGMap_NoOAMUpdate:: ; 6454
 	ld [hOAMUpdate], a
 	ld a, [hBGMapMode]
 	push af
+
 	xor a
 	ld [hBGMapMode], a
+	ld [hLCDCPointer], a
+	ld a, $90
+	ld [hWY], a
+	call OverworldTextModeSwitch
 
-	call .ReanchorBGMap
+	ld a, VBGMap1 / $100
+	ld [hBGMapAddress + 1], a
+	xor a
+	ld [hBGMapAddress], a
+	farcall OpenAndCloseMenu_HDMATransferTileMapAndAttrMap
+
+	farcall LoadBlindingFlashPalette
+	farcall ApplyPals
+
+	xor a
+	ld [hBGMapMode], a
+	ld [hWY], a
+	inc a
+	ld [hCGBPalUpdate], a
+	call HDMATransfer_FillBGMap0WithTile60
+
+	ld a, VBGMap0 / $100
+	ld [hBGMapAddress + 1], a
+	ld [wBGMapAnchor + 1], a
+	xor a
+	ld [hBGMapAddress], a
+	ld [wBGMapAnchor], a
+	ld [hSCX], a
+	ld [hSCY], a
+	call ApplyBGMapAnchorToObjects
 
 	pop af
 	ld [hBGMapMode], a
@@ -76,59 +106,20 @@ ReanchorBGMap_NoOAMUpdate:: ; 6454
 	set 6, [hl]
 	ret
 
-.ReanchorBGMap:
-	xor a
-	ld [hLCDCPointer], a
-	ld [hBGMapMode], a
-	ld a, $90
-	ld [hWY], a
-	call OverworldTextModeSwitch
-	ld a, VBGMap1 / $100
-	call .LoadBGMapAddrIntoHRAM
-	call _OpenAndCloseMenu_HDMATransferTileMapAndAttrMap
-	farcall LoadBlindingFlashPalette
-	farcall ApplyPals
-	ld a, $1
-	ld [hCGBPalUpdate], a
-	xor a
-	ld [hBGMapMode], a
-	ld [hWY], a
-	call HDMATransfer_FillBGMap0WithTile60
-	ld a, VBGMap0 / $100
-	call .LoadBGMapAddrIntoHRAM
-	xor a
-	ld [wBGMapAnchor], a
-	ld a, VBGMap0 / $100
-	ld [wBGMapAnchor + 1], a
-	xor a
-	ld [hSCX], a
-	ld [hSCY], a
-	jp ApplyBGMapAnchorToObjects
-
-.LoadBGMapAddrIntoHRAM: ; 64b9
-	ld [hBGMapAddress + 1], a
-	xor a
-	ld [hBGMapAddress], a
-	ret
-
 LoadFonts_NoOAMUpdate:: ; 64bf
 	ld a, [hOAMUpdate]
 	push af
 	ld a, $1
 	ld [hOAMUpdate], a
 
-	call .LoadGFX
-
-	pop af
-	ld [hOAMUpdate], a
-	ret
-
-.LoadGFX:
 	call LoadFontsExtra
 	ld a, $90
 	ld [hWY], a
 	call SafeUpdateSprites
 	call LoadStandardFont
+
+	pop af
+	ld [hOAMUpdate], a
 	ret
 
 HDMATransfer_FillBGMap0WithTile60: ; 64db
@@ -138,12 +129,12 @@ HDMATransfer_FillBGMap0WithTile60: ; 64db
 	ld [rSVBK], a
 
 	ld a, $60
-	ld hl, wDecompressScratch
-	ld bc, wScratchAttrMap - wDecompressScratch
+	ld hl, wScratchTileMap
+	ld bc, BG_MAP_WIDTH * BG_MAP_HEIGHT
 	call ByteFill
-	ld a, wDecompressScratch / $100
+	ld a, wScratchTileMap / $100
 	ld [rHDMA1], a
-	ld a, wDecompressScratch % $100
+	ld a, wScratchTileMap % $100
 	ld [rHDMA2], a
 	ld a, (VBGMap0 % $8000) / $100
 	ld [rHDMA3], a
@@ -157,9 +148,53 @@ HDMATransfer_FillBGMap0WithTile60: ; 64db
 	ld [rSVBK], a
 	ret
 
+ReanchorBGMap_NoOAMUpdate_NoDelay::
+	ld a, [hOAMUpdate]
+	push af
+	ld a, $1
+	ld [hOAMUpdate], a
+
+	ld a, [hBGMapMode]
+	push af
+	xor a
+	ld [hBGMapMode], a
+
+	ld [hLCDCPointer], a
+	ld a, $90
+	ld [hWY], a
+	call OverworldTextModeSwitch
+
+	ld a, VBGMap1 / $100
+	ld [hBGMapAddress + 1], a
+	xor a
+	ld [hBGMapAddress], a
+	farcall BridgeTransition_HDMATransferTileMapAndAttrMap
+
+	ld a, VBGMap0 / $100
+	ld [hBGMapAddress + 1], a
+	ld [wBGMapAnchor + 1], a
+	xor a
+	ld [hBGMapAddress], a
+	ld [wBGMapAnchor], a
+	ld [hSCX], a
+	ld [hSCY], a
+	ld [hWY], a
+	inc a
+	ld [hCGBPalUpdate], a
+	farcall BridgeTransition_HDMATransferTileMapAndAttrMap
+
+	pop af
+	ld [hBGMapMode], a
+
+	pop af
+	ld [hOAMUpdate], a
+	ret
+
 INCLUDE "engine/learn.asm"
 
 INCLUDE "engine/math.asm"
+
+INCLUDE "engine/link_trade.asm"
 
 ItemAttributes: ; 67c1
 INCLUDE "items/item_attributes.asm"
@@ -167,14 +202,48 @@ INCLUDE "engine/npc_movement.asm"
 INCLUDE "event/happiness_egg.asm"
 INCLUDE "event/special.asm"
 
-SECTION "bank2", ROMX, BANK[$2]
+; Low-pitched fainting cry routine from Pokémon TPP Anniversary Crystal 251
+; https://github.com/TwitchPlaysPokemon/tppcrystal251pub/blob/public/main.asm
+PlayFaintingCry:
+; b contains species index
+	ld a, b
+	call LoadCryHeader
+	ret c
+	ld hl, CryPitch
+	ld a, [hli]
+	ld h, [hl]
+	ld l, a
+	ld bc, -$38
+	add hl, bc
+	ld a, l
+	ld [CryPitch], a
+	ld a, h
+	ld [CryPitch + 1], a
+	ld hl, CryLength
+	ld a, [hli]
+	ld h, [hl]
+	ld l, a
+	ld bc, $18
+	add hl, bc
+	ld a, l
+	ld [CryLength], a
+	ld a, h
+	ld [CryLength + 1], a
+	ld a, 1
+	ld [wStereoPanningMask], a
+	farcall _PlayCryHeader
+	jp WaitSFX
+
+
+SECTION "bank2", ROMX
 
 INCLUDE "engine/player_object.asm"
 INCLUDE "engine/sine.asm"
-INCLUDE "engine/predef.asm"
+INCLUDE "data/predefs.asm"
 INCLUDE "engine/color.asm"
 
-SECTION "bank3", ROMX, BANK[$3]
+
+SECTION "bank3", ROMX
 
 CheckTime:: ; c000
 	ld a, [TimeOfDay]
@@ -299,7 +368,8 @@ KnowsMove: ; f9ea
 	text_jump UnknownText_0x1c5ea8
 	db "@"
 
-SECTION "bank4", ROMX, BANK[$4]
+
+SECTION "bank4", ROMX
 
 INCLUDE "engine/pack.asm"
 INCLUDE "engine/time.asm"
@@ -328,8 +398,7 @@ Special_GiveParkBalls: ; 135db
 	ld [wContestMon], a
 	ld a, 20
 	ld [wParkBallsRemaining], a
-	farcall StartBugContestTimer
-	ret
+	farjp StartBugContestTimer
 
 BugCatchingContestBattleScript:: ; 0x135eb
 	writecode VAR_BATTLETYPE, BATTLETYPE_CONTEST
@@ -368,13 +437,8 @@ BugCatchingContestText_ContestIsOver: ; 0x13614
 	db "@"
 
 RepelWoreOffScript:: ; 0x13619
-	opentext
-	writetext .text
-	waitbutton
-	closetext
-	end
+	thistext
 
-.text ; 0x13620
 	; REPEL's effect wore off.
 	text_jump UnknownText_0x1bd308
 	db "@"
@@ -383,11 +447,9 @@ UseAnotherRepelScript::
 	opentext
 	writetext .text
 	yesorno
-	iffalse .done
+	iffalse_endtext
 	callasm DoItemEffect
-.done
-	closetext
-	end
+	endtext
 
 .text:
 	text_jump UseAnotherRepelText
@@ -396,22 +458,19 @@ UseAnotherRepelScript::
 HiddenItemScript:: ; 0x13625
 	opentext
 	copybytetovar EngineBuffer3
-	itemtotext 0, 0
+	itemtotext $0, $0
 	writetext .found_text
 	giveitem ITEM_FROM_MEM
 	iffalse .bag_full
 	callasm SetMemEvent
 	specialsound
 	itemnotify
-	jump .finish
+	endtext
 
 .bag_full ; 0x1363e
 	buttonsound
 	pocketisfull
-
-.finish ; 13643
-	closetext
-	end
+	endtext
 
 .found_text ; 0x13645
 	; found @ !
@@ -419,7 +478,7 @@ HiddenItemScript:: ; 0x13625
 	db "@"
 
 SetMemEvent: ; 1364f
-	ld hl, EngineBuffer1 ; wd03e (aliases: MenuItemsList, CurFruitTree, CurInput)
+	ld hl, EngineBuffer1
 	ld a, [hli]
 	ld d, [hl]
 	ld e, a
@@ -452,21 +511,21 @@ CheckFacingTileForStd:: ; 1365b
 	ret
 
 .table1
-	dbw COLL_BOOKSHELF, magazinebookshelf
-	dbw COLL_TRASH_CAN, trashcan
-	dbw COLL_PC, pcscript
-	dbw COLL_RADIO, radio1
-	dbw COLL_TOWN_MAP, townmap
-	dbw COLL_MART_SHELF, merchandiseshelf
-	dbw COLL_TV, tv
+	dbw COLL_BOOKSHELF,       magazinebookshelf
+	dbw COLL_TRASH_CAN,       trashcan
+	dbw COLL_PC,              pcscript
+	dbw COLL_RADIO,           radio1
+	dbw COLL_TOWN_MAP,        townmap
+	dbw COLL_MART_SHELF,      merchandiseshelf
+	dbw COLL_TV,              tv
 	dbw COLL_POKECENTER_SIGN, pokecentersign
-	dbw COLL_MART_SIGN, martsign
+	dbw COLL_MART_SIGN,       martsign
 	dbw COLL_VENDING_MACHINE, vendingmachine
-	dbw COLL_FRIDGE, refrigerator
-	dbw COLL_SINK, sink
-	dbw COLL_WINDOW, window
-	dbw COLL_STOVE, stove
-	dbw COLL_INCENSE, incenseburner
+	dbw COLL_FRIDGE,          refrigerator
+	dbw COLL_SINK,            sink
+	dbw COLL_WINDOW,          window
+	dbw COLL_STOVE,           stove
+	dbw COLL_INCENSE,         incenseburner
 	dbw COLL_ELEVATOR_BUTTON, elevatorbutton
 	db -1 ; end
 
@@ -535,7 +594,7 @@ INCLUDE "event/bug_contest_2.asm"
 ;root	set root+1
 ;	endr
 
-SECTION "bank5", ROMX, BANK[$5]
+SECTION "bank5", ROMX
 
 INCLUDE "engine/rtc.asm"
 INCLUDE "engine/overworld.asm"
@@ -551,27 +610,15 @@ INCLUDE "event/mom.asm"
 INCLUDE "event/daycare.asm"
 INCLUDE "engine/breeding.asm"
 
-SECTION "Tileset Data 1", ROMX, BANK[TILESETS_1]
 
-INCLUDE "tilesets/data_1.asm"
-
-SECTION "Roofs", ROMX, BANK[ROOFS]
-
-INCLUDE "tilesets/roofs.asm"
-
-SECTION "Tileset Data 2", ROMX, BANK[TILESETS_2]
-
-INCLUDE "tilesets/data_2.asm"
-
-SECTION "bank8", ROMX, BANK[$8]
+SECTION "bank8", ROMX
 
 INCLUDE "engine/clock_reset.asm"
 
-SECTION "Tileset Data 3", ROMX, BANK[TILESETS_3]
+INCLUDE "event/move_reminder.asm"
 
-INCLUDE "tilesets/data_3.asm"
 
-SECTION "bank9", ROMX, BANK[$9]
+SECTION "bank9", ROMX
 
 StringBufferPointers:: ; 24000
 	dw StringBuffer3
@@ -610,8 +657,7 @@ UpdateItemDescription: ; 0x244c3
 	cp -1
 	ret z
 	decoord 1, 14
-	farcall PrintItemDescription
-	ret
+	farjp PrintItemDescription
 
 BagXString:
 	db "Bag ×@"
@@ -635,15 +681,13 @@ UpdateTMHMDescription:
 	ld a, [MenuSelection]
 	ld [CurSpecies], a
 	hlcoord 0, 12
-	ld b, 4
-	ld c, SCREEN_WIDTH - 2
+	lb bc, 4, SCREEN_WIDTH - 2
 	call TextBox
 	ld a, [MenuSelection]
 	cp -1
 	ret z
 	decoord 1, 14
-	farcall PrintTMHMDescription
-	ret
+	farjp PrintTMHMDescription
 
 OwnedTMString:
 	db "Owned@"
@@ -758,17 +802,14 @@ PlaceMenuItemQuantity: ; 0x24ac3
 	ld a, [wItemAttributeParamBuffer]
 	pop hl
 	and a
-	jr nz, .done
+	ret nz
 	ld de, $15
 	add hl, de
 	ld [hl], "×"
 	inc hl
 	ld de, MenuSelectionQuantity
 	lb bc, 1, 2
-	call PrintNum
-
-.done
-	ret
+	jp PrintNum
 
 PlaceMoneyTopRight: ; 24ae8
 	ld hl, MenuDataHeader_0x24b15
@@ -808,6 +849,34 @@ MenuDataHeader_0x24b1d: ; 0x24b1d
 	dw NULL
 	db 1 ; default option
 
+PlaceBlueCardPointsTopRight:
+	hlcoord 11, 0
+	lb bc, 1, 7
+	call TextBox
+	hlcoord 12, 1
+	ld de, wBlueCardBalance
+	lb bc, 1, 3
+	call PrintNum
+	ld de, .PointsString
+	jp PlaceString
+
+.PointsString:
+	db " Pts@"
+
+PlaceBattlePointsTopRight:
+	hlcoord 12, 0
+	lb bc, 1, 6
+	call TextBox
+	hlcoord 13, 1
+	ld de, BattlePoints
+	lb bc, 1, 3
+	call PrintNum
+	ld de, .BPString
+	jp PlaceString
+
+.BPString:
+	db " BP@"
+
 Special_DisplayCoinCaseBalance: ; 24b25
 	; Place a text box of size 1x7 at 11, 0.
 	hlcoord 11, 0
@@ -815,9 +884,6 @@ Special_DisplayCoinCaseBalance: ; 24b25
 	call TextBox
 	hlcoord 12, 0
 	ld de, CoinString
-	call PlaceString
-	hlcoord 17, 1
-	ld de, ShowMoney_TerminatorString
 	call PlaceString
 	ld de, Coins
 	lb bc, 2, 5
@@ -847,8 +913,6 @@ MoneyString: ; 24b83
 	db "Money@"
 CoinString: ; 24b89
 	db "Coin@"
-ShowMoney_TerminatorString: ; 24b8e
-	db "@"
 
 StartMenu_DrawBugContestStatusBox: ; 24bdc
 	hlcoord 0, 0
@@ -997,8 +1061,7 @@ LevelUpHappinessMod: ; 2709e
 	ld c, HAPPINESS_GAINLEVELATHOME
 
 .ok
-	farcall ChangeHappiness
-	ret
+	farjp ChangeHappiness
 
 INCLUDE "trainers/dvs.asm"
 
@@ -1023,8 +1086,7 @@ _ReturnToBattle_UseBall: ; 2715c
 	call SetPalettes
 	farcall LoadPlayerStatusIcon
 	farcall LoadEnemyStatusIcon
-	farcall InstantReloadPaletteHack
-	ret
+	farjp InstantReloadPaletteHack
 
 MoveEffectsPointers: ; 271f4
 INCLUDE "battle/moves/move_effects_pointers.asm"
@@ -1037,11 +1099,13 @@ Kurt_SelectQuantity_InterpretJoypad: ; 27a28
 	ld b, a
 	ret
 
+
 SECTION "Wild Data", ROMX
 
 INCLUDE "engine/wildmons.asm"
 
-SECTION "bankA", ROMX, BANK[$A]
+
+SECTION "bankA", ROMX
 
 INCLUDE "engine/link.asm"
 
@@ -1207,7 +1271,8 @@ DetermineLinkBattleResult: ; 2b930
 	jr nz, .loop3
 	ret
 
-SECTION "bankB", ROMX, BANK[$B]
+
+SECTION "bankB", ROMX
 
 INCLUDE "battle/trainer_huds.asm"
 
@@ -1405,21 +1470,13 @@ FindFirstAliveMonAndStartBattle: ; 2ee2f
 	ld [hMapAnims], a
 	ret
 
-
-PUSHS
-
-INCLUDE "home/restore_music.asm"
-
-POPS
-
-
 PlayBattleMusic: ; 2ee6c
 
 	push hl
 	push de
 	push bc
 
-	farcall SaveMusic
+	call SaveMusic
 	xor a
 	ld [MusicFade], a
 	ld de, MUSIC_NONE
@@ -1435,6 +1492,12 @@ PlayBattleMusic: ; 2ee6c
 	ld a, [TempEnemyMonSpecies]
 	ld hl, .legendaries
 	call .loadfromarray
+	jr c, .done
+
+	; Are we in the Safari Game?
+	ld a, [BattleType]
+	cp BATTLETYPE_SAFARI
+	ld de, MUSIC_WILD_BATTLE_GO
 	jr c, .done
 
 	ld hl, .regional_wilds
@@ -1542,7 +1605,7 @@ PlayBattleMusic: ; 2ee6c
 	dbw ROCKET_SCIENTIST, MUSIC_ROCKET_BATTLE
 	dbw PROTON,           MUSIC_ROCKET_BATTLE
 	dbw PETREL,           MUSIC_ROCKET_BATTLE
-	dbw ARIANA,           MUSIC_ROCKET_BATTLE
+	dbw ARCHER,           MUSIC_ROCKET_BATTLE
 	dbw ARIANA,           MUSIC_ROCKET_BATTLE
 	dbw GIOVANNI,         MUSIC_ROCKET_BATTLE
 	dbw TOWERTYCOON,      MUSIC_FRONTIER_BRAIN_BATTLE_RSE
@@ -1563,6 +1626,9 @@ PlayBattleMusic: ; 2ee6c
 	dbw MAYLENE,          MUSIC_GYM_LEADER_BATTLE_DPPT
 	dbw SKYLA,            MUSIC_GYM_LEADER_BATTLE_BW
 	dbw VALERIE,          MUSIC_GYM_LEADER_BATTLE_XY
+	dbw CANDELA,          MUSIC_GYM_LEADER_BATTLE_GO
+	dbw BLANCHE,          MUSIC_GYM_LEADER_BATTLE_GO
+	dbw SPARK_T,          MUSIC_GYM_LEADER_BATTLE_GO
 	dbw LAWRENCE,         MUSIC_ZINNIA_BATTLE_ORAS
 	db -1
 
@@ -1719,13 +1785,11 @@ PlaceGraphic: ; 2ef6e
 	jr nz, .x2
 	ret
 
-SECTION "Tileset Data 4", ROMX, BANK[TILESETS_4]
 
-INCLUDE "tilesets/data_4.asm"
-
-SECTION "Effect Commands", ROMX, BANK[$D]
+SECTION "Effect Commands", ROMX
 
 INCLUDE "battle/effect_commands.asm"
+
 
 SECTION "Enemy Trainers", ROMX
 
@@ -1805,7 +1869,8 @@ endr
 
 INCLUDE "trainers/attributes.asm"
 
-SECTION "Enemy Trainer Pointers", ROMX, BANK[$E]
+
+SECTION "Enemy Trainer Pointers", ROMX
 
 INCLUDE "trainers/read_party.asm"
 
@@ -1813,29 +1878,37 @@ INCLUDE "trainers/trainer_pointers.asm"
 
 INCLUDE "trainers/trainers.asm"
 
-SECTION "Battle Core", ROMX, BANK[$F]
+
+SECTION "Battle Core", ROMX
 
 INCLUDE "battle/core.asm"
+
 
 SECTION "Effect Command Pointers", ROMX
 
 INCLUDE "battle/effect_command_pointers.asm"
 
+
 SECTION "Pokedex", ROMX
 
 INCLUDE "engine/pokedex.asm"
+
 
 SECTION "Moves", ROMX
 
 INCLUDE "battle/moves/moves.asm"
 
-SECTION "bank10", ROMX, BANK[$10]
+
+SECTION "bank10", ROMX
 
 INCLUDE "engine/evolve.asm"
 
-SECTION "bank11", ROMX, BANK[$11]
+
+SECTION "bank11", ROMX
 
 INCLUDE "engine/fruit_trees.asm"
+
+INCLUDE "engine/hidden_grottoes.asm"
 
 INCLUDE "battle/ai/move.asm"
 
@@ -1905,15 +1978,15 @@ DoDexSearchSlowpokeFrame: ; 44207
 	jr .loop
 
 .SpriteData: ; 44228
-	dsprite 11, 0,  9, 0, $00, $00
-	dsprite 11, 0, 10, 0, $01, $00
-	dsprite 11, 0, 11, 0, $02, $00
-	dsprite 12, 0,  9, 0, $10, $00
-	dsprite 12, 0, 10, 0, $11, $00
-	dsprite 12, 0, 11, 0, $12, $00
-	dsprite 13, 0,  9, 0, $20, $00
-	dsprite 13, 0, 10, 0, $21, $00
-	dsprite 13, 0, 11, 0, $22, $00
+	dsprite 11, 0,  9, 0, $00, $0
+	dsprite 11, 0, 10, 0, $01, $0
+	dsprite 11, 0, 11, 0, $02, $0
+	dsprite 12, 0,  9, 0, $10, $0
+	dsprite 12, 0, 10, 0, $11, $0
+	dsprite 12, 0, 11, 0, $12, $0
+	dsprite 13, 0,  9, 0, $20, $0
+	dsprite 13, 0, 10, 0, $21, $0
+	dsprite 13, 0, 11, 0, $22, $0
 	db -1
 
 DisplayDexEntry: ; 4424d
@@ -2058,7 +2131,7 @@ DisplayDexEntry: ; 4424d
 	call ClearBox
 	hlcoord 1, 10
 	ld bc, SCREEN_WIDTH - 1
-	ld a, $61 ; horizontal divider
+	ld a, $5f ; horizontal divider
 	call ByteFill
 	; page number
 	hlcoord 1, 9
@@ -2088,7 +2161,7 @@ DisplayDexEntry: ; 4424d
 	call ClearBox
 	hlcoord 1, 10
 	ld bc, SCREEN_WIDTH - 1
-	ld a, $61
+	ld a, $5f ; horizontal divider
 	call ByteFill
 	; page number
 	hlcoord 1, 9
@@ -2216,7 +2289,8 @@ INCLUDE "data/pokedex/entry_pointers.asm"
 
 INCLUDE "engine/mail.asm"
 
-SECTION "Crystal Unique", ROMX, BANK[$12]
+
+SECTION "Crystal Unique", ROMX
 
 PackGFX:
 INCBIN "gfx/pack/pack.w40.2bpp"
@@ -2378,7 +2452,8 @@ Buena_ExitMenu: ; 4ae5e
 	ld [hOAMUpdate], a
 	ret
 
-SECTION "bank13", ROMX, BANK[$13]
+
+SECTION "Palette Maps", ROMX
 
 SwapTextboxPalettes:: ; 4c000
 	hlcoord 0, 0
@@ -2387,40 +2462,7 @@ SwapTextboxPalettes:: ; 4c000
 .loop
 	push bc
 	ld c, SCREEN_WIDTH
-.innerloop
-	ld a, [hl]
-	push hl
-	srl a
-	jr c, .UpperNybble
-	ld hl, TilesetPalettes
-	add [hl]
-	ld l, a
-	ld a, [TilesetPalettes + 1]
-	adc $0
-	ld h, a
-	ld a, [hl]
-	and $f
-	jr .next
-
-.UpperNybble:
-	ld hl, TilesetPalettes
-	add [hl]
-	ld l, a
-	ld a, [TilesetPalettes + 1]
-	adc $0
-	ld h, a
-	ld a, [hl]
-	swap a
-	and $f
-
-.next
-	pop hl
-	ld [de], a
-	res 7, [hl]
-	inc hl
-	inc de
-	dec c
-	jr nz, .innerloop
+	call GetBGMapTilePalettes
 	pop bc
 	dec b
 	jr nz, .loop
@@ -2429,13 +2471,14 @@ SwapTextboxPalettes:: ; 4c000
 ScrollBGMapPalettes:: ; 4c03f
 	ld hl, BGMapBuffer
 	ld de, BGMapPalBuffer
+	; fallthrough
+GetBGMapTilePalettes::
+; hl = tile buffer
+; de = palette buffer
+; c = tile count
 .loop
 	ld a, [hl]
 	push hl
-	srl a
-	jr c, .UpperNybble
-
-; .LowerNybble
 	ld hl, TilesetPalettes
 	add [hl]
 	ld l, a
@@ -2443,21 +2486,6 @@ ScrollBGMapPalettes:: ; 4c03f
 	adc $0
 	ld h, a
 	ld a, [hl]
-	and $f
-	jr .next
-
-.UpperNybble:
-	ld hl, TilesetPalettes
-	add [hl]
-	ld l, a
-	ld a, [TilesetPalettes + 1]
-	adc $0
-	ld h, a
-	ld a, [hl]
-	swap a
-	and $f
-
-.next
 	pop hl
 	ld [de], a
 	res 7, [hl]
@@ -2472,6 +2500,9 @@ INCLUDE "tilesets/palette_maps.asm"
 TileCollisionTable:: ; 4ce1f
 INCLUDE "tilesets/collision.asm"
 
+
+SECTION "bank13", ROMX
+
 EmptyAllSRAMBanks: ; 4cf1f
 	xor a
 	call .EmptyBank
@@ -2480,7 +2511,7 @@ EmptyAllSRAMBanks: ; 4cf1f
 	ld a, $2
 	call .EmptyBank
 	ld a, $3
-	jp .EmptyBank
+	; fallthrough
 
 .EmptyBank: ; 4cf34
 	call GetSRAMBank
@@ -2488,8 +2519,7 @@ EmptyAllSRAMBanks: ; 4cf1f
 	ld bc, SRAM_End - SRAM_Begin
 	xor a
 	call ByteFill
-	call CloseSRAM
-	ret
+	jp CloseSRAM
 
 SaveMenu_LoadEDTile: ; 4cf45 (13:4f45)
 ; The following is a modified version of Function3246.
@@ -2507,11 +2537,11 @@ SaveMenu_LoadEDTile: ; 4cf45 (13:4f45)
 	jr c, .WaitLY
 
 	di
-	ld a, 1 ; BANK(VBGMap2)
+	ld a, BANK(VBGMap2)
 	ld [rVBK], a
 	hlcoord 0, 0, AttrMap
 	call .LoadEDTile
-	xor a ; BANK(VBGMap0)
+	xor a ; ld a, BANK(VBGMap0)
 	ld [rVBK], a
 	hlcoord 0, 0
 	call .LoadEDTile
@@ -2565,18 +2595,18 @@ endr
 	ret
 
 CheckSave:: ; 4cffe
-	ld a, BANK(s1_a008)
+	ld a, BANK(sCheckValue1)
 	call GetSRAMBank
-	ld a, [s1_a008]
+	ld a, [sCheckValue1]
 	ld b, a
-	ld a, [s1_ad0f]
+	ld a, [sCheckValue2]
 	ld c, a
 	call CloseSRAM
 	ld a, b
-	cp 99
+	cp SAVE_CHECK_VALUE_1
 	jr nz, .ok
 	ld a, c
-	cp " "
+	cp SAVE_CHECK_VALUE_2
 	jr nz, .ok
 	ld c, $1
 	ret
@@ -2624,6 +2654,86 @@ _LoadMapPart:: ; 4d15b
 	jr nz, .loop
 	ret
 
+PhoneRing_LoadEDTile: ; 4d188
+	ld a, [wSpriteUpdatesEnabled]
+	cp $0
+	jp z, WaitBGMap
+
+; What follows is a modified version of LoadEDTile.
+	ld a, [hBGMapMode]
+	push af
+	xor a
+	ld [hBGMapMode], a
+	ld a, [hMapAnims]
+	push af
+	xor a
+	ld [hMapAnims], a
+.wait
+	ld a, [rLY]
+	cp $8f
+	jr c, .wait
+
+	di
+	ld a, BANK(VBGMap2)
+	ld [rVBK], a
+	hlcoord 0, 0, AttrMap
+	call .StackPointerMagic
+	xor a ; ld a, BANK(VBGMap0)
+	ld [rVBK], a
+	hlcoord 0, 0
+	call .StackPointerMagic
+.wait2
+	ld a, [rLY]
+	cp $8f
+	jr c, .wait2
+	ei
+
+	pop af
+	ld [hMapAnims], a
+	pop af
+	ld [hBGMapMode], a
+	ret
+
+.StackPointerMagic: ; 4d1cb
+; Copy all tiles to VBGMap
+	ld [hSPBuffer], sp
+	ld sp, hl
+	ld a, [hBGMapAddress + 1]
+	ld h, a
+	ld l, 0
+	ld a, SCREEN_HEIGHT
+	ld [hTilesPerCycle], a
+	lb bc, (1 << 1), (rSTAT % $100) ; b: not in v/hblank
+
+.loop
+rept SCREEN_WIDTH / 2
+	pop de
+; if in v/hblank, wait until not in v/hblank
+.loop\@
+	ld a, [$ff00+c]
+	and b
+	jr nz, .loop\@
+; load BGMap0
+	ld [hl], e
+	inc l
+	ld [hl], d
+	inc l
+endr
+
+	ld de, $20 - SCREEN_WIDTH
+	add hl, de
+	ld a, [hTilesPerCycle]
+	dec a
+	ld [hTilesPerCycle], a
+	jr nz, .loop
+
+	ld a, [hSPBuffer]
+	ld l, a
+	ld a, [hSPBuffer + 1]
+	ld h, a
+	ld sp, hl
+	ret
+
 Shrink1Pic: ; 4d249
 INCBIN "gfx/shrink/shrink1.2bpp.lz"
 
@@ -2650,8 +2760,7 @@ LinkMonStatsScreen: ; 4d319
 
 Link_WaitBGMap: ; 4d354
 	call WaitBGMap
-	call WaitBGMap2
-	ret
+	jp WaitBGMap2
 
 LinkTextbox2: ; 4d35b
 	ld h, d
@@ -2786,8 +2895,7 @@ _DeleteSaveData: ; 4d54c
 	ld a, [wMenuCursorY]
 	cp $1
 	ret z
-	farcall EmptyAllSRAMBanks
-	ret
+	farjp EmptyAllSRAMBanks
 
 .Text_ClearAllSaveData: ; 0x4d580
 	; Clear all save data?
@@ -3109,8 +3217,8 @@ endr
 	lb bc, PRINTNUM_LEADINGZEROS | 2, 5
 	call PrintNum
 	lb bc, 5, 0
-	ld hl, LuckyNumberDigit5Buffer
-	ld de, Buffer5
+	ld hl, LuckyNumberDigitsBuffer + 4
+	ld de, Buffer1 + 4
 .loop
 	ld a, [de]
 	cp [hl]
@@ -3416,8 +3524,7 @@ SetBoxMonCaughtData: ; 4db83
 	call GetSRAMBank
 	ld hl, sBoxMon1CaughtData
 	call SetBoxmonOrEggmonCaughtData
-	call CloseSRAM
-	ret
+	jp CloseSRAM
 
 SetGiftBoxMonCaughtData: ; 4db92
 	push bc
@@ -3426,16 +3533,13 @@ SetGiftBoxMonCaughtData: ; 4db92
 	ld hl, sBoxMon1CaughtData
 	pop bc
 	call SetGiftMonCaughtData
-	call CloseSRAM
-	ret
+	jp CloseSRAM
 
 SetGiftPartyMonCaughtData: ; 4dba3
 	ld a, [PartyCount]
 	dec a
 	ld hl, PartyMon1CaughtData
-	push bc
 	call GetPartyLocation
-	pop bc
 SetGiftMonCaughtData: ; 4dbaf
 	; CaughtGender
 	; b contains it
@@ -3631,9 +3735,9 @@ CatchTutorial:: ; 4e554
 	dw .DudeTutorial
 
 .DudeTutorial: ; 4e56a (13:656a)
-; Back up your name to your Mom's name.
+; Back up your name
 	ld hl, PlayerName
-	ld de, ExtraName
+	ld de, BackupName
 	ld bc, NAME_LENGTH
 	call CopyBytes
 ; Copy Dude's name to your name
@@ -3654,7 +3758,7 @@ CatchTutorial:: ; 4e554
 	farcall StartBattle
 	call StopAutoInput
 
-	ld hl, ExtraName
+	ld hl, BackupName
 	ld de, PlayerName
 	ld bc, NAME_LENGTH
 	jp CopyBytes
@@ -3738,13 +3842,20 @@ InitDisplayForLeafCredits: ; 4e8c2
 	ld bc, SCREEN_WIDTH * SCREEN_HEIGHT
 	xor a
 	call ByteFill
-	ld hl, wd000 ; UnknBGPals
+	ld hl, UnknBGPals
 	ld c, 4 tiles
 .load_white_palettes
+if !DEF(MONOCHROME)
 	ld a, (palred 31 + palgreen 31 + palblue 31) % $100
 	ld [hli], a
 	ld a, (palred 31 + palgreen 31 + palblue 31) / $100
 	ld [hli], a
+else
+	ld a, PAL_MONOCHROME_WHITE % $100
+	ld [hli], a
+	ld a, PAL_MONOCHROME_WHITE / $100
+	ld [hli], a
+endc
 	dec c
 	jr nz, .load_white_palettes
 	xor a
@@ -3759,14 +3870,13 @@ ResetDisplayBetweenHallOfFameMons: ; 4e906
 	push af
 	ld a, $6
 	ld [rSVBK], a
-	ld hl, wDecompressScratch
-	ld bc, wScratchAttrMap - wDecompressScratch
+	ld hl, wScratchTileMap
+	ld bc, BG_MAP_WIDTH * BG_MAP_HEIGHT
 	ld a, " "
 	call ByteFill
 	hlbgcoord 0, 0
-	ld de, wDecompressScratch
-	ld b, $0
-	ld c, $40
+	ld de, wScratchTileMap
+	lb bc, $0, $40
 	call Request2bpp
 	pop af
 	ld [rSVBK], a
@@ -3785,7 +3895,7 @@ CheckBattleEffects: ; 4ea44
 	scf
 	ret
 
-INCLUDE "engine/gbc_only.asm"
+INCLUDE "engine/bsod.asm"
 
 INCLUDE "event/stats_judge.asm"
 
@@ -3795,7 +3905,8 @@ INCLUDE "event/card_key.asm"
 INCLUDE "event/basement_key.asm"
 INCLUDE "event/sacred_ash.asm"
 
-SECTION "bank14", ROMX, BANK[$14]
+
+SECTION "bank14", ROMX
 
 INCLUDE "engine/party_menu.asm"
 
@@ -3820,18 +3931,14 @@ CopyPkmnToTempMon: ; 5084a
 	cp OTPARTYMON
 	jr z, .copywholestruct
 	ld bc, BOXMON_STRUCT_LENGTH
-	farcall CopyBoxmonToTempMon
-	jr .done
+	farjp CopyBoxmonToTempMon
 
 .copywholestruct
 	ld a, [CurPartyMon]
 	call AddNTimes
 	ld de, TempMon
 	ld bc, PARTYMON_STRUCT_LENGTH
-	call CopyBytes
-
-.done
-	ret
+	jp CopyBytes
 
 CalcwBufferMonStats: ; 5088b
 	ld bc, wBufferMon
@@ -3911,8 +4018,7 @@ GetPkmnSpecies: ; 508d5
 	call GetSRAMBank
 	ld hl, sBoxSpecies
 	call .done
-	call CloseSRAM
-	ret
+	jp CloseSRAM
 
 .breedmon
 	ld a, [wBreedMon1Species]
@@ -4139,18 +4245,20 @@ GetGender: ; 50bdd
 
 	ld a, BANK(BaseData)
 	call GetFarByte
+	swap a
+	and $f
 
 ; Fixed values ignore the Personality gender value.
 	cp GENDERLESS
 	jr z, .Genderless
-	cp ALL_MALE
+	and a ; cp ALL_MALE
 	jr z, .Male
 	cp ALL_FEMALE
 	jr z, .Female
 
 ; Otherwise, use the Personality gender value directly.
 	ld a, b
-	cp MALE
+	and a ; cp MALE
 	jr z, .Male
 
 .Female:
@@ -4198,7 +4306,7 @@ endr
 .loop
 	ld a, [hli]
 	and a
-	jr z, .done
+	ret z
 	push bc
 	push hl
 	push de
@@ -4243,8 +4351,6 @@ endr
 	ld a, b
 	cp NUM_MOVES
 	jr nz, .loop
-
-.done
 	ret
 
 .load_loop ; 50cc9
@@ -4256,11 +4362,8 @@ endr
 	ret
 
 GetStatusConditionIndex:
-; a is the SubStatus2 value, for checking Toxic
 ; de points to status, e.g. from a party_struct or battle_struct
-; return the status condition index in b
-	bit SUBSTATUS_TOXIC, a
-	jr nz, .tox
+; return the status condition index in a
 	push de
 	inc de
 	inc de
@@ -4272,41 +4375,37 @@ GetStatusConditionIndex:
 	pop de
 	jr z, .fnt
 	ld a, [de]
-	bit PSN, a
-	jr nz, .psn
-	bit PAR, a
-	jr nz, .par
-	bit BRN, a
-	jr nz, .brn
-	bit FRZ, a
-	jr nz, .frz
+	ld b, a
 	and SLP
+	ld a, 0
 	jr nz, .slp
-.ok
 	xor a
-	jr .done
-.psn
-	ld a, 1
-	jr .done
-.par
-	ld a, 2
-	jr .done
-.slp
-	ld a, 3
-	jr .done
-.brn
-	ld a, 4
-	jr .done
-.frz
-	ld a, 5
-	jr .done
-.fnt
-	ld a, 6
+	bit TOX, b
+	jr nz, .tox
+	bit PSN, b
+	jr nz, .psn
+	bit PAR, b
+	jr nz, .par
+	bit BRN, b
+	jr nz, .brn
+	bit FRZ, b
+	jr nz, .frz
 	jr .done
 .tox
-	ld a, 7
+	inc a
+.fnt
+	inc a
+.frz
+	inc a
+.brn
+	inc a
+.slp
+	inc a
+.par
+	inc a
+.psn
+	inc a
 .done
-	ld b, a
 	ret
 
 PlaceStatusString: ; 50d0a
@@ -4394,7 +4493,7 @@ ListMoves: ; 50d6f
 	pop de
 	ld a, b
 	cp NUM_MOVES
-	jr z, .done
+	ret z
 	jr .moves_loop
 
 .no_more_moves
@@ -4410,60 +4509,6 @@ ListMoves: ; 50d6f
 	inc a
 	cp NUM_MOVES
 	jr nz, .nonmove_loop
-
-.done
-	ret
-
-InitList: ; 50db9
-	ld a, [wInitListType]
-
-	cp INIT_ENEMYOT_LIST
-	jr nz, .check_party_ot_name
-	ld hl, OTPartyCount
-	ld de, OTPartyMonOT
-	ld a, ENEMY_OT_NAME
-	jr .done
-.check_party_ot_name
-
-	cp INIT_PLAYEROT_LIST
-	jr nz, .check_mon_name
-	ld hl, PartyCount
-	ld de, PartyMonOT
-	ld a, PARTY_OT_NAME
-	jr .done
-.check_mon_name
-
-	cp INIT_MON_LIST
-	jr nz, .check_item_name
-	ld hl, CurMart
-	ld de, PokemonNames
-	ld a, PKMN_NAME
-	jr .done
-.check_item_name
-
-	cp INIT_BAG_ITEM_LIST
-	jr nz, .check_ob_item_name
-	ld hl, NumItems
-	ld de, ItemNames
-	ld a, ITEM_NAME
-	jr .done
-.check_ob_item_name
-
-	ld hl, CurMart
-	ld de, ItemNames
-	ld a, ITEM_NAME
-
-.done
-	ld [wNamedObjectTypeBuffer], a
-	ld a, l
-	ld [wListPointer], a
-	ld a, h
-	ld [wListPointer + 1], a
-	ld bc, ItemAttributes
-	ld a, c
-	ld [wd104], a
-	ld a, b
-	ld [wd105], a
 	ret
 
 CalcLevel: ; 50e1b
@@ -4663,16 +4708,14 @@ _SwitchPartyMons:
 	ld b, a
 	ld a, [wMenuCursorY]
 	dec a
-	ld [Buffer2], a ; wd1eb (aliases: MovementType)
+	ld [Buffer2], a
 	cp b
-	jr z, .skip
+	ret z
 	call .SwapMonAndMail
 	ld a, [Buffer3]
 	call .ClearSprite
-	ld a, [Buffer2] ; wd1eb (aliases: MovementType)
-	call .ClearSprite
-.skip
-	ret
+	ld a, [Buffer2]
+	; fallthrough
 
 .ClearSprite: ; 50f34 (14:4f34)
 	push af
@@ -4701,7 +4744,7 @@ _SwitchPartyMons:
 	push de
 	push bc
 	ld bc, PartySpecies
-	ld a, [Buffer2] ; wd1eb (aliases: MovementType)
+	ld a, [Buffer2]
 	ld l, a
 	ld h, $0
 	add hl, bc
@@ -4717,8 +4760,8 @@ _SwitchPartyMons:
 	ld [hl], a
 	pop af
 	ld [de], a
-	ld a, [Buffer2] ; wd1eb (aliases: MovementType)
-	ld hl, PartyMons ; wdcdf (aliases: PartyMon1, PartyMon1Species)
+	ld a, [Buffer2]
+	ld hl, PartyMons
 	ld bc, PARTYMON_STRUCT_LENGTH
 	call AddNTimes
 	push hl
@@ -4726,7 +4769,7 @@ _SwitchPartyMons:
 	ld bc, PARTYMON_STRUCT_LENGTH
 	call CopyBytes
 	ld a, [Buffer3]
-	ld hl, PartyMons ; wdcdf (aliases: PartyMon1, PartyMon1Species)
+	ld hl, PartyMons
 	ld bc, PARTYMON_STRUCT_LENGTH
 	call AddNTimes
 	pop de
@@ -4737,7 +4780,7 @@ _SwitchPartyMons:
 	ld hl, wd002
 	ld bc, PARTYMON_STRUCT_LENGTH
 	call CopyBytes
-	ld a, [Buffer2] ; wd1eb (aliases: MovementType)
+	ld a, [Buffer2]
 	ld hl, PartyMonOT
 	call SkipNames
 	push hl
@@ -4752,7 +4795,7 @@ _SwitchPartyMons:
 	ld hl, wd002
 	call .CopyName
 	ld hl, PartyMonNicknames
-	ld a, [Buffer2] ; wd1eb (aliases: MovementType)
+	ld a, [Buffer2]
 	call SkipNames
 	push hl
 	call .CopyNameTowd002
@@ -4766,7 +4809,7 @@ _SwitchPartyMons:
 	ld hl, wd002
 	call .CopyName
 	ld hl, sPartyMail
-	ld a, [Buffer2] ; wd1eb (aliases: MovementType)
+	ld a, [Buffer2]
 	ld bc, MAIL_STRUCT_LENGTH
 	call AddNTimes
 	push hl
@@ -4940,12 +4983,14 @@ INCLUDE "data/base_stats.asm"
 PokemonNames::
 INCLUDE "data/pokemon_names.asm"
 
-SECTION "bank19", ROMX, BANK[$19]
+
+SECTION "bank19", ROMX
 
 INCLUDE "text/phone/extra.asm"
 INCLUDE "text/phone/lyra.asm"
 
-SECTION "bank20", ROMX, BANK[$20]
+
+SECTION "bank20", ROMX
 
 INCLUDE "battle/effects/abilities.asm"
 
@@ -5074,7 +5119,7 @@ endr
 	dw Giovanni2FinalPkmnText
 
 .SinglePhraseFinalTexts:
-	dw KayFinalPkmnText
+	dw CarrieFinalPkmnText
 	dw CalFinalPkmnText
 	dw FalknerFinalPkmnText
 	dw BugsyFinalPkmnText
@@ -5127,6 +5172,7 @@ endr
 	dw MayleneFinalPkmnText
 	dw SkylaFinalPkmnText
 	dw ValerieFinalPkmnText
+	dw KukuiFinalPkmnText ; Kukui
 	dw NULL ; Victor
 	dw BillFinalPkmnText
 	dw YellowFinalPkmnText
@@ -5135,7 +5181,8 @@ endr
 	dw LawrenceFinalPkmnText
 	dw ReiFinalPkmnText
 
-SECTION "bank21", ROMX, BANK[$21]
+
+SECTION "bank21", ROMX
 
 INCLUDE "battle/anim_gfx.asm"
 
@@ -5143,7 +5190,8 @@ INCLUDE "event/halloffame.asm"
 
 INCLUDE "text/abilities.asm"
 
-SECTION "bank22", ROMX, BANK[$22]
+
+SECTION "bank22", ROMX
 
 INCLUDE "event/kurt.asm"
 
@@ -5156,13 +5204,11 @@ GetPlayerIcon: ; 8832c
 
 	ld a, [PlayerGender]
 	bit 0, a
-	jr z, .done
+	ret z
 
 ; Female
 	ld de, KrisSpriteGFX
 	ld b, BANK(KrisSpriteGFX)
-
-.done
 	ret
 
 GetCardPic: ; 8833e
@@ -5239,7 +5285,8 @@ INCLUDE "event/battle_tower.asm"
 INCLUDE "event/battle_tower_text.asm"
 INCLUDE "event/item_maniacs.asm"
 
-SECTION "bank23", ROMX, BANK[$23]
+
+SECTION "bank23", ROMX
 
 INCLUDE "engine/timeofdaypals.asm"
 INCLUDE "engine/battle_start.asm"
@@ -5254,7 +5301,8 @@ INCLUDE "engine/mon_icons.asm"
 INCLUDE "gfx/icon_pointers.asm"
 INCLUDE "gfx/icons.asm"
 
-SECTION "bank24", ROMX, BANK[$24]
+
+SECTION "bank24", ROMX
 
 INCLUDE "engine/phone.asm"
 INCLUDE "engine/timeset.asm"
@@ -5263,12 +5311,14 @@ INCLUDE "engine/pokegear.asm"
 INCLUDE "engine/fish.asm"
 INCLUDE "engine/slot_machine.asm"
 
-SECTION "Phone Engine", ROMX, BANK[$28]
+
+SECTION "Phone Engine", ROMX
 
 INCLUDE "engine/more_phone_scripts.asm"
 INCLUDE "engine/buena_phone_scripts.asm"
 
-SECTION "Phone Text", ROMX, BANK[$29]
+
+SECTION "Phone Text", ROMX
 
 INCLUDE "text/phone/anthony_overworld.asm"
 INCLUDE "text/phone/todd_overworld.asm"
@@ -5288,11 +5338,8 @@ INCLUDE "text/phone/kenji_overworld.asm"
 INCLUDE "text/phone/parry_overworld.asm"
 INCLUDE "text/phone/erin_overworld.asm"
 
-SECTION "Tileset Data 5", ROMX, BANK[TILESETS_5]
 
-INCLUDE "tilesets/data_5.asm"
-
-SECTION "bank2E", ROMX, BANK[$2E]
+SECTION "bank2E", ROMX
 
 INCLUDE "engine/events_3.asm"
 
@@ -5300,7 +5347,8 @@ INCLUDE "engine/radio.asm"
 
 INCLUDE "gfx/mail.asm"
 
-SECTION "bank2F", ROMX, BANK[$2F]
+
+SECTION "bank2F", ROMX
 
 INCLUDE "engine/std_scripts.asm"
 
@@ -5346,27 +5394,33 @@ CheckTrainerClass:
 	ld [ScriptVar], a
 	ret
 
-SECTION "sprites_1", ROMX, BANK[$30]
+
+SECTION "sprites_1", ROMX
 
 INCLUDE "gfx/overworld/sprites_1.asm"
 
-SECTION "sprites_2", ROMX, BANK[$31]
+
+SECTION "sprites_2", ROMX
 
 INCLUDE "gfx/overworld/sprites_2.asm"
+
 
 SECTION "sprites_3", ROMX
 
 INCLUDE "gfx/overworld/sprites_3.asm"
 
+
 SECTION "sprites_4", ROMX
 
 INCLUDE "gfx/overworld/sprites_4.asm"
+
 
 SECTION "sprites_5", ROMX
 
 INCLUDE "gfx/overworld/sprites_5.asm"
 
-SECTION "bg_effects", ROMX, BANK[$32]
+
+SECTION "bg_effects", ROMX
 
 INCLUDE "battle/bg_effects.asm"
 
@@ -5380,11 +5434,18 @@ LoadPoisonBGPals: ; cbcdd
 	ld hl, BGPals
 	ld c, $20
 .loop
-; RGB 31, 21, 28
-	ld a, (palred 31 + palgreen 21 + palblue 28) % $100
+if !DEF(MONOCHROME)
+; RGB 28, 21, 31
+	ld a, (palred 28 + palgreen 21 + palblue 31) % $100
 	ld [hli], a
-	ld a, (palred 31 + palgreen 21 + palblue 28) / $100
+	ld a, (palred 28 + palgreen 21 + palblue 31) / $100
 	ld [hli], a
+else
+	ld a, PAL_MONOCHROME_WHITE % $100
+	ld [hli], a
+	ld a, PAL_MONOCHROME_WHITE / $100
+	ld [hli], a
+endc
 	dec c
 	jr nz, .loop
 	pop af
@@ -5393,11 +5454,11 @@ LoadPoisonBGPals: ; cbcdd
 	ld [hCGBPalUpdate], a
 	ld c, 4
 	call DelayFrames
-	farcall _UpdateTimePals
-	ret
+	farjp _UpdateTimePals
 
 TheEndGFX:: ; cbd2e
 INCBIN "gfx/credits/theend.2bpp"
+
 
 SECTION "Substitute and Ghost", ROMX
 
@@ -5406,7 +5467,8 @@ SubstituteBackpic:  INCBIN "gfx/battle/substitute-back.2bpp.lz"
 
 GhostFrontpic:      INCBIN "gfx/battle/ghost.2bpp.lz"
 
-SECTION "bank33", ROMX, BANK[$33]
+
+SECTION "bank33", ROMX
 
 DisplayCaughtContestMonStats: ; cc000
 
@@ -5485,8 +5547,7 @@ DisplayCaughtContestMonStats: ; cc000
 	call WaitBGMap
 	ld b, SCGB_DIPLOMA
 	call GetSGBLayout
-	call SetPalettes
-	ret
+	jp SetPalettes
 
 .Health:
 	db "Health@"
@@ -5514,7 +5575,8 @@ INCLUDE "battle/anim_commands.asm"
 
 INCLUDE "battle/anim_objects.asm"
 
-SECTION "Pic Animations 1", ROMX, BANK[$34]
+
+SECTION "Pic Animations 1", ROMX
 
 INCLUDE "gfx/pics/animation.asm"
 
@@ -5548,6 +5610,20 @@ INCLUDE "gfx/pics/variant_anims.asm"
 INCLUDE "gfx/pics/variant_extra_pointers.asm"
 INCLUDE "gfx/pics/variant_extras.asm"
 
+
+SECTION "Pic Animations 2", ROMX
+
+INCLUDE "gfx/pics/frame_pointers.asm"
+INCLUDE "gfx/pics/kanto_frames.asm"
+
+
+SECTION "Pic Animations 3", ROMX
+
+INCLUDE "gfx/pics/johto_frames.asm"
+INCLUDE "gfx/pics/variant_frame_pointers.asm"
+INCLUDE "gfx/pics/variant_frames.asm"
+
+
 SECTION "Pic Animations 4", ROMX
 
 ; Bitmasks
@@ -5556,22 +5632,8 @@ INCLUDE "gfx/pics/bitmasks.asm"
 INCLUDE "gfx/pics/variant_bitmask_pointers.asm"
 INCLUDE "gfx/pics/variant_bitmasks.asm"
 
-SECTION "Pic Animations 2", ROMX, BANK[$35]
 
-INCLUDE "gfx/pics/frame_pointers.asm"
-INCLUDE "gfx/pics/kanto_frames.asm"
-
-SECTION "Pic Animations 3", ROMX, BANK[$36]
-
-INCLUDE "gfx/pics/johto_frames.asm"
-INCLUDE "gfx/pics/variant_frame_pointers.asm"
-INCLUDE "gfx/pics/variant_frames.asm"
-
-SECTION "Tileset Data 6", ROMX, BANK[TILESETS_6]
-
-INCLUDE "tilesets/data_6.asm"
-
-SECTION "bank38", ROMX, BANK[$38]
+SECTION "bank38", ROMX
 
 overworldmaptile EQUS "dw OverworldMap + $10 *"
 overworldmaprect: MACRO
@@ -5593,7 +5655,8 @@ INCLUDE "engine/unown_puzzle.asm"
 ;INCLUDE "engine/dummy_game.asm"
 INCLUDE "engine/billspc.asm"
 
-SECTION "bank39", ROMX, BANK[$39]
+
+SECTION "bank39", ROMX
 
 CopyrightGFX:: ; e4000
 INCBIN "gfx/misc/copyright.2bpp"
@@ -5601,7 +5664,8 @@ INCBIN "gfx/misc/copyright.2bpp"
 INCLUDE "engine/options_menu.asm"
 INCLUDE "engine/crystal_intro.asm"
 
-SECTION "bank3E", ROMX, BANK[$3E]
+
+SECTION "bank3E", ROMX
 
 INCLUDE "battle/hidden_power.asm"
 
@@ -5618,7 +5682,7 @@ INCLUDE "engine/link_trade2.asm"
 PlaySlowCry: ; fb841
 	ld a, [ScriptVar]
 	call LoadCryHeader
-	jr c, .done
+	ret c
 
 	ld hl, CryPitch
 	ld a, [hli]
@@ -5641,10 +5705,7 @@ PlaySlowCry: ; fb841
 	ld a, h
 	ld [CryLength + 1], a
 	farcall _PlayCryHeader
-	call WaitSFX
-
-.done
-	ret
+	jp WaitSFX
 ; fb877
 
 NewPokedexEntry: ; fb877
@@ -5660,7 +5721,7 @@ NewPokedexEntry: ; fb877
 	ld a, [wPokedexStatus]
 	push af
 	ld a, [hSCX]
-	add $5
+	add 5
 	ld [hSCX], a
 	xor a
 	ld [wPokedexStatus], a
@@ -5673,9 +5734,9 @@ NewPokedexEntry: ; fb877
 	pop af
 	ld [wPokedexStatus], a
 	call MaxVolume
-	call RotateThreePalettesRight
+	call ClearBGPalettes
 	ld a, [hSCX]
-	add -5 ; 251 ; NUM_POKEMON
+	add -5
 	ld [hSCX], a
 	call .ReturnFromDexRegistration
 	pop af
@@ -5696,19 +5757,20 @@ NewPokedexEntry: ; fb877
 	ld [TempMonPersonality + 1], a
 	ld b, SCGB_TRAINER_OR_MON_FRONTPIC_PALS
 	call GetSGBLayout
-	call SetPalettes
-	ret
+	jp SetPalettes
 ; fb8f1
 
 Footprints: ; f9434
 INCBIN "gfx/pokedex/footprints.w128.1bpp"
 ; fb434
 
+
 SECTION "Typefaces", ROMX
 
 INCLUDE "gfx/font.asm"
 
-SECTION "bank3F", ROMX, BANK[$3F]
+
+SECTION "bank3F", ROMX
 
 INCLUDE "tilesets/animations.asm"
 
@@ -5718,7 +5780,8 @@ INCLUDE "engine/wonder_trade.asm"
 
 INCLUDE "event/mom_phone.asm"
 
-SECTION "bank40", ROMX, BANK[$40]
+
+SECTION "bank40", ROMX
 
 _LinkBattleSendReceiveAction: ; 100a09
 ; Note that only the lower 4 bits is usable. The higher 4 determines what kind of
@@ -5784,7 +5847,8 @@ _LinkBattleSendReceiveAction: ; 100a09
 	ret
 ; 100a87
 
-SECTION "bank41", ROMX, BANK[$41]
+
+SECTION "bank41", ROMX
 
 INCLUDE "engine/misc_gfx.asm"
 
@@ -5794,24 +5858,24 @@ INCLUDE "battle/used_move_text.asm"
 
 INCLUDE "gfx/items.asm"
 
-SECTION "Intro Logo", ROMX, BANK[$42]
+
+SECTION "Intro Logo", ROMX
 
 IntroLogoGFX: ; 109407
 INCBIN "gfx/intro/logo.2bpp.lz"
 
-SECTION "bank43", ROMX, BANK[$43]
+
+SECTION "bank43", ROMX
 
 INCLUDE "engine/title.asm"
 
-SECTION "bank5B", ROMX, BANK[$1] ; $5B is now PICS_20
 
-INCLUDE "engine/link_trade.asm"
-
-SECTION "bank5D", ROMX, BANK[$5D]
+SECTION "bank5D", ROMX
 
 INCLUDE "text/phone/extra3.asm"
 
-SECTION "bank5E", ROMX, BANK[$5E]
+
+SECTION "bank5E", ROMX
 
 _UpdateBattleHUDs:
 	farcall DrawPlayerHUD
@@ -5820,10 +5884,10 @@ _UpdateBattleHUDs:
 	farcall DrawEnemyHUD
 	ld hl, EnemyHPPal
 	call SetHPPal
-	farcall FinishBattleAnim
-	ret
+	farjp FinishBattleAnim
 
-SECTION "Common Text 1", ROMX, BANK[$6C]
+
+SECTION "Common Text 1", ROMX
 
 INCLUDE "text/stdtext.asm"
 INCLUDE "text/phone/jack_overworld.asm"
@@ -5836,16 +5900,18 @@ INCLUDE "text/phone/reena_overworld.asm"
 INCLUDE "text/phone/joey_overworld.asm"
 INCLUDE "text/phone/wade_overworld.asm"
 INCLUDE "text/phone/ralph_overworld.asm"
-INCLUDE "text/phone/liz_overworld.asm"
 
-SECTION "bank6D", ROMX, BANK[$6D]
+
+SECTION "bank6D", ROMX
 
 INCLUDE "text/phone/mom.asm"
 INCLUDE "text/phone/bill.asm"
 INCLUDE "text/phone/elm.asm"
 INCLUDE "text/phone/trainers1.asm"
+INCLUDE "text/phone/liz_overworld.asm"
 
-SECTION "bank72", ROMX, BANK[$72]
+
+SECTION "bank72", ROMX
 
 ItemNames::
 INCLUDE "items/item_names.asm"
@@ -5857,9 +5923,8 @@ INCLUDE "battle/move_names.asm"
 
 INCLUDE "engine/landmarks.asm"
 
-SECTION "Tileset Data 7", ROMX, BANK[TILESETS_7]
 
-INCLUDE "tilesets/data_7.asm"
+SECTION "bank77", ROMX
 
 PrintHoursMins ; 1dd6bb (77:56bb)
 ; Hours in b, minutes in c
@@ -5946,9 +6011,6 @@ DrawPokedexListWindow: ; 1de171 (77:6171)
 	ld [hl], $3f
 	hlcoord 5, 16
 	ld [hl], $40
-	ld a, [wCurrentDexMode]
-	cp DEXMODE_OLD
-	jr z, .OldMode
 ; scroll bar
 	hlcoord 11, 0
 	ld [hl], $50
@@ -5957,18 +6019,6 @@ DrawPokedexListWindow: ; 1de171 (77:6171)
 	ld b, SCREEN_HEIGHT - 3
 	call Bank77_FillColumn
 	ld [hl], $52
-	jr .Done
-
-.OldMode:
-; no scroll bar
-	hlcoord 11, 0
-	ld [hl], $66
-	ld a, $67
-	hlcoord 11, 1
-	ld b, SCREEN_HEIGHT - 3
-	call Bank77_FillColumn
-	ld [hl], $68
-.Done:
 	ret
 
 DrawPokedexSearchResultsWindow: ; 1de1d1 (77:61d1)
@@ -5985,12 +6035,12 @@ DrawPokedexSearchResultsWindow: ; 1de1d1 (77:61d1)
 	hlcoord 5, 10
 	ld [hl], $40
 	hlcoord 11, 0
-	ld [hl], $66
-	ld a, $67
+	ld [hl], $60
+	ld a, $61
 	hlcoord 11, 1
 	ld b, SCREEN_HEIGHT / 2
 	call Bank77_FillColumn
-	ld [hl], $68
+	ld [hl], $62
 	ld a, $34
 	hlcoord 0, 11
 	ld bc, 11
@@ -6000,12 +6050,12 @@ DrawPokedexSearchResultsWindow: ; 1de1d1 (77:61d1)
 	ld bc, 11
 	call ByteFill
 	hlcoord 11, 11
-	ld [hl], $66
-	ld a, $67
+	ld [hl], $60
+	ld a, $61
 	hlcoord 11, 12
 	ld b, 5
 	call Bank77_FillColumn
-	ld [hl], $68
+	ld [hl], $62
 	hlcoord 0, 12
 	lb bc, 5, 11
 	call ClearBox
@@ -6031,12 +6081,12 @@ DrawDexEntryScreenRightEdge: ; 1de247
 	ld a, h
 	ld [hBGMapAddress + 1], a
 	hlcoord 19, 0
-	ld [hl], $66
+	ld [hl], $60
 	hlcoord 19, 1
-	ld a, $67
+	ld a, $61
 	ld b, 15
 	call Bank77_FillColumn
-	ld [hl], $68
+	ld [hl], $62
 	hlcoord 19, 17
 	ld [hl], $3c
 	xor a
@@ -6072,7 +6122,7 @@ _DudeAutoInput_RightRightA: ; 1de28f
 
 _DudeAutoInput_DownA: ; 1de294
 	ld hl, DudeAutoInput_DownA
-	jr _DudeAutoInput
+	; fallthrough
 
 _DudeAutoInput: ; 1de299
 	ld a, BANK(DudeAutoInputs)
@@ -6132,80 +6182,12 @@ PokegearGFX: ; 1de2e4
 INCBIN "gfx/pokegear/pokegear.2bpp.lz"
 
 
-SECTION "Tileset Data 8", ROMX, BANK[TILESETS_8]
-
-INCLUDE "tilesets/data_8.asm"
-
-SECTION "Tileset Data 9", ROMX, BANK[TILESETS_9]
-
-INCLUDE "tilesets/data_9.asm"
-
-SECTION "Tileset Data 10", ROMX, BANK[$34]
-
-INCLUDE "tilesets/data_10.asm"
-
-SECTION "Tileset Data 11", ROMX, BANK[$7A]
-
-INCLUDE "tilesets/data_11.asm"
-
-SECTION "Tileset Data 12", ROMX, BANK[$76]
-
-INCLUDE "tilesets/data_12.asm"
-
-SECTION "Tileset Data 13", ROMX, BANK[$B]
-
-INCLUDE "tilesets/data_13.asm"
-
-SECTION "Tileset Data 14", ROMX, BANK[$28]
-
-INCLUDE "tilesets/data_14.asm"
-
-
-SECTION "bank7B", ROMX, BANK[$7B]
+SECTION "bank7B", ROMX
 
 INCLUDE "text/battle_tower.asm"
 
-SECTION "bank7E", ROMX, BANK[$7E]
+
+SECTION "bank7E", ROMX
 
 INCLUDE "data/battle_tower.asm"
 INCLUDE "data/odd_eggs.asm"
-
-SECTION "bank7F", ROMX, BANK[$7F]
-
-; Low-pitched fainting cry routine from Pokémon TPP Anniversary Crystal 251
-; https://github.com/TwitchPlaysPokemon/tppcrystal251pub/blob/public/main.asm
-SECTION "Fainting Cry", ROMX
-
-PlayFaintingCry:
-; b contains species index
-	ld a, b
-	call LoadCryHeader
-	ret c
-	ld hl, CryPitch
-	ld a, [hli]
-	ld h, [hl]
-	ld l, a
-	ld bc, -$38
-	add hl, bc
-	ld a, l
-	ld [CryPitch], a
-	ld a, h
-	ld [CryPitch + 1], a
-	ld hl, CryLength
-	ld a, [hli]
-	ld h, [hl]
-	ld l, a
-	ld bc, $18
-	add hl, bc
-	ld a, l
-	ld [CryLength], a
-	ld a, h
-	ld [CryLength + 1], a
-	ld a, 1
-	ld [wStereoPanningMask], a
-	farcall _PlayCryHeader
-	jp WaitSFX
-
-SECTION "Move Reminder", ROMX
-
-INCLUDE "event/move_reminder.asm"

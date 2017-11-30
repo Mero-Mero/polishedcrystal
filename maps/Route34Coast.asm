@@ -1,30 +1,33 @@
-const_value set 2
-	const ROUTE34COAST_SWIMMER_GUY1
-	const ROUTE34COAST_SWIMMER_GUY2
-	const ROUTE34COAST_SWIMMER_GUY3
-	const ROUTE34COAST_SWIMMER_GIRL1
-	const ROUTE34COAST_SWIMMER_GIRL2
-	const ROUTE34COAST_FISHER
-	const ROUTE34COAST_YOUNGSTER
-	const ROUTE34COAST_POKE_BALL
-
 Route34Coast_MapScriptHeader:
-.MapTriggers:
-	db 0
 
-.MapCallbacks:
-	db 0
+.MapTriggers: db 0
+
+.MapCallbacks: db 0
+
+Route34Coast_MapEventHeader:
+
+.Warps: db 0
+
+.XYTriggers: db 0
+
+.Signposts: db 0
+
+.PersonEvents: db 8
+	person_event SPRITE_SWIMMER_GUY, 45, 7, SPRITEMOVEDATA_SPINCLOCKWISE, 0, 0, -1, -1, (1 << 3) | PAL_OW_RED, PERSONTYPE_TRAINER, 3, TrainerSwimmermFrank, -1
+	person_event SPRITE_SWIMMER_GUY, 19, 9, SPRITEMOVEDATA_STANDING_RIGHT, 0, 0, -1, -1, (1 << 3) | PAL_OW_RED, PERSONTYPE_TRAINER, 4, TrainerSwimmermNadar, -1
+	person_event SPRITE_SWIMMER_GUY, 61, 8, SPRITEMOVEDATA_STANDING_LEFT, 0, 0, -1, -1, (1 << 3) | PAL_OW_RED, PERSONTYPE_TRAINER, 5, TrainerSwimmermConrad, -1
+	person_event SPRITE_GOLDENROD_LYRA, 42, 8, SPRITEMOVEDATA_SPINCOUNTERCLOCKWISE, 0, 0, -1, -1, (1 << 3) | PAL_OW_GREEN, PERSONTYPE_TRAINER, 3, TrainerSwimmerfCaroline, -1
+	person_event SPRITE_GOLDENROD_LYRA, 6, 8, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, -1, (1 << 3) | PAL_OW_GREEN, PERSONTYPE_TRAINER, 3, TrainerSwimmerfNatalia, -1
+	person_event SPRITE_FISHER, 29, 8, SPRITEMOVEDATA_STANDING_UP, 0, 0, -1, -1, (1 << 3) | PAL_OW_GREEN, PERSONTYPE_TRAINER, 1, TrainerFisherFrancis, -1
+	person_event SPRITE_YOUNGSTER, 32, 6, SPRITEMOVEDATA_SPINRANDOM_SLOW, 0, 0, -1, -1, (1 << 3) | PAL_OW_BLUE, PERSONTYPE_TRAINER, 2, TrainerBird_keeperTony, -1
+	itemball_event 34, 4, PEARL_STRING, 1, EVENT_ROUTE_34_COAST_PEARL_STRING
 
 TrainerSwimmermFrank:
 	trainer EVENT_BEAT_SWIMMERM_FRANK, SWIMMERM, FRANK, .SeenText, .BeatenText, 0, .Script
 
 .Script:
 	end_if_just_battled
-	opentext
-	writetext .AfterText
-	waitbutton
-	closetext
-	end
+	jumptextfaceplayer .AfterText
 
 .SeenText:
 	text "I'm vacationing"
@@ -51,11 +54,7 @@ TrainerSwimmermNadar:
 
 .Script:
 	end_if_just_battled
-	opentext
-	writetext .AfterText
-	waitbutton
-	closetext
-	end
+	jumptextfaceplayer .AfterText
 
 .SeenText:
 	text "Swimming is my"
@@ -83,11 +82,7 @@ TrainerSwimmermConrad:
 
 .Script:
 	end_if_just_battled
-	opentext
-	writetext .AfterText
-	waitbutton
-	closetext
-	end
+	jumptextfaceplayer .AfterText
 
 .SeenText:
 	text "Lotion on, goggles"
@@ -115,11 +110,7 @@ TrainerSwimmerfCaroline:
 
 .Script:
 	end_if_just_battled
-	opentext
-	writetext .AfterText
-	waitbutton
-	closetext
-	end
+	jumptextfaceplayer .AfterText
 
 .SeenText:
 	text "My husband and I"
@@ -145,11 +136,7 @@ TrainerSwimmerfNatalia:
 
 .Script:
 	end_if_just_battled
-	opentext
-	writetext .AfterText
-	waitbutton
-	closetext
-	end
+	jumptextfaceplayer .AfterText
 
 .SeenText:
 	text "I bought a new"
@@ -176,11 +163,7 @@ TrainerFisherFrancis:
 
 .Script:
 	end_if_just_battled
-	opentext
-	writetext .AfterText
-	waitbutton
-	closetext
-	end
+	jumptextfaceplayer .AfterText
 
 .SeenText:
 	text "I like fishing for"
@@ -207,11 +190,7 @@ TrainerBird_keeperTony:
 
 .Script:
 	end_if_just_battled
-	opentext
-	writetext .AfterText
-	waitbutton
-	closetext
-	end
+	jumptextfaceplayer .AfterText
 
 .SeenText:
 	text "Have you heard"
@@ -229,26 +208,3 @@ TrainerBird_keeperTony:
 	cont "the word."
 	done
 
-Route34CoastPearlString:
-	itemball PEARL_STRING
-
-Route34Coast_MapEventHeader:
-.Warps:
-	db 0
-
-.XYTriggers:
-	db 0
-
-.Signposts:
-	db 0
-
-.PersonEvents:
-	db 8
-	person_event SPRITE_SWIMMER_GUY, 45, 7, SPRITEMOVEDATA_SPINCLOCKWISE, 0, 0, -1, -1, (1 << 3) | PAL_OW_RED, PERSONTYPE_TRAINER, 3, TrainerSwimmermFrank, -1
-	person_event SPRITE_SWIMMER_GUY, 19, 9, SPRITEMOVEDATA_STANDING_RIGHT, 0, 0, -1, -1, (1 << 3) | PAL_OW_RED, PERSONTYPE_TRAINER, 4, TrainerSwimmermNadar, -1
-	person_event SPRITE_SWIMMER_GUY, 61, 8, SPRITEMOVEDATA_STANDING_LEFT, 0, 0, -1, -1, (1 << 3) | PAL_OW_RED, PERSONTYPE_TRAINER, 5, TrainerSwimmermConrad, -1
-	person_event SPRITE_GOLDENROD_LYRA, 42, 8, SPRITEMOVEDATA_SPINCOUNTERCLOCKWISE, 0, 0, -1, -1, (1 << 3) | PAL_OW_GREEN, PERSONTYPE_TRAINER, 3, TrainerSwimmerfCaroline, -1
-	person_event SPRITE_GOLDENROD_LYRA, 6, 8, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, -1, (1 << 3) | PAL_OW_GREEN, PERSONTYPE_TRAINER, 3, TrainerSwimmerfNatalia, -1
-	person_event SPRITE_FISHER, 29, 8, SPRITEMOVEDATA_STANDING_UP, 0, 0, -1, -1, (1 << 3) | PAL_OW_GREEN, PERSONTYPE_TRAINER, 1, TrainerFisherFrancis, -1
-	person_event SPRITE_YOUNGSTER, 32, 6, SPRITEMOVEDATA_SPINRANDOM_SLOW, 0, 0, -1, -1, (1 << 3) | PAL_OW_BLUE, PERSONTYPE_TRAINER, 2, TrainerBird_keeperTony, -1
-	person_event SPRITE_BALL_CUT_FRUIT, 34, 4, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, -1, (1 << 3) | PAL_OW_RED, PERSONTYPE_ITEMBALL, 0, Route34CoastPearlString, EVENT_ROUTE_34_COAST_PEARL_STRING

@@ -1,21 +1,36 @@
-const_value set 2
-	const CIANWOODGYM_CHUCK
-	const CIANWOODGYM_BLACK_BELT1
-	const CIANWOODGYM_BLACK_BELT2
-	const CIANWOODGYM_BLACK_BELT3
-	const CIANWOODGYM_BLACK_BELT4
-	const CIANWOODGYM_BLACK_BELT5
-	const CIANWOODGYM_BOULDER1
-	const CIANWOODGYM_BOULDER2
-	const CIANWOODGYM_BOULDER3
-	const CIANWOODGYM_BOULDER4
-
 CianwoodGym_MapScriptHeader:
-.MapTriggers:
-	db 0
 
-.MapCallbacks:
-	db 0
+.MapTriggers: db 0
+
+.MapCallbacks: db 0
+
+CianwoodGym_MapEventHeader:
+
+.Warps: db 2
+	warp_def 17, 4, 2, CIANWOOD_CITY
+	warp_def 17, 5, 2, CIANWOOD_CITY
+
+.XYTriggers: db 0
+
+.Signposts: db 2
+	signpost 15, 3, SIGNPOST_READ, CianwoodGymStatue
+	signpost 15, 6, SIGNPOST_READ, CianwoodGymStatue
+
+.PersonEvents: db 10
+	person_event SPRITE_CHUCK, 1, 4, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, -1, (1 << 3) | PAL_OW_BROWN, PERSONTYPE_SCRIPT, 0, ChuckScript_0x9d60f, -1
+	strengthboulder_event 1, 5
+	person_event SPRITE_BLACK_BELT, 12, 2, SPRITEMOVEDATA_STANDING_RIGHT, 0, 0, -1, -1, (1 << 3) | PAL_OW_BLUE, PERSONTYPE_TRAINER, 3, TrainerBlackbeltYoshi, -1
+	person_event SPRITE_BLACK_BELT, 12, 7, SPRITEMOVEDATA_STANDING_LEFT, 0, 0, -1, -1, (1 << 3) | PAL_OW_RED, PERSONTYPE_TRAINER, 3, TrainerBlackbeltLao, -1
+	person_event SPRITE_BLACK_BELT, 9, 3, SPRITEMOVEDATA_STANDING_RIGHT, 0, 0, -1, -1, (1 << 3) | PAL_OW_BROWN, PERSONTYPE_TRAINER, 2, TrainerBlackbeltNob, -1
+	person_event SPRITE_BLACK_BELT, 5, 5, SPRITEMOVEDATA_STANDING_LEFT, 0, 0, -1, -1, (1 << 3) | PAL_OW_BROWN, PERSONTYPE_TRAINER, 1, TrainerBlackbeltLung, -1
+	person_event SPRITE_BLACK_BELT, 15, 7, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, -1, (1 << 3) | PAL_OW_BROWN, PERSONTYPE_COMMAND, jumptextfaceplayer, CianwoodGymBlackBeltText, -1
+	strengthboulder_event 7, 3
+	strengthboulder_event 7, 4
+	strengthboulder_event 7, 5
+
+const_value set 1
+	const CIANWOODGYM_CHUCK
+	const CIANWOODGYM_BOULDER1
 
 ChuckScript_0x9d60f:
 	faceplayer
@@ -26,20 +41,13 @@ ChuckScript_0x9d60f:
 	waitbutton
 	closetext
 	spriteface CIANWOODGYM_CHUCK, RIGHT
-	opentext
-	writetext ChuckIntroText2
-	waitbutton
-	closetext
+	showtext ChuckIntroText2
 	applymovement CIANWOODGYM_BOULDER1, CianwoodGymMovement_ChuckChucksBoulder
 	playsound SFX_STRENGTH
 	earthquake 80
 	disappear CIANWOODGYM_BOULDER1
 	pause 30
-	faceplayer
-	opentext
-	writetext ChuckIntroText3
-	waitbutton
-	closetext
+	showtextfaceplayer ChuckIntroText3
 	winlosstext ChuckLossText, 0
 	loadtrainer CHUCK, 1
 	startbattle
@@ -53,7 +61,7 @@ ChuckScript_0x9d60f:
 	specialphonecall SPECIALCALL_YELLOWFOREST
 .FightDone:
 	checkevent EVENT_GOT_TM01_DYNAMICPUNCH
-	iftrue .AlreadyGotTM
+	iftrue_jumpopenedtext ChuckAfterText
 	setevent EVENT_BEAT_BLACKBELT_YOSHI
 	setevent EVENT_BEAT_BLACKBELT_LAO
 	setevent EVENT_BEAT_BLACKBELT_NOB
@@ -62,66 +70,35 @@ ChuckScript_0x9d60f:
 	buttonsound
 	verbosegivetmhm TM_DYNAMICPUNCH
 	setevent EVENT_GOT_TM01_DYNAMICPUNCH
-	writetext ChuckExplainTMText
-	waitbutton
-	closetext
-	end
-
-.AlreadyGotTM:
-	writetext ChuckAfterText
-	waitbutton
-	closetext
-	end
+	jumpopenedtext ChuckExplainTMText
 
 TrainerBlackbeltYoshi:
 	trainer EVENT_BEAT_BLACKBELT_YOSHI, BLACKBELT_T, YOSHI, BlackbeltYoshiSeenText, BlackbeltYoshiBeatenText, 0, .Script
 
 .Script:
 	end_if_just_battled
-	opentext
-	writetext BlackbeltYoshiAfterText
-	waitbutton
-	closetext
-	end
+	jumptextfaceplayer BlackbeltYoshiAfterText
 
 TrainerBlackbeltLao:
 	trainer EVENT_BEAT_BLACKBELT_LAO, BLACKBELT_T, LAO, BlackbeltLaoSeenText, BlackbeltLaoBeatenText, 0, .Script
 
 .Script:
 	end_if_just_battled
-	opentext
-	writetext BlackbeltLaoAfterText
-	waitbutton
-	closetext
-	end
+	jumptextfaceplayer BlackbeltLaoAfterText
 
 TrainerBlackbeltNob:
 	trainer EVENT_BEAT_BLACKBELT_NOB, BLACKBELT_T, NOB, BlackbeltNobSeenText, BlackbeltNobBeatenText, 0, .Script
 
 .Script:
 	end_if_just_battled
-	opentext
-	writetext BlackbeltNobAfterText
-	waitbutton
-	closetext
-	end
+	jumptextfaceplayer BlackbeltNobAfterText
 
 TrainerBlackbeltLung:
 	trainer EVENT_BEAT_BLACKBELT_LUNG, BLACKBELT_T, LUNG, BlackbeltLungSeenText, BlackbeltLungBeatenText, 0, .Script
 
 .Script:
 	end_if_just_battled
-	opentext
-	writetext BlackbeltLungAfterText
-	waitbutton
-	closetext
-	end
-
-CianwoodGymBlackBeltScript:
-	jumptextfaceplayer CianwoodGymBlackBeltText
-
-CianwoodGymBoulder:
-	jumpstd strengthboulder
+	jumptextfaceplayer BlackbeltLungAfterText
 
 CianwoodGymStatue:
 	trainertotext CHUCK, 1, $1
@@ -274,7 +251,7 @@ BlackbeltNobBeatenText:
 	done
 
 BlackbeltNobAfterText:
-	text "I lost! "
+	text "I lost!"
 	line "I'm speechless!"
 	done
 
@@ -301,30 +278,3 @@ CianwoodGymBlackBeltText:
 
 	para "What a wimp!"
 	done
-
-CianwoodGym_MapEventHeader:
-.Warps:
-	db 2
-	warp_def $11, $4, 2, CIANWOOD_CITY
-	warp_def $11, $5, 2, CIANWOOD_CITY
-
-.XYTriggers:
-	db 0
-
-.Signposts:
-	db 2
-	signpost 15, 3, SIGNPOST_READ, CianwoodGymStatue
-	signpost 15, 6, SIGNPOST_READ, CianwoodGymStatue
-
-.PersonEvents:
-	db 10
-	person_event SPRITE_CHUCK, 1, 4, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, -1, (1 << 3) | PAL_OW_BROWN, PERSONTYPE_SCRIPT, 0, ChuckScript_0x9d60f, -1
-	person_event SPRITE_BLACK_BELT, 12, 2, SPRITEMOVEDATA_STANDING_RIGHT, 0, 0, -1, -1, (1 << 3) | PAL_OW_BLUE, PERSONTYPE_TRAINER, 3, TrainerBlackbeltYoshi, -1
-	person_event SPRITE_BLACK_BELT, 12, 7, SPRITEMOVEDATA_STANDING_LEFT, 0, 0, -1, -1, (1 << 3) | PAL_OW_RED, PERSONTYPE_TRAINER, 3, TrainerBlackbeltLao, -1
-	person_event SPRITE_BLACK_BELT, 9, 3, SPRITEMOVEDATA_STANDING_RIGHT, 0, 0, -1, -1, (1 << 3) | PAL_OW_BROWN, PERSONTYPE_TRAINER, 2, TrainerBlackbeltNob, -1
-	person_event SPRITE_BLACK_BELT, 5, 5, SPRITEMOVEDATA_STANDING_LEFT, 0, 0, -1, -1, (1 << 3) | PAL_OW_BROWN, PERSONTYPE_TRAINER, 1, TrainerBlackbeltLung, -1
-	person_event SPRITE_BLACK_BELT, 15, 7, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, -1, (1 << 3) | PAL_OW_BROWN, PERSONTYPE_SCRIPT, 0, CianwoodGymBlackBeltScript, -1
-	person_event SPRITE_ROCK_BOULDER_FOSSIL, 1, 5, SPRITEMOVEDATA_STRENGTH_BOULDER, 0, 0, -1, -1, 0, PERSONTYPE_SCRIPT, 0, CianwoodGymBoulder, -1
-	person_event SPRITE_ROCK_BOULDER_FOSSIL, 7, 3, SPRITEMOVEDATA_STRENGTH_BOULDER, 0, 0, -1, -1, 0, PERSONTYPE_SCRIPT, 0, CianwoodGymBoulder, -1
-	person_event SPRITE_ROCK_BOULDER_FOSSIL, 7, 4, SPRITEMOVEDATA_STRENGTH_BOULDER, 0, 0, -1, -1, 0, PERSONTYPE_SCRIPT, 0, CianwoodGymBoulder, -1
-	person_event SPRITE_ROCK_BOULDER_FOSSIL, 7, 5, SPRITEMOVEDATA_STRENGTH_BOULDER, 0, 0, -1, -1, 0, PERSONTYPE_SCRIPT, 0, CianwoodGymBoulder, -1

@@ -238,8 +238,7 @@ PlaySFX:: ; 3c23
 
 WaitPlaySFX:: ; 3c4e
 	call WaitSFX
-	call PlaySFX
-	ret
+	jp PlaySFX
 ; 3c55
 
 
@@ -392,12 +391,10 @@ EnterMapMusic:: ; 3d03
 
 	xor a
 	ld [wDontPlayMapMusicOnReload], a
-	ld de, MUSIC_BICYCLE
+	call GetMapMusic
 	ld a, [PlayerState]
 	cp PLAYER_BIKE
-	jr z, .play
-	call GetMapMusic
-.play
+	call z, GetBikeMusic
 	push de
 	ld de, MUSIC_NONE
 	call PlayMusic
@@ -418,7 +415,7 @@ EnterMapMusic:: ; 3d03
 TryRestartMapMusic:: ; 3d2f
 	ld a, [wDontPlayMapMusicOnReload]
 	and a
-	jr z, .restore
+	jp z, RestoreMusic
 	xor a
 	ld [wMapMusic], a
 	ld de, MUSIC_NONE
@@ -426,10 +423,6 @@ TryRestartMapMusic:: ; 3d2f
 	call DelayFrame
 	xor a
 	ld [wDontPlayMapMusicOnReload], a
-	ret
-
-.restore
-	farcall RestoreMusic
 	ret
 ; 3d47
 
@@ -462,6 +455,20 @@ SpecialMapMusic:: ; 3d62
 
 .not_route_23
 	ld a, [MapGroup]
+	cp GROUP_QUIET_CAVE_1F ; GROUP_QUIET_CAVE_B1F, GROUP_QUIET_CAVE_B2F, GROUP_QUIET_CAVE_B3F
+	jr nz, .not_quiet_cave
+	ld a, [MapNumber]
+	cp MAP_QUIET_CAVE_1F
+	jr z, .no
+	cp MAP_QUIET_CAVE_B1F
+	jr z, .no
+	cp MAP_QUIET_CAVE_B2F
+	jr z, .no
+	cp MAP_QUIET_CAVE_B3F
+	jr z, .no
+
+.not_quiet_cave
+	ld a, [MapGroup]
 	cp GROUP_SCARY_CAVE_SHIPWRECK
 	jr nz, .not_shipwreck
 	ld a, [MapNumber]
@@ -478,7 +485,7 @@ SpecialMapMusic:: ; 3d62
 
 .not_lugia_chamber
 	ld a, [MapGroup]
-	cp GROUP_ROUTE_16_SOUTH ; same as GROUP_ROUTE_18_WEST
+	cp GROUP_ROUTE_16_SOUTH ; GROUP_ROUTE_18_WEST
 	jr nz, .not_cycling_road_bike
 	ld a, [MapNumber]
 	cp MAP_ROUTE_16_SOUTH

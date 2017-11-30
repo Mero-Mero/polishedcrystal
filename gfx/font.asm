@@ -30,6 +30,9 @@ INCBIN "gfx/frames/9.1bpp"
 BattleExtrasGFX:
 INCBIN "gfx/battle/extras.2bpp"
 
+BattleNoCaptureGFX:
+INCBIN "gfx/battle/nocapture.2bpp"
+
 GFX_Stats: ; f89b0
 INCBIN "gfx/stats/stats.2bpp"
 ; f8ac0
@@ -47,16 +50,10 @@ CategoryIconGFX:
 INCBIN "gfx/battle/categories.2bpp"
 
 TownMapGFX: ; f8ba0
-INCBIN "gfx/pokegear/town_map.2bpp.lz"
+INCBIN "gfx/town_map/town_map.2bpp.lz"
 ; f8ea4
 
-JohtoKantoGFX:
-INCBIN "gfx/pokegear/johto-kanto.2bpp"
-
 TextBoxSpaceGFX: ; f9204
-INCBIN "gfx/frames/space.1bpp"
-; Duplicate graphic (eight 00 bytes) fixes sprite animation bug introduced by
-; 6103314190c1a3b87be8a5b8b9d90789c3006755
 INCBIN "gfx/frames/space.1bpp"
 ; f9214
 
@@ -69,21 +66,11 @@ _LoadStandardFont:: ; fb449
 	ld d, h
 	ld e, l
 	ld hl, VTiles1
-	lb bc, BANK(FontNormal), $80
-	ld a, [rLCDC]
-	bit 7, a
-	jr z, .one
+	lb bc, BANK(FontNormal), 111
 	call Get1bpp_2
-	jr .ok
-.one
-	call Copy1bpp
-.ok
 	ld de, FontCommon
-	ld hl, VTiles1 tile ("★" - $80) ; first common font character
-	lb bc, BANK(FontCommon), $d
-	ld a, [rLCDC]
-	bit 7, a
-	jp z, Copy1bpp
+	ld hl, VTiles1 tile COMMON_FONT_START
+	lb bc, BANK(FontCommon), 11
 	jp Get1bpp_2
 ; fb48a
 
@@ -115,8 +102,12 @@ endr
 
 _LoadFontsBattleExtra:: ; fb4be
 	ld de, BattleExtrasGFX
-	ld hl, VTiles2 tile $5f
-	lb bc, BANK(BattleExtrasGFX), 26
+	ld hl, VTiles2 tile BATTLEEXTRA_GFX_START
+	lb bc, BANK(BattleExtrasGFX), 32
+	call Get2bpp_2
+	ld de, BattleNoCaptureGFX
+	ld hl, VTiles0 tile "<NONO>"
+	lb bc, BANK(BattleNoCaptureGFX), 1
 	call Get2bpp_2
 ; fb4cc
 
@@ -127,10 +118,10 @@ LoadFrame:: ; fb4cc
 	call AddNTimes
 	ld d, h
 	ld e, l
-	ld hl, VTiles2 tile $79
+	ld hl, VTiles1 tile (FRAME_START - $80)
 	lb bc, BANK(Frames), TILES_PER_FRAME
 	call Get1bpp_2
-	ld hl, VTiles2 tile $7f
+	ld hl, VTiles2 tile " "
 	ld de, TextBoxSpaceGFX
 	lb bc, BANK(TextBoxSpaceGFX), 1
 	jp Get1bpp_2
@@ -150,7 +141,6 @@ LoadPlayerStatusIcon:
 	ld a, [PlayerSubStatus2]
 	ld de, BattleMonStatus
 	farcall GetStatusConditionIndex
-	ld a, b
 	ld hl, StatusIconGFX
 	ld de, 2 tiles
 .loop
@@ -174,7 +164,6 @@ LoadEnemyStatusIcon:
 	ld a, [EnemySubStatus2]
 	ld de, EnemyMonStatus
 	farcall GetStatusConditionIndex
-	ld a, b
 	ld hl, EnemyStatusIconGFX
 	ld de, 2 tiles
 .loop
@@ -201,8 +190,8 @@ InstantReloadPaletteHack:
 	ld a, $5 ; gfx
 	ld [rSVBK], a
 ; copy & reorder bg pal buffer
-	ld hl, BGPals + 5 palettes ; to
-	ld de, UnknBGPals + 5 palettes ; from
+	ld hl, BGPals palette PAL_BATTLE_BG_STATUS ; to
+	ld de, UnknBGPals palette PAL_BATTLE_BG_STATUS ; from
 ; order
 	ld a, [rBGP]
 	ld b, a

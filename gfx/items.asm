@@ -28,11 +28,15 @@ UpdateItemIcon::
 GetItemIconBank:
 	lb bc, BANK(ItemIcons1), $9
 	ld a, [CurSpecies]
-	cp SCOPE_LENS
+	cp SCOPE_LENS ; first icon in ItemIcons2
 	ret c
-	cp STARDUST
+	cp METAL_POWDER ; after Scope Lens, but in ItemIcons1
 	ret z
-	cp CHOICE_SCARF
+	cp QUICK_POWDER ; after Scope Lens, but in ItemIcons1
+	ret z
+	cp STARDUST ; after Scope Lens, but in ItemIcons1
+	ret z
+	cp CHOICE_SCARF ; after Scope Lens, but in ItemIcons1
 	ret z
 	cp ITEM_FROM_MEM
 	ret z
@@ -159,22 +163,22 @@ ItemIconPointers:
 	dw ShinyCharmIcon
 	dw OvalCharmIcon
 	dw SilphScope2Icon
-	dw OranBerryIcon
-	dw SitrusBerryIcon
-	dw PechaBerryIcon
-	dw RawstBerryIcon
 	dw CheriBerryIcon
 	dw ChestoBerryIcon
+	dw PechaBerryIcon
+	dw RawstBerryIcon
 	dw AspearBerryIcon
+	dw LeppaBerryIcon
+	dw OranBerryIcon
 	dw PersimBerryIcon
 	dw LumBerryIcon
-	dw LeppaBerryIcon
-	dw PomegBerryIcon
-	dw KelpsyBerryIcon
-	dw QualotBerryIcon
-	dw HondewBerryIcon
-	dw GrepaBerryIcon
-	dw TamatoBerryIcon
+	dw SitrusBerryIcon
+	dw FigyBerryIcon
+	dw LiechiBerryIcon
+	dw GanlonBerryIcon
+	dw SalacBerryIcon
+	dw PetayaBerryIcon
+	dw ApicotBerryIcon
 	dw RedApricornIcon
 	dw BluApricornIcon
 	dw YlwApricornIcon
@@ -304,7 +308,7 @@ ItemIconPointers:
 	dw NoItemIcon
 
 
-SECTION "Item Icons 1", ROMX, BANK[$41]
+SECTION "Item Icons 1", ROMX
 
 ItemIcons1:
 NoItemIcon:       INCBIN "gfx/items/no_item.2bpp.lz"
@@ -426,22 +430,22 @@ OldSeaMapIcon:    INCBIN "gfx/items/old_sea_map.2bpp.lz"
 ShinyCharmIcon:   INCBIN "gfx/items/shiny_charm.2bpp.lz"
 OvalCharmIcon:    INCBIN "gfx/items/oval_charm.2bpp.lz"
 SilphScope2Icon:  INCBIN "gfx/items/silphscope2.2bpp.lz"
-OranBerryIcon:    INCBIN "gfx/items/oran_berry.2bpp.lz"
-SitrusBerryIcon:  INCBIN "gfx/items/sitrus_berry.2bpp.lz"
-PechaBerryIcon:   INCBIN "gfx/items/pecha_berry.2bpp.lz"
-RawstBerryIcon:   INCBIN "gfx/items/rawst_berry.2bpp.lz"
 CheriBerryIcon:   INCBIN "gfx/items/cheri_berry.2bpp.lz"
 ChestoBerryIcon:  INCBIN "gfx/items/chesto_berry.2bpp.lz"
+PechaBerryIcon:   INCBIN "gfx/items/pecha_berry.2bpp.lz"
+RawstBerryIcon:   INCBIN "gfx/items/rawst_berry.2bpp.lz"
 AspearBerryIcon:  INCBIN "gfx/items/aspear_berry.2bpp.lz"
+LeppaBerryIcon:   INCBIN "gfx/items/leppa_berry.2bpp.lz"
+OranBerryIcon:    INCBIN "gfx/items/oran_berry.2bpp.lz"
 PersimBerryIcon:  INCBIN "gfx/items/persim_berry.2bpp.lz"
 LumBerryIcon:     INCBIN "gfx/items/lum_berry.2bpp.lz"
-LeppaBerryIcon:   INCBIN "gfx/items/leppa_berry.2bpp.lz"
-PomegBerryIcon:   INCBIN "gfx/items/pomeg_berry.2bpp.lz"
-KelpsyBerryIcon:  INCBIN "gfx/items/kelpsy_berry.2bpp.lz"
-QualotBerryIcon:  INCBIN "gfx/items/qualot_berry.2bpp.lz"
-HondewBerryIcon:  INCBIN "gfx/items/hondew_berry.2bpp.lz"
-GrepaBerryIcon:   INCBIN "gfx/items/grepa_berry.2bpp.lz"
-TamatoBerryIcon:  INCBIN "gfx/items/tamato_berry.2bpp.lz"
+SitrusBerryIcon:  INCBIN "gfx/items/sitrus_berry.2bpp.lz"
+FigyBerryIcon:    INCBIN "gfx/items/figy_berry.2bpp.lz"
+LiechiBerryIcon:  INCBIN "gfx/items/liechi_berry.2bpp.lz"
+GanlonBerryIcon:  INCBIN "gfx/items/ganlon_berry.2bpp.lz"
+SalacBerryIcon:   INCBIN "gfx/items/salac_berry.2bpp.lz"
+PetayaBerryIcon:  INCBIN "gfx/items/petaya_berry.2bpp.lz"
+ApicotBerryIcon:  INCBIN "gfx/items/apicot_berry.2bpp.lz"
 RedApricornIcon:
 BluApricornIcon:
 YlwApricornIcon:
@@ -468,7 +472,7 @@ BlackGlassesIcon: INCBIN "gfx/items/blackglasses.2bpp.lz"
 PinkBowIcon:      INCBIN "gfx/items/pink_bow.2bpp.lz"
 
 
-SECTION "Item Icons 2", ROMX, BANK[$43]
+SECTION "Item Icons 2", ROMX
 
 ItemIcons2:
 ScopeLensIcon:    INCBIN "gfx/items/scope_lens.2bpp.lz"

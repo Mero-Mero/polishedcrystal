@@ -8,12 +8,11 @@ WonderTradePromptText::
 	line "you want to trade?"
 	prompt
 
-WonderTradeCantTradeEggText::
-	text "Sorry. We can't"
-	line "accept an Egg."
-	prompt
+;WonderTradeCantTradeEggText::
+;	text "Sorry. We can't"
+;	line "accept an Egg."
+;	prompt
 
-; unused
 ;UnknownText_0x613c8::
 ;	text "Sorry, but your"
 ;	line "#mon appears to"
@@ -34,7 +33,7 @@ WonderTradeConfirmText::
 	text "Offer to trade"
 	line "@"
 	text_from_ram StringBuffer1
-	text "? "
+	text "?"
 	done
 
 WonderTradeSetupText::
@@ -100,6 +99,20 @@ WonderTradeForGSBallPichuText::
 	line "it carefully."
 	prompt
 
+SilphMartIntroText::
+	text "Employees like me"
+	line "have access to"
+	cont "company swag!"
+
+	para "Want to buy some?"
+	done
+
+SilphMartComeAgainText::
+	text "Come again! I"
+	line "could use the"
+	cont "side income."
+	done
+
 AdventurerMartIntroText::
 	text "I picked up some"
 	line "rare items abroad!"
@@ -112,6 +125,11 @@ AdventurerMartComeAgainText::
 InformalMartIntroText::
 	text "What's up? Need"
 	line "some supplies?"
+	done
+
+BazaarMartIntroText::
+	text "Come take a look"
+	line "at my wares!"
 	done
 
 MoveReminderIntroText::

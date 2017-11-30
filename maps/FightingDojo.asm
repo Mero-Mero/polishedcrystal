@@ -1,5 +1,33 @@
-const_value set 2
-	const FIGHTINGDOJO_BLACK_BELT
+FightingDojo_MapScriptHeader:
+
+.MapTriggers: db 0
+
+.MapCallbacks: db 1
+	dbw MAPCALLBACK_SPRITES, FightingDojoSetupRematchesCallback
+
+FightingDojo_MapEventHeader:
+
+.Warps: db 2
+	warp_def 11, 4, 1, SAFFRON_CITY
+	warp_def 11, 5, 1, SAFFRON_CITY
+
+.XYTriggers: db 0
+
+.Signposts: db 3
+	signpost 0, 4, SIGNPOST_JUMPTEXT, UnknownText_0x189bc0
+	signpost 0, 5, SIGNPOST_JUMPTEXT, UnknownText_0x189be0
+	signpost 0, 9, SIGNPOST_READ, MapFightingDojoSignpost2Script
+
+.PersonEvents: db 7
+	person_event SPRITE_REMATCH_GYM_LEADER_1, 1, 0, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, -1, (1 << 3) | PAL_OW_RED, PERSONTYPE_SCRIPT, 0, RematchRed0Script, EVENT_REMATCH_GYM_LEADER_1
+	person_event SPRITE_REMATCH_GYM_LEADER_2, 2, 0, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, -1, (1 << 3) | PAL_OW_GREEN, PERSONTYPE_SCRIPT, 0, RematchGreen1Script, EVENT_REMATCH_GYM_LEADER_2
+	person_event SPRITE_REMATCH_GYM_LEADER_2, 3, 0, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, -1, (1 << 3) | PAL_OW_BLUE, PERSONTYPE_SCRIPT, 0, RematchBlue1Script, EVENT_REMATCH_GYM_LEADER_3
+	person_event SPRITE_GUIDE_GENT, 4, 0, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, -1, (1 << 3) | PAL_OW_BLUE, PERSONTYPE_SCRIPT, 0, RematchBlue2Script, EVENT_REMATCH_GYM_LEADER_4
+	person_event SPRITE_REMATCH_GYM_LEADER_2, 5, 0, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, -1, (1 << 3) | PAL_OW_BROWN, PERSONTYPE_SCRIPT, 0, RematchBrown1Script, EVENT_REMATCH_GYM_LEADER_5
+	person_event SPRITE_GUIDE_GENT, 6, 0, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, -1, (1 << 3) | PAL_OW_BROWN, PERSONTYPE_SCRIPT, 0, RematchBrown2Script, EVENT_REMATCH_GYM_LEADER_6
+	person_event SPRITE_BLACK_BELT, 4, 4, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, -1, (1 << 3) | PAL_OW_BLUE, PERSONTYPE_SCRIPT, 0, BlackBeltScript_0x189b61, -1
+
+const_value set 1
 	const REMATCH_RED_1
 	const REMATCH_GREEN_2
 	const REMATCH_BLUE_2
@@ -7,15 +35,7 @@ const_value set 2
 	const REMATCH_BROWN_2
 	const REMATCH_BROWN_3
 
-FightingDojo_MapScriptHeader:
-.MapTriggers:
-	db 0
-
-.MapCallbacks:
-	db 1
-	dbw MAPCALLBACK_SPRITES, .SetupRematchesCallback
-
-.SetupRematchesCallback:
+FightingDojoSetupRematchesCallback:
 	disappear REMATCH_RED_1
 	disappear REMATCH_GREEN_2
 	disappear REMATCH_BLUE_2
@@ -69,12 +89,12 @@ ENDM
 	iftrue .MondayNight
 .MondayMorningAndDay
 	rematch_left REMATCH_BLUE_2, SPRITE_REMATCH_GYM_LEADER_2, SPRITE_FALKNER
-	rematch_right REMATCH_BLUE_3, SPRITE_REMATCH_GYM_LEADER_3, SPRITE_JANINE
+	rematch_right REMATCH_BLUE_3, SPRITE_GUIDE_GENT, SPRITE_JANINE
 	return
 .MondayNight
 	checkevent EVENT_BEAT_WALKER
 	iffalse .NoWalker
-	rematch REMATCH_BLUE_3, SPRITE_REMATCH_GYM_LEADER_3, SPRITE_WALKER, 4, 8, DOWN
+	rematch REMATCH_BLUE_3, SPRITE_GUIDE_GENT, SPRITE_WALKER, 4, 8, DOWN
 .NoWalker
 	return
 
@@ -83,7 +103,7 @@ ENDM
 	iftrue .TuesdayNight
 .TuesdayMorningAndDay
 	rematch_left REMATCH_BROWN_2, SPRITE_REMATCH_GYM_LEADER_2, SPRITE_PRYCE
-	rematch_right REMATCH_BROWN_3, SPRITE_REMATCH_GYM_LEADER_3, SPRITE_BLAINE
+	rematch_right REMATCH_BROWN_3, SPRITE_GUIDE_GENT, SPRITE_BLAINE
 	return
 .TuesdayNight
 	checkevent EVENT_BEAT_LORELEI_AGAIN
@@ -100,14 +120,14 @@ ENDM
 .WednesdayDay
 	rematch_left REMATCH_BROWN_2, SPRITE_REMATCH_GYM_LEADER_2, SPRITE_BROCK
 	rematch REMATCH_RED_1, SPRITE_REMATCH_GYM_LEADER_1, SPRITE_MISTY, 5, 2, RIGHT
-	rematch_right REMATCH_BLUE_3, SPRITE_REMATCH_GYM_LEADER_3, SPRITE_BLUE
+	rematch_right REMATCH_BLUE_3, SPRITE_GUIDE_GENT, SPRITE_BLUE
 	return
 .WednesdayMorning
 	rematch_left REMATCH_BROWN_2, SPRITE_REMATCH_GYM_LEADER_2, SPRITE_BROCK
 	rematch_right REMATCH_RED_1, SPRITE_REMATCH_GYM_LEADER_1, SPRITE_MISTY
 	return
 .WednesdayNight
-	rematch REMATCH_BLUE_3, SPRITE_REMATCH_GYM_LEADER_3, SPRITE_BLUE, 4, 8, DOWN
+	rematch REMATCH_BLUE_3, SPRITE_GUIDE_GENT, SPRITE_BLUE, 4, 8, DOWN
 	return
 
 .Thursday
@@ -125,7 +145,7 @@ ENDM
 	rematch REMATCH_GREEN_2, SPRITE_REMATCH_GYM_LEADER_2, SPRITE_BUGSY, 6, 1, DOWN
 	return
 .ThursdayNight
-	rematch REMATCH_BROWN_3, SPRITE_REMATCH_GYM_LEADER_3, SPRITE_MORTY, 4, 2, DOWN
+	rematch REMATCH_BROWN_3, SPRITE_GUIDE_GENT, SPRITE_MORTY, 4, 2, DOWN
 	return
 
 .Friday
@@ -161,7 +181,7 @@ ENDM
 .SaturdayNight
 	checkevent EVENT_BEAT_AGATHA
 	iffalse .NoAgatha
-	rematch REMATCH_BROWN_3, SPRITE_REMATCH_GYM_LEADER_3, SPRITE_AGATHA, 4, 2, DOWN
+	rematch REMATCH_BROWN_3, SPRITE_GUIDE_GENT, SPRITE_AGATHA, 4, 2, DOWN
 .NoAgatha
 	return
 
@@ -172,17 +192,11 @@ BlackBeltScript_0x189b61:
 .BlackBeltExplainsRematchesScript
 	jumptextfaceplayer BlackBeltText_ExplainsRematches
 
-MapFightingDojoSignpost0Script:
-	jumptext UnknownText_0x189bc0
-
-MapFightingDojoSignpost1Script:
-	jumptext UnknownText_0x189be0
-
 MapFightingDojoSignpost2Script:
 	opentext
 	writetext FightingDojoScheduleQuestionText
 	yesorno
-	iffalse .done
+	iffalse_endtext
 .sunday
 	writetext FightingDojoScheduleSundayText
 	waitbutton
@@ -228,15 +242,9 @@ MapFightingDojoSignpost2Script:
 .saturday
 	checkevent EVENT_BEAT_AGATHA
 	iftrue .saturday_agatha
-	writetext FightingDojoScheduleSaturdayText
-	waitbutton
-	jump .done
+	jumpopenedtext FightingDojoScheduleSaturdayText
 .saturday_agatha
-	writetext FightingDojoScheduleSaturdayAgathaText
-	waitbutton
-.done
-	closetext
-	end
+	jumpopenedtext FightingDojoScheduleSaturdayAgathaText
 
 RematchRed0Script:
 	checkcode VAR_WEEKDAY
@@ -366,10 +374,7 @@ rematch_script: MACRO
 	setflag \3
 	end
 .RematchDone
-	writetext \1Text_Done
-	waitbutton
-	closetext
-	end
+	jumpopenedtext \1Text_Done
 ENDM
 
 RematchBrockScript:
@@ -879,28 +884,3 @@ FightingDojoScheduleSaturdayAgathaText:
 	text "Saturday: Whitney,"
 	line "Chuck, Agatha"
 	done
-
-FightingDojo_MapEventHeader:
-.Warps:
-	db 2
-	warp_def $b, $4, 1, SAFFRON_CITY
-	warp_def $b, $5, 1, SAFFRON_CITY
-
-.XYTriggers:
-	db 0
-
-.Signposts:
-	db 3
-	signpost 0, 4, SIGNPOST_READ, MapFightingDojoSignpost0Script
-	signpost 0, 5, SIGNPOST_READ, MapFightingDojoSignpost1Script
-	signpost 0, 9, SIGNPOST_READ, MapFightingDojoSignpost2Script
-
-.PersonEvents:
-	db 7
-	person_event SPRITE_BLACK_BELT, 4, 4, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, -1, (1 << 3) | PAL_OW_BLUE, PERSONTYPE_SCRIPT, 0, BlackBeltScript_0x189b61, -1
-	person_event SPRITE_REMATCH_GYM_LEADER_1, 1, 0, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, -1, (1 << 3) | PAL_OW_RED, PERSONTYPE_SCRIPT, 0, RematchRed0Script, EVENT_REMATCH_GYM_LEADER_1
-	person_event SPRITE_REMATCH_GYM_LEADER_2, 2, 0, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, -1, (1 << 3) | PAL_OW_GREEN, PERSONTYPE_SCRIPT, 0, RematchGreen1Script, EVENT_REMATCH_GYM_LEADER_2
-	person_event SPRITE_REMATCH_GYM_LEADER_2, 3, 0, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, -1, (1 << 3) | PAL_OW_BLUE, PERSONTYPE_SCRIPT, 0, RematchBlue1Script, EVENT_REMATCH_GYM_LEADER_3
-	person_event SPRITE_REMATCH_GYM_LEADER_3, 4, 0, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, -1, (1 << 3) | PAL_OW_BLUE, PERSONTYPE_SCRIPT, 0, RematchBlue2Script, EVENT_REMATCH_GYM_LEADER_4
-	person_event SPRITE_REMATCH_GYM_LEADER_2, 5, 0, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, -1, (1 << 3) | PAL_OW_BROWN, PERSONTYPE_SCRIPT, 0, RematchBrown1Script, EVENT_REMATCH_GYM_LEADER_5
-	person_event SPRITE_REMATCH_GYM_LEADER_3, 6, 0, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, -1, (1 << 3) | PAL_OW_BROWN, PERSONTYPE_SCRIPT, 0, RematchBrown2Script, EVENT_REMATCH_GYM_LEADER_6

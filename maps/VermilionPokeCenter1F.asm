@@ -1,86 +1,31 @@
-const_value set 2
-	const VERMILIONPOKECENTER1F_NURSE
-	const VERMILIONPOKECENTER1F_SIGHTSEER_M
-	const VERMILIONPOKECENTER1F_SAILOR
-	const VERMILIONPOKECENTER1F_BUG_CATCHER
-
 VermilionPokeCenter1F_MapScriptHeader:
-.MapTriggers:
-	db 0
 
-.MapCallbacks:
-	db 0
+.MapTriggers: db 0
 
-NurseScript_0x191603:
-	jumpstd pokecenternurse
+.MapCallbacks: db 0
 
-SightseerMScript_0x191606:
-	faceplayer
-	opentext
-	checkevent EVENT_FOUGHT_SNORLAX
-	iftrue UnknownScript_0x191614
-	writetext UnknownText_0x191620
-	waitbutton
-	closetext
-	end
+VermilionPokeCenter1F_MapEventHeader:
 
-UnknownScript_0x191614:
-	writetext UnknownText_0x191698
-	waitbutton
-	closetext
-	end
+.Warps: db 3
+	warp_def 7, 5, 2, VERMILION_CITY
+	warp_def 7, 6, 2, VERMILION_CITY
+	warp_def 7, 0, 1, POKECENTER_2F
 
-SailorScript_0x19161a:
-	jumptextfaceplayer UnknownText_0x1916fe
+.XYTriggers: db 0
 
-BugCatcherScript_0x19161d:
-	jumptextfaceplayer UnknownText_0x19173b
+.Signposts: db 1
+	signpost 1, 10, SIGNPOST_READ, PokemonJournalLtSurgeScript
+
+.PersonEvents: db 4
+	pc_nurse_event 1, 5
+	person_event SPRITE_SIGHTSEER_M, 2, 8, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, -1, (1 << 3) | PAL_OW_RED, PERSONTYPE_SCRIPT, 0, VermilionPokeCenter1FSightseerMScript, -1
+	person_event SPRITE_SAILOR, 5, 2, SPRITEMOVEDATA_WALK_UP_DOWN, 1, 0, -1, -1, (1 << 3) | PAL_OW_BLUE, PERSONTYPE_COMMAND, jumptextfaceplayer, VermilionPokeCenter1FSailorText, -1
+	person_event SPRITE_BUG_CATCHER, 4, 9, SPRITEMOVEDATA_SPINRANDOM_SLOW, 0, 0, -1, -1, (1 << 3) | PAL_OW_GREEN, PERSONTYPE_COMMAND, jumptextfaceplayer, VermilionPokeCenter1FBugCatcherText, -1
 
 PokemonJournalLtSurgeScript:
 	setflag ENGINE_READ_LT_SURGE_JOURNAL
-	jumptext PokemonJournalLtSurgeText
+	thistext
 
-UnknownText_0x191620:
-	text "A sleeping #mon"
-	line "is lying in front"
-	cont "of Diglett's Cave."
-
-	para "It's a fantastic"
-	line "opportunity to get"
-
-	para "it, but how do you"
-	line "wake it up?"
-	done
-
-UnknownText_0x191698:
-	text "There used to be a"
-	line "sleeping #mon"
-
-	para "lying in front of"
-	line "Diglett's Cave."
-
-	para "But it seems to"
-	line "have disappeared."
-	done
-
-UnknownText_0x1916fe:
-	text "The Fast Ship is a"
-	line "great place to"
-
-	para "meet and battle"
-	line "trainers."
-	done
-
-UnknownText_0x19173b:
-	text "Oh? You have some"
-	line "Badges I've never"
-	cont "seen before."
-
-	para "Oh, I get it. You"
-	line "got them in Johto."
-	done
-
-PokemonJournalLtSurgeText:
 	text "#mon Journal"
 
 	para "Special Feature:"
@@ -99,23 +44,46 @@ PokemonJournalLtSurgeText:
 	line "er his plane."
 	done
 
-VermilionPokeCenter1F_MapEventHeader:
-.Warps:
-	db 3
-	warp_def $7, $5, 2, VERMILION_CITY
-	warp_def $7, $6, 2, VERMILION_CITY
-	warp_def $7, $0, 1, POKECENTER_2F
+VermilionPokeCenter1FSightseerMScript:
+	checkevent EVENT_VERMILION_CITY_SNORLAX
+	iftrue_jumptextfaceplayer .SnorlaxText
+	thistextfaceplayer
 
-.XYTriggers:
-	db 0
+	text "A sleeping #mon"
+	line "is lying in front"
+	cont "of Diglett's Cave."
 
-.Signposts:
-	db 1
-	signpost 1, 10, SIGNPOST_READ, PokemonJournalLtSurgeScript
+	para "It's a fantastic"
+	line "opportunity to get"
 
-.PersonEvents:
-	db 4
-	person_event SPRITE_NURSE, 1, 5, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, -1, 0, PERSONTYPE_SCRIPT, 0, NurseScript_0x191603, -1
-	person_event SPRITE_SIGHTSEER_M, 2, 8, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, -1, (1 << 3) | PAL_OW_RED, PERSONTYPE_SCRIPT, 0, SightseerMScript_0x191606, -1
-	person_event SPRITE_SAILOR, 5, 2, SPRITEMOVEDATA_WALK_UP_DOWN, 1, 0, -1, -1, (1 << 3) | PAL_OW_BLUE, PERSONTYPE_SCRIPT, 0, SailorScript_0x19161a, -1
-	person_event SPRITE_BUG_CATCHER, 4, 9, SPRITEMOVEDATA_SPINRANDOM_SLOW, 0, 0, -1, -1, (1 << 3) | PAL_OW_GREEN, PERSONTYPE_SCRIPT, 0, BugCatcherScript_0x19161d, -1
+	para "it, but how do you"
+	line "wake it up?"
+	done
+
+.SnorlaxText:
+	text "There used to be a"
+	line "sleeping #mon"
+
+	para "lying in front of"
+	line "Diglett's Cave."
+
+	para "But it seems to"
+	line "have disappeared."
+	done
+
+VermilionPokeCenter1FSailorText:
+	text "The Fast Ship is a"
+	line "great place to"
+
+	para "meet and battle"
+	line "trainers."
+	done
+
+VermilionPokeCenter1FBugCatcherText:
+	text "Oh? You have some"
+	line "Badges I've never"
+	cont "seen before."
+
+	para "Oh, I get it. You"
+	line "got them in Johto."
+	done

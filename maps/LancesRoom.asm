@@ -1,74 +1,104 @@
-const_value set 2
+LancesRoom_MapScriptHeader:
+
+.MapTriggers: db 1
+	dw LancesRoomEntranceTrigger
+
+.MapCallbacks: db 1
+	dbw MAPCALLBACK_TILES, LancesRoomDoorCallback
+
+LancesRoom_MapEventHeader:
+
+.Warps: db 4
+	warp_def 23, 4, 3, KARENS_ROOM
+	warp_def 23, 5, 4, KARENS_ROOM
+	warp_def 1, 4, 1, HALL_OF_FAME
+	warp_def 1, 5, 2, HALL_OF_FAME
+
+.XYTriggers: db 2
+	xy_trigger 1, 5, 4, ApproachLanceFromLeftTrigger
+	xy_trigger 1, 5, 5, ApproachLanceFromRightTrigger
+
+.Signposts: db 0
+
+.PersonEvents: db 3
+	person_event SPRITE_LANCE, 3, 5, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, -1, 0, PERSONTYPE_SCRIPT, 0, LanceScript, -1
+	person_event SPRITE_BUENA, 7, 4, SPRITEMOVEDATA_STANDING_UP, 0, 0, -1, -1, (1 << 3) | PAL_OW_RED, PERSONTYPE_SCRIPT, 0, ObjectEvent, EVENT_LANCES_ROOM_OAK_AND_MARY
+	person_event SPRITE_OAK, 7, 4, SPRITEMOVEDATA_STANDING_UP, 0, 0, -1, -1, 0, PERSONTYPE_SCRIPT, 0, ObjectEvent, EVENT_LANCES_ROOM_OAK_AND_MARY
+
+const_value set 1
 	const LANCESROOM_LANCE
 	const LANCESROOM_MARY
 	const LANCESROOM_OAK
 
-LancesRoom_MapScriptHeader:
-.MapTriggers:
-	db 1
-	dw .Trigger0
-
-.MapCallbacks:
-	db 1
-	dbw MAPCALLBACK_TILES, .CheckDoor
-
-.Trigger0:
-	priorityjump LancesRoom_PlayerWalksIn_DoorsCloseBehind
+LancesRoomEntranceTrigger:
+	priorityjump .Script
 	end
 
-.CheckDoor:
-	checkevent EVENT_LANCES_ROOM_ENTRANCE_CLOSED
-	iffalse .LanceEntranceOpen
-	changeblock $4, $16, $34
-.LanceEntranceOpen:
-	checkevent EVENT_LANCES_ROOM_EXIT_OPEN
-	iffalse .LanceExitClosed
-	changeblock $4, $0, $b
-.LanceExitClosed:
-	return
-
-LancesRoom_PlayerWalksIn_DoorsCloseBehind:
-	applymovement PLAYER, LancesRoom_PlayerWalksInMovementData
-	refreshscreen $86
+.Script:
+	applymovement PLAYER, WalkIntoEliteFourRoomMovement
+	refreshscreen
 	playsound SFX_STRENGTH
 	earthquake 80
-	changeblock $4, $16, $34
+	changeblock 4, 22, $34
 	reloadmappart
 	closetext
 	dotrigger $1
 	setevent EVENT_LANCES_ROOM_ENTRANCE_CLOSED
 	end
 
-Script_ApproachLanceFromLeft:
-	special Special_FadeOutMusic
-	applymovement PLAYER, MovementData_ApproachLanceFromLeft
-	jump LanceScript_0x180e7b
+WalkIntoEliteFourRoomMovement:
+	step_up
+	step_up
+	step_up
+	step_up
+	step_end
 
-Script_ApproachLanceFromRight:
+LancesRoomDoorCallback:
+	checkevent EVENT_LANCES_ROOM_ENTRANCE_CLOSED
+	iffalse .LanceEntranceOpen
+	changeblock 4, 22, $34
+.LanceEntranceOpen:
+	checkevent EVENT_LANCES_ROOM_EXIT_OPEN
+	iffalse .LanceExitClosed
+	changeblock 4, 0, $b
+.LanceExitClosed:
+	return
+
+ApproachLanceFromLeftTrigger:
 	special Special_FadeOutMusic
-	applymovement PLAYER, MovementData_ApproachLanceFromRight
-LanceScript_0x180e7b:
+	applymovement PLAYER, ApproachLanceFromLeftMovement
+	jump LanceScript
+
+ApproachLanceFromRightTrigger:
+	special Special_FadeOutMusic
+	applymovement PLAYER, ApproachLanceFromRightMovement
+LanceScript:
 	spriteface LANCESROOM_LANCE, LEFT
-	opentext
 	checkcode VAR_BADGES
-	if_equal 16, LanceRematchScript
-	writetext LanceBattleIntroText
-	waitbutton
-	closetext
-	winlosstext LanceBattleWinText, 0
+	if_equal 16, .Rematch
+	showtext .SeenText
+	winlosstext .BeatenText, 0
 	setlasttalked LANCESROOM_LANCE
 	loadtrainer CHAMPION, LANCE
 	startbattle
 	dontrestartmapmusic
 	reloadmapafterbattle
+	showtext .AfterText
+	jump .EndBattle
+
+.Rematch:
+	showtext .SeenRematchText
+	winlosstext .BeatenText, 0
+	setlasttalked LANCESROOM_LANCE
+	loadtrainer CHAMPION, LANCE2
+	startbattle
+	dontrestartmapmusic
+	reloadmapafterbattle
+	showtext .AfterRematchText
+.EndBattle:
 	setevent EVENT_BEAT_CHAMPION_LANCE
-	opentext
-	writetext LanceBattleAfterText
-LanceEndBattleScript:
-	waitbutton
-	closetext
 	playsound SFX_ENTER_DOOR
-	changeblock $4, $0, $b
+	changeblock 4, 0, $b
 	reloadmappart
 	closetext
 	setevent EVENT_LANCES_ROOM_ENTRANCE_CLOSED
@@ -79,148 +109,45 @@ LanceEndBattleScript:
 	pause 10
 	spriteface PLAYER, DOWN
 	appear LANCESROOM_MARY
-	applymovement LANCESROOM_MARY, LancesRoomMovementData_MaryRushesIn
-	opentext
-	writetext UnknownText_0x1811dd
-	waitbutton
-	closetext
+	applymovement LANCESROOM_MARY, .RushInMovement
+	showtext .MaryText1
 	appear LANCESROOM_OAK
-	applymovement LANCESROOM_OAK, LancesRoomMovementData_OakWalksIn
+	applymovement LANCESROOM_OAK, .WalkInMovement
 	follow LANCESROOM_MARY, LANCESROOM_OAK
-	applymovement LANCESROOM_MARY, LancesRoomMovementData_MaryYieldsToOak
+	applymovement LANCESROOM_MARY, .StepAsideMovement
 	stopfollow
 	spriteface LANCESROOM_OAK, UP
 	spriteface LANCESROOM_LANCE, LEFT
-	opentext
-	writetext UnknownText_0x18121b
-	waitbutton
-	closetext
-	applymovement LANCESROOM_MARY, LancesRoomMovementData_MaryInterviewChampion
+	showtext .OakSpeechText
+	applymovement LANCESROOM_MARY, .ApproachPlayerMovement
 	spriteface PLAYER, LEFT
-	opentext
-	writetext UnknownText_0x18134b
-	waitbutton
-	closetext
-	applymovement LANCESROOM_LANCE, LancesRoomMovementData_LancePositionsSelfToGuidePlayerAway
+	showtext .MaryText2
+	applymovement LANCESROOM_LANCE, .WalkTowardExitMovement
 	spriteface PLAYER, UP
-	opentext
-	writetext UnknownText_0x18137b
-	waitbutton
-	closetext
+	showtext .LanceLeavingText
 	follow LANCESROOM_LANCE, PLAYER
 	spriteface LANCESROOM_MARY, UP
 	spriteface LANCESROOM_OAK, UP
-	applymovement LANCESROOM_LANCE, LancesRoomMovementData_LanceLeadsPlayerToHallOfFame
+	applyonemovement LANCESROOM_LANCE, step_up
 	stopfollow
 	playsound SFX_EXIT_BUILDING
 	disappear LANCESROOM_LANCE
-	applymovement PLAYER, LancesRoomMovementData_PlayerExits
+	applyonemovement PLAYER, step_up
 	playsound SFX_EXIT_BUILDING
 	disappear PLAYER
-	applymovement LANCESROOM_MARY, LancesRoomMovementData_MaryTriesToFollow
+	applymovement LANCESROOM_MARY, .TryToFollowMovement
 	showemote EMOTE_SHOCK, LANCESROOM_MARY, 15
 	opentext
-	writetext UnknownText_0x1813c5
+	writetext .MaryText3
 	pause 30
 	closetext
-	applymovement LANCESROOM_MARY, LancesRoomMovementData_MaryRunsBackAndForth
+	applymovement LANCESROOM_MARY, .RunBackAndForthMovement
 	special FadeOutPalettes
 	pause 15
-	warpfacing UP, HALL_OF_FAME, $4, $d
+	warpfacing UP, HALL_OF_FAME, 4, 13
 	end
 
-LanceRematchScript:
-	writetext LanceBeforeRematchText
-	waitbutton
-	closetext
-	winlosstext LanceBattleWinText, 0
-	setlasttalked LANCESROOM_LANCE
-	loadtrainer CHAMPION, LANCE2
-	startbattle
-	dontrestartmapmusic
-	reloadmapafterbattle
-	setevent EVENT_BEAT_CHAMPION_LANCE
-	opentext
-	writetext LanceAfterRematchText
-	jump LanceEndBattleScript
-
-LancesRoom_PlayerWalksInMovementData:
-	step_up
-	step_up
-	step_up
-	step_up
-	step_end
-
-MovementData_ApproachLanceFromLeft:
-	step_up
-	step_up
-	turn_head_right
-	step_end
-
-MovementData_ApproachLanceFromRight:
-	step_up
-	step_left
-	step_up
-	turn_head_right
-	step_end
-
-LancesRoomMovementData_MaryRushesIn:
-	big_step_up
-	big_step_up
-	big_step_up
-	turn_head_down
-	step_end
-
-LancesRoomMovementData_OakWalksIn:
-	step_up
-	step_up
-	step_end
-
-LancesRoomMovementData_MaryYieldsToOak:
-	step_left
-	turn_head_right
-	step_end
-
-LancesRoomMovementData_MaryInterviewChampion:
-	big_step_up
-	turn_head_right
-	step_end
-
-LancesRoomMovementData_LancePositionsSelfToGuidePlayerAway:
-	step_up
-	step_left
-	turn_head_down
-	step_end
-
-LancesRoomMovementData_LanceLeadsPlayerToHallOfFame:
-	step_up
-	step_end
-
-LancesRoomMovementData_PlayerExits:
-	step_up
-	step_end
-
-LancesRoomMovementData_MaryTriesToFollow:
-	step_up
-	step_right
-	turn_head_up
-	step_end
-
-LancesRoomMovementData_MaryRunsBackAndForth:
-	big_step_right
-	big_step_right
-	big_step_left
-	big_step_left
-	big_step_left
-	big_step_right
-	big_step_right
-	big_step_right
-	big_step_left
-	big_step_left
-	turn_head_up
-	step_end
-
-LanceBattleIntroText:
+.SeenText:
 	text "Lance: I've been"
 	line "waiting for you."
 
@@ -252,7 +179,7 @@ LanceBattleIntroText:
 	cont "your challenge!"
 	done
 
-LanceBattleWinText:
+.BeatenText:
 	text "…It's over."
 
 	para "But it's an odd"
@@ -269,7 +196,7 @@ LanceBattleWinText:
 	line "Champion!"
 	done
 
-LanceBattleAfterText:
+.AfterText:
 	text "…Whew."
 
 	para "You have become"
@@ -289,7 +216,7 @@ LanceBattleAfterText:
 	line "your #mon."
 	done
 
-LanceBeforeRematchText:
+.SeenRematchText:
 	text "Lance: There's no"
 	line "need for words"
 	cont "now."
@@ -305,7 +232,7 @@ LanceBeforeRematchText:
 	cont "your challenge!"
 	done
 
-LanceAfterRematchText:
+.AfterRematchText:
 	text "Just as I"
 	line "expected."
 
@@ -320,7 +247,7 @@ LanceAfterRematchText:
 	line "your #mon."
 	done
 
-UnknownText_0x1811dd:
+.MaryText1:
 	text "Mary: Oh, no!"
 	line "It's all over!"
 
@@ -328,7 +255,7 @@ UnknownText_0x1811dd:
 	line "weren't so slow…"
 	done
 
-UnknownText_0x18121b:
+.OakSpeechText:
 	text "Prof.Oak: Ah,"
 	line "<PLAYER>!"
 
@@ -361,13 +288,13 @@ UnknownText_0x18121b:
 	line "<PLAYER>!"
 	done
 
-UnknownText_0x18134b:
+.MaryText2:
 	text "Mary: Let's inter-"
 	line "view the brand new"
 	cont "Champion!"
 	done
 
-UnknownText_0x18137b:
+.LanceLeavingText:
 	text "Lance: This is"
 	line "getting to be a"
 	cont "bit too noisy…"
@@ -376,30 +303,69 @@ UnknownText_0x18137b:
 	line "come with me?"
 	done
 
-UnknownText_0x1813c5:
+.MaryText3:
 	text "Mary: Oh, wait!"
 	line "We haven't done"
 	cont "the interview!"
 	done
 
-LancesRoom_MapEventHeader:
-.Warps:
-	db 4
-	warp_def $17, $4, 3, KARENS_ROOM
-	warp_def $17, $5, 4, KARENS_ROOM
-	warp_def $1, $4, 1, HALL_OF_FAME
-	warp_def $1, $5, 2, HALL_OF_FAME
+.RushInMovement:
+	big_step_up
+	big_step_up
+	big_step_up
+	turn_head_down
+	step_end
 
-.XYTriggers:
-	db 2
-	xy_trigger 1, $5, $4, Script_ApproachLanceFromLeft
-	xy_trigger 1, $5, $5, Script_ApproachLanceFromRight
+.WalkInMovement:
+	step_up
+	step_up
+	step_end
 
-.Signposts:
-	db 0
+.StepAsideMovement:
+	step_left
+	turn_head_right
+	step_end
 
-.PersonEvents:
-	db 3
-	person_event SPRITE_LANCE, 3, 5, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, -1, 0, PERSONTYPE_SCRIPT, 0, LanceScript_0x180e7b, -1
-	person_event SPRITE_TEACHER, 7, 4, SPRITEMOVEDATA_STANDING_UP, 0, 0, -1, -1, (1 << 3) | PAL_OW_GREEN, PERSONTYPE_SCRIPT, 0, ObjectEvent, EVENT_LANCES_ROOM_OAK_AND_MARY
-	person_event SPRITE_OAK, 7, 4, SPRITEMOVEDATA_STANDING_UP, 0, 0, -1, -1, 0, PERSONTYPE_SCRIPT, 0, ObjectEvent, EVENT_LANCES_ROOM_OAK_AND_MARY
+.ApproachPlayerMovement:
+	big_step_up
+	turn_head_right
+	step_end
+
+.WalkTowardExitMovement:
+	step_up
+	step_left
+	turn_head_down
+	step_end
+
+.TryToFollowMovement:
+	step_up
+	step_right
+	turn_head_up
+	step_end
+
+.RunBackAndForthMovement:
+	big_step_right
+	big_step_right
+	big_step_left
+	big_step_left
+	big_step_left
+	big_step_right
+	big_step_right
+	big_step_right
+	big_step_left
+	big_step_left
+	turn_head_up
+	step_end
+
+ApproachLanceFromLeftMovement:
+	step_up
+	step_up
+	turn_head_right
+	step_end
+
+ApproachLanceFromRightMovement:
+	step_up
+	step_left
+	step_up
+	turn_head_right
+	step_end

@@ -1,43 +1,49 @@
-const_value set 2
+SlowpokeWellB1F_MapScriptHeader:
+
+.MapTriggers: db 0
+
+.MapCallbacks: db 0
+
+SlowpokeWellB1F_MapEventHeader:
+
+.Warps: db 2
+	warp_def 15, 17, 6, AZALEA_TOWN
+	warp_def 11, 7, 1, SLOWPOKE_WELL_B2F
+
+.XYTriggers: db 0
+
+.Signposts: db 0
+
+.PersonEvents: db 9
+	person_event SPRITE_PROTON, 2, 5, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, -1, (1 << 3) | PAL_OW_GREEN, PERSONTYPE_TRAINER, 1, TrainerProton2, EVENT_SLOWPOKE_WELL_ROCKETS
+	person_event SPRITE_ROCKET, 7, 15, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, -1, 0, PERSONTYPE_TRAINER, 3, TrainerGruntM29, EVENT_SLOWPOKE_WELL_ROCKETS
+	person_event SPRITE_ROCKET, 6, 5, SPRITEMOVEDATA_STANDING_RIGHT, 0, 0, -1, -1, 0, PERSONTYPE_TRAINER, 2, TrainerGruntM2, EVENT_SLOWPOKE_WELL_ROCKETS
+	person_event SPRITE_ROCKET_GIRL, 4, 10, SPRITEMOVEDATA_STANDING_RIGHT, 0, 0, -1, -1, (1 << 3) | PAL_OW_RED, PERSONTYPE_TRAINER, 4, TrainerGruntF1, EVENT_SLOWPOKE_WELL_ROCKETS
+	person_event SPRITE_KURT, 14, 16, SPRITEMOVEDATA_STANDING_UP, 0, 0, -1, -1, 0, PERSONTYPE_COMMAND, jumptextfaceplayer, UnknownText_0x5a6b5, EVENT_SLOWPOKE_WELL_KURT
+	person_event SPRITE_SLOWPOKETAIL, 4, 7, SPRITEMOVEDATA_POKEMON, 0, 0, -1, -1, (1 << 3) | PAL_OW_RED, PERSONTYPE_SCRIPT, 0, SlowpokeScript_0x5a681, EVENT_SLOWPOKE_WELL_SLOWPOKES
+	person_event SPRITE_SLOWPOKETAIL, 2, 6, SPRITEMOVEDATA_POKEMON, 0, 0, -1, -1, (1 << 3) | PAL_OW_RED, PERSONTYPE_POKEMON, SLOWPOKE, UnknownText_0x5ac61, EVENT_SLOWPOKE_WELL_SLOWPOKES
+	strengthboulder_event 2, 3
+	itemball_event 3, 10, SUPER_POTION, 1, EVENT_SLOWPOKE_WELL_B1F_SUPER_POTION
+
+const_value set 1
 	const SLOWPOKEWELLB1F_PROTON
 	const SLOWPOKEWELLB1F_ROCKET1
 	const SLOWPOKEWELLB1F_ROCKET2
 	const SLOWPOKEWELLB1F_ROCKET_GIRL
-	const SLOWPOKEWELLB1F_SLOWPOKE1
-	const SLOWPOKEWELLB1F_SLOWPOKE2
 	const SLOWPOKEWELLB1F_KURT
-	const SLOWPOKEWELLB1F_BOULDER
-	const SLOWPOKEWELLB1F_POKE_BALL
-
-SlowpokeWellB1F_MapScriptHeader:
-.MapTriggers:
-	db 0
-
-.MapCallbacks:
-	db 0
-
-KurtScript_0x5a5d5:
-	jumptextfaceplayer UnknownText_0x5a6b5
 
 TrainerGruntM29:
 	trainer EVENT_BEAT_ROCKET_GRUNTM_29, GRUNTM, 29, GruntM29SeenText, GruntM29BeatenText, 0, GruntM29Script
 
 GruntM29Script:
 	end_if_just_battled
-	opentext
-	writetext TrainerGruntM29SlowpokeProfitText
-	waitbutton
-	closetext
-	end
+	jumptextfaceplayer TrainerGruntM29SlowpokeProfitText
 
 TrainerProton2:
 	trainer EVENT_BEAT_PROTON_2, PROTON, PROTON2, Proton2SeenText, Proton2BeatenText, 0, Proton2Script
 
 Proton2Script:
-	opentext
-	writetext TrainerProton2WhenTalkText
-	waitbutton
-	closetext
+	showtext TrainerProton2WhenTalkText
 	special Special_FadeBlackQuickly
 	special Special_ReloadSpritesNoPalettes
 	disappear SLOWPOKEWELLB1F_PROTON
@@ -47,16 +53,13 @@ Proton2Script:
 	pause 15
 	special Special_FadeInQuickly
 	disappear SLOWPOKEWELLB1F_KURT
-	moveperson SLOWPOKEWELLB1F_KURT, $b, $6
+	moveperson SLOWPOKEWELLB1F_KURT, 11, 6
 	appear SLOWPOKEWELLB1F_KURT
 	applymovement SLOWPOKEWELLB1F_KURT, KurtSlowpokeWellVictoryMovementData
 	spriteface PLAYER, RIGHT
-	opentext
-	writetext KurtLeaveSlowpokeWellText
-	waitbutton
-	closetext
+	showtext KurtLeaveSlowpokeWellText
 	setevent EVENT_CLEARED_SLOWPOKE_WELL
-	variablesprite SPRITE_AZALEA_ROCKET, SPRITE_SILVER
+	domaptrigger ILEX_FOREST, $2
 	clearevent EVENT_ILEX_FOREST_APPRENTICE
 	clearevent EVENT_ILEX_FOREST_FARFETCHD
 	setevent EVENT_CHARCOAL_KILN_FARFETCH_D
@@ -69,7 +72,7 @@ Proton2Script:
 	special FadeOutPalettes
 	special HealParty
 	pause 15
-	warp KURTS_HOUSE, $3, $3
+	warp KURTS_HOUSE, 3, 3
 	end
 
 TrainerGruntM2:
@@ -77,22 +80,14 @@ TrainerGruntM2:
 
 GruntM2Script:
 	end_if_just_battled
-	opentext
-	writetext UnknownText_0x5aaf2
-	waitbutton
-	closetext
-	end
+	jumptextfaceplayer UnknownText_0x5aaf2
 
 TrainerGruntF1:
 	trainer EVENT_BEAT_ROCKET_GRUNTF_1, GRUNTF, 1, GruntF1SeenText, GruntF1BeatenText, 0, GruntF1Script
 
 GruntF1Script:
 	end_if_just_battled
-	opentext
-	writetext UnknownText_0x5ab8d
-	waitbutton
-	closetext
-	end
+	jumptextfaceplayer UnknownText_0x5ab8d
 
 SlowpokeScript_0x5a681:
 	faceplayer
@@ -100,30 +95,8 @@ SlowpokeScript_0x5a681:
 	cry SLOWPOKE
 	writetext UnknownText_0x5abcb
 	yesorno
-	iftrue UnknownScript_0x5a68f
-	closetext
-	end
-
-UnknownScript_0x5a68f:
-	writetext UnknownText_0x5ac09
-	waitbutton
-	closetext
-	end
-
-SlowpokeScript_0x5a695:
-	faceplayer
-	opentext
-	writetext UnknownText_0x5ac61
-	cry SLOWPOKE
-	waitbutton
-	closetext
-	end
-
-SlowpokeWellB1FBoulder:
-	jumpstd strengthboulder
-
-SlowpokeWellB1FSuperPotion:
-	itemball SUPER_POTION
+	iftrue_jumpopenedtext UnknownText_0x5ac09
+	endtext
 
 KurtSlowpokeWellVictoryMovementData:
 	step_left
@@ -324,27 +297,3 @@ UnknownText_0x5ac61:
 	text "A Slowpoke with"
 	line "its tail cut off…"
 	done
-
-SlowpokeWellB1F_MapEventHeader:
-.Warps:
-	db 2
-	warp_def $f, $11, 6, AZALEA_TOWN
-	warp_def $b, $7, 1, SLOWPOKE_WELL_B2F
-
-.XYTriggers:
-	db 0
-
-.Signposts:
-	db 0
-
-.PersonEvents:
-	db 9
-	person_event SPRITE_PROTON, 2, 5, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, -1, (1 << 3) | PAL_OW_GREEN, PERSONTYPE_TRAINER, 1, TrainerProton2, EVENT_SLOWPOKE_WELL_ROCKETS
-	person_event SPRITE_ROCKET, 7, 15, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, -1, 0, PERSONTYPE_TRAINER, 3, TrainerGruntM29, EVENT_SLOWPOKE_WELL_ROCKETS
-	person_event SPRITE_ROCKET, 6, 5, SPRITEMOVEDATA_STANDING_RIGHT, 0, 0, -1, -1, 0, PERSONTYPE_TRAINER, 2, TrainerGruntM2, EVENT_SLOWPOKE_WELL_ROCKETS
-	person_event SPRITE_ROCKET_GIRL, 4, 10, SPRITEMOVEDATA_STANDING_RIGHT, 0, 0, -1, -1, (1 << 3) | PAL_OW_RED, PERSONTYPE_TRAINER, 4, TrainerGruntF1, EVENT_SLOWPOKE_WELL_ROCKETS
-	person_event SPRITE_SLOWPOKE, 4, 7, SPRITEMOVEDATA_POKEMON, 0, 0, -1, -1, (1 << 3) | PAL_OW_RED, PERSONTYPE_SCRIPT, 0, SlowpokeScript_0x5a681, EVENT_SLOWPOKE_WELL_SLOWPOKES
-	person_event SPRITE_SLOWPOKE, 2, 6, SPRITEMOVEDATA_POKEMON, 0, 0, -1, -1, (1 << 3) | PAL_OW_RED, PERSONTYPE_SCRIPT, 0, SlowpokeScript_0x5a695, EVENT_SLOWPOKE_WELL_SLOWPOKES
-	person_event SPRITE_KURT, 14, 16, SPRITEMOVEDATA_STANDING_UP, 0, 0, -1, -1, 0, PERSONTYPE_SCRIPT, 0, KurtScript_0x5a5d5, EVENT_SLOWPOKE_WELL_KURT
-	person_event SPRITE_ROCK_BOULDER_FOSSIL, 2, 3, SPRITEMOVEDATA_STRENGTH_BOULDER, 0, 0, -1, -1, 0, PERSONTYPE_SCRIPT, 0, SlowpokeWellB1FBoulder, -1
-	person_event SPRITE_BALL_CUT_FRUIT, 3, 10, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, -1, (1 << 3) | PAL_OW_RED, PERSONTYPE_ITEMBALL, 0, SlowpokeWellB1FSuperPotion, EVENT_SLOWPOKE_WELL_B1F_SUPER_POTION

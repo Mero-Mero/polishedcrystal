@@ -1,85 +1,72 @@
-const_value set 2
-	const SEAFOAMGYM_BLAINE
-	const SEAFOAMGYM_SCIENTIST1
-	const SEAFOAMGYM_SCIENTIST2
-	const SEAFOAMGYM_SUPER_NERD1
-	const SEAFOAMGYM_SCIENTIST3
-	const SEAFOAMGYM_SUPER_NERD2
-	const SEAFOAMGYM_SUPER_NERD3
-	const SEAFOAMGYM_GYM_GUY
-
 SeafoamGym_MapScriptHeader:
-.MapTriggers:
-	db 0
 
-.MapCallbacks:
-	db 0
+.MapTriggers: db 0
+
+.MapCallbacks: db 0
+
+SeafoamGym_MapEventHeader:
+
+.Warps: db 1
+	warp_def 20, 12, 2, SEAFOAM_ISLANDS_1F
+
+.XYTriggers: db 0
+
+.Signposts: db 0
+
+.PersonEvents: db 8
+	person_event SPRITE_GYM_GUY, 20, 10, SPRITEMOVEDATA_STANDING_UP, 0, 0, -1, -1, (1 << 3) | PAL_OW_BLUE, PERSONTYPE_SCRIPT, 0, SeafoamGymGuyScript, EVENT_SEAFOAM_GYM_GYM_GUY
+	person_event SPRITE_SCIENTIST, 16, 7, SPRITEMOVEDATA_STANDING_RIGHT, 0, 0, -1, -1, (1 << 3) | PAL_OW_BLUE, PERSONTYPE_TRAINER, 1, TrainerScientistLowell, -1
+	person_event SPRITE_SCIENTIST, 14, 14, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, -1, (1 << 3) | PAL_OW_BLUE, PERSONTYPE_TRAINER, 1, TrainerScientistDennett, -1
+	person_event SPRITE_SUPER_NERD, 12, 19, SPRITEMOVEDATA_STANDING_LEFT, 0, 0, -1, -1, (1 << 3) | PAL_OW_BROWN, PERSONTYPE_TRAINER, 1, TrainerSupernerdCary, -1
+	person_event SPRITE_SCIENTIST, 7, 12, SPRITEMOVEDATA_STANDING_RIGHT, 0, 0, -1, -1, (1 << 3) | PAL_OW_BLUE, PERSONTYPE_TRAINER, 1, TrainerScientistLinden, -1
+	person_event SPRITE_SUPER_NERD, 5, 10, SPRITEMOVEDATA_STANDING_LEFT, 0, 0, -1, -1, (1 << 3) | PAL_OW_BROWN, PERSONTYPE_TRAINER, 1, TrainerSupernerdWaldo, -1
+	person_event SPRITE_SUPER_NERD, 14, 6, SPRITEMOVEDATA_STANDING_UP, 0, 0, -1, -1, (1 << 3) | PAL_OW_BROWN, PERSONTYPE_TRAINER, 1, TrainerSupernerdMerle, -1
+	person_event SPRITE_BLAINE, 11, 12, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, -1, (1 << 3) | PAL_OW_BROWN, PERSONTYPE_SCRIPT, 0, BlaineScript_0x1ab4fb, -1
+
+const_value set 1
+	const SEAFOAMGYM_GYM_GUY
 
 TrainerScientistLowell:
 	trainer EVENT_BEAT_SCIENTIST_LOWELL, SCIENTIST, LOWELL, ScientistLowellSeenText, ScientistLowellBeatenText, 0, ScientistLowellScript
 
 ScientistLowellScript:
 	end_if_just_battled
-	opentext
-	writetext ScientistLowellAfterText
-	waitbutton
-	closetext
-	end
+	jumptextfaceplayer ScientistLowellAfterText
 
 TrainerScientistDennett:
 	trainer EVENT_BEAT_SCIENTIST_DENNETT, SCIENTIST, DENNETT, ScientistDennettSeenText, ScientistDennettBeatenText, 0, ScientistDennettScript
 
 ScientistDennettScript:
 	end_if_just_battled
-	opentext
-	writetext ScientistDennettAfterText
-	waitbutton
-	closetext
-	end
+	jumptextfaceplayer ScientistDennettAfterText
 
 TrainerSupernerdCary:
 	trainer EVENT_BEAT_SUPER_NERD_CARY, SUPER_NERD, CARY, SupernerdCarySeenText, SupernerdCaryBeatenText, 0, SupernerdCaryScript
 
 SupernerdCaryScript:
 	end_if_just_battled
-	opentext
-	writetext SupernerdCaryAfterText
-	waitbutton
-	closetext
-	end
+	jumptextfaceplayer SupernerdCaryAfterText
 
 TrainerScientistLinden:
 	trainer EVENT_BEAT_SCIENTIST_LINDEN, SCIENTIST, LINDEN, ScientistLindenSeenText, ScientistLindenBeatenText, 0, ScientistLindenScript
 
 ScientistLindenScript:
 	end_if_just_battled
-	opentext
-	writetext ScientistLindenAfterText
-	waitbutton
-	closetext
-	end
+	jumptextfaceplayer ScientistLindenAfterText
 
 TrainerSupernerdWaldo:
 	trainer EVENT_BEAT_SUPER_NERD_WALDO, SUPER_NERD, WALDO, SupernerdWaldoSeenText, SupernerdWaldoBeatenText, 0, SupernerdWaldoScript
 
 SupernerdWaldoScript:
 	end_if_just_battled
-	opentext
-	writetext SupernerdWaldoAfterText
-	waitbutton
-	closetext
-	end
+	jumptextfaceplayer SupernerdWaldoAfterText
 
 TrainerSupernerdMerle:
 	trainer EVENT_BEAT_SUPER_NERD_MERLE, SUPER_NERD, MERLE, SupernerdMerleSeenText, SupernerdMerleBeatenText, 0, SupernerdMerleScript
 
 SupernerdMerleScript:
 	end_if_just_battled
-	opentext
-	writetext SupernerdMerleAfterText
-	waitbutton
-	closetext
-	end
+	jumptextfaceplayer SupernerdMerleAfterText
 
 BlaineScript_0x1ab4fb:
 	faceplayer
@@ -130,16 +117,10 @@ BlaineScript_0x1ab4fb:
 	buttonsound
 	verbosegivetmhm TM_WILL_O_WISP
 	setevent EVENT_GOT_TM61_WILL_O_WISP
-	writetext BlaineOutroText
-	waitbutton
-	closetext
-	end
+	jumpopenedtext BlaineOutroText
 
 BlaineAfterTMScript:
-	writetext UnknownText_0x1ab71c
-	waitbutton
-	closetext
-	end
+	jumpopenedtext UnknownText_0x1ab71c
 
 SeafoamGymGuyScript:
 	faceplayer
@@ -153,10 +134,7 @@ SeafoamGymGuyScript:
 	end
 
 .TalkedToSeafoamGymGuyScript:
-	writetext SeafoamGymGuyWinText2
-	waitbutton
-	closetext
-	end
+	jumpopenedtext SeafoamGymGuyWinText2
 
 ScientistLowellSeenText:
 	text "This lab coat"
@@ -305,7 +283,7 @@ UnknownText_0x1ab683:
 
 UnknownText_0x1ab69d:
 	text "Here, I'll give you"
-	line "this, too. "
+	line "this, too."
 	done
 
 BlaineOutroText:
@@ -366,25 +344,3 @@ SeafoamGymGuyWinText2:
 	para "There's no need"
 	line "for a building."
 	done
-
-SeafoamGym_MapEventHeader:
-.Warps:
-	db 1
-	warp_def $14, $c, 2, SEAFOAM_ISLANDS_1F
-
-.XYTriggers:
-	db 0
-
-.Signposts:
-	db 0
-
-.PersonEvents:
-	db 8
-	person_event SPRITE_SCIENTIST, 16, 7, SPRITEMOVEDATA_STANDING_RIGHT, 0, 0, -1, -1, (1 << 3) | PAL_OW_BLUE, PERSONTYPE_TRAINER, 1, TrainerScientistLowell, -1
-	person_event SPRITE_SCIENTIST, 14, 14, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, -1, (1 << 3) | PAL_OW_BLUE, PERSONTYPE_TRAINER, 1, TrainerScientistDennett, -1
-	person_event SPRITE_SUPER_NERD, 12, 19, SPRITEMOVEDATA_STANDING_LEFT, 0, 0, -1, -1, (1 << 3) | PAL_OW_BROWN, PERSONTYPE_TRAINER, 1, TrainerSupernerdCary, -1
-	person_event SPRITE_SCIENTIST, 7, 12, SPRITEMOVEDATA_STANDING_RIGHT, 0, 0, -1, -1, (1 << 3) | PAL_OW_BLUE, PERSONTYPE_TRAINER, 1, TrainerScientistLinden, -1
-	person_event SPRITE_SUPER_NERD, 5, 10, SPRITEMOVEDATA_STANDING_LEFT, 0, 0, -1, -1, (1 << 3) | PAL_OW_BROWN, PERSONTYPE_TRAINER, 1, TrainerSupernerdWaldo, -1
-	person_event SPRITE_SUPER_NERD, 14, 6, SPRITEMOVEDATA_STANDING_UP, 0, 0, -1, -1, (1 << 3) | PAL_OW_BROWN, PERSONTYPE_TRAINER, 1, TrainerSupernerdMerle, -1
-	person_event SPRITE_BLAINE, 11, 12, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, -1, (1 << 3) | PAL_OW_BROWN, PERSONTYPE_SCRIPT, 0, BlaineScript_0x1ab4fb, -1
-	person_event SPRITE_GYM_GUY, 20, 10, SPRITEMOVEDATA_STANDING_UP, 0, 0, -1, -1, (1 << 3) | PAL_OW_BLUE, PERSONTYPE_SCRIPT, 0, SeafoamGymGuyScript, EVENT_SEAFOAM_GYM_GYM_GUY

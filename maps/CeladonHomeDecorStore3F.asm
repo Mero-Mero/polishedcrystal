@@ -1,15 +1,25 @@
-const_value set 2
-	const CELADONHOMEDECORSTORE3F_CLERK1
-	const CELADONHOMEDECORSTORE3F_CLERK2
-	const CELADONHOMEDECORSTORE3F_YOUNGSTER
-	const CELADONHOMEDECORSTORE3F_BEAUTY
-
 CeladonHomeDecorStore3F_MapScriptHeader:
-.MapTriggers:
-	db 0
 
-.MapCallbacks:
-	db 0
+.MapTriggers: db 0
+
+.MapCallbacks: db 0
+
+CeladonHomeDecorStore3F_MapEventHeader:
+
+.Warps: db 2
+	warp_def 0, 6, 2, CELADON_HOME_DECOR_STORE_2F
+	warp_def 0, 9, 1, CELADON_HOME_DECOR_STORE_4F
+
+.XYTriggers: db 0
+
+.Signposts: db 1
+	signpost 0, 8, SIGNPOST_JUMPTEXT, CeladonHomeDecorStore3FDirectoryText
+
+.PersonEvents: db 4
+	person_event SPRITE_CLERK, 7, 7, SPRITEMOVEDATA_STANDING_UP, 0, 0, -1, -1, (1 << 3) | PAL_OW_BLUE, PERSONTYPE_SCRIPT, 0, CeladonHomeDecorStore3FClerk1Script, -1
+	person_event SPRITE_CLERK, 7, 8, SPRITEMOVEDATA_STANDING_UP, 0, 0, -1, -1, (1 << 3) | PAL_OW_BLUE, PERSONTYPE_SCRIPT, 0, CeladonHomeDecorStore3FClerk2Script, -1
+	person_event SPRITE_YOUNGSTER, 5, 3, SPRITEMOVEDATA_WALK_UP_DOWN, 1, 0, -1, -1, (1 << 3) | PAL_OW_GREEN, PERSONTYPE_COMMAND, jumptextfaceplayer, CeladonHomeDecorStore3FYoungsterText, -1
+	person_event SPRITE_BEAUTY, 3, 9, SPRITEMOVEDATA_STANDING_LEFT, 0, 0, -1, -1, (1 << 3) | PAL_OW_BLUE, PERSONTYPE_COMMAND, jumptextfaceplayer, CeladonHomeDecorStore3FBeautyText, -1
 
 CeladonHomeDecorStore3FClerk1Script:
 	faceplayer
@@ -23,8 +33,7 @@ CeladonHomeDecorStore3FClerk1Script:
 	if_equal $1, .RedCarpet
 	if_equal $2, .YellowCarpet
 	if_equal $3, .GreenCarpet
-	closetext
-	end
+	endtext
 
 .RedCarpet:
 	checkmoney $0, 45000
@@ -97,11 +106,11 @@ CeladonHomeDecorStore3FClerk2Script:
 	faceplayer
 	opentext
 	checkevent EVENT_DECO_CARPET_2
-	iftrue .Sold
+	iftrue_jumpopenedtext CeladonHomeDecorStore3FClerk2Text
 	special PlaceMoneyTopRight
 	writetext CeladonHomeDecorStore3FClerk2SaleText
 	yesorno
-	iffalse .Refused
+	iffalse_jumpopenedtext CeladonHomeDecorStore3FClerk2NoText
 	checkmoney $0, 35000
 	if_equal $2, .NotEnoughMoney
 	takemoney $0, 35000
@@ -111,37 +120,10 @@ CeladonHomeDecorStore3FClerk2Script:
 	waitbutton
 	writetext BlueCarpetSentText
 	waitbutton
-	writetext CeladonHomeDecorStore3FClerk2YesText
-	waitbutton
-	closetext
-	end
-
-.Sold:
-	writetext CeladonHomeDecorStore3FClerk2Text
-	waitbutton
-	closetext
-	end
-
-.Refused:
-	writetext CeladonHomeDecorStore3FClerk2NoText
-	waitbutton
-	closetext
-	end
+	jumpopenedtext CeladonHomeDecorStore3FClerk2YesText
 
 .NotEnoughMoney:
-	writetext CeladonHomeDecorStore3FNoMoneyText
-	waitbutton
-	closetext
-	end
-
-CeladonHomeDecorStore3FYoungsterScript:
-	jumptextfaceplayer CeladonHomeDecorStore3FYoungsterText
-
-CeladonHomeDecorStore3FBeautyScript:
-	jumptextfaceplayer CeladonHomeDecorStore3FBeautyText
-
-CeladonHomeDecorStore3FDirectory:
-	jumptext CeladonHomeDecorStore3FDirectoryText
+	jumpopenedtext CeladonHomeDecorStore3FNoMoneyText
 
 CeladonHomeDecorStore3FClerk1Text:
 	text "Welcome! Would"
@@ -240,23 +222,3 @@ CeladonHomeDecorStore3FDirectoryText:
 
 	para "3F: Carpets"
 	done
-
-CeladonHomeDecorStore3F_MapEventHeader:
-.Warps:
-	db 2
-	warp_def $0, $6, 2, CELADON_HOME_DECOR_STORE_2F
-	warp_def $0, $9, 1, CELADON_HOME_DECOR_STORE_4F
-
-.XYTriggers:
-	db 0
-
-.Signposts:
-	db 1
-	signpost 0, 8, SIGNPOST_READ, CeladonHomeDecorStore3FDirectory
-
-.PersonEvents:
-	db 4
-	person_event SPRITE_CLERK, 7, 7, SPRITEMOVEDATA_STANDING_UP, 0, 0, -1, -1, (1 << 3) | PAL_OW_BLUE, PERSONTYPE_SCRIPT, 0, CeladonHomeDecorStore3FClerk1Script, -1
-	person_event SPRITE_CLERK, 7, 8, SPRITEMOVEDATA_STANDING_UP, 0, 0, -1, -1, (1 << 3) | PAL_OW_BLUE, PERSONTYPE_SCRIPT, 0, CeladonHomeDecorStore3FClerk2Script, -1
-	person_event SPRITE_YOUNGSTER, 5, 3, SPRITEMOVEDATA_WALK_UP_DOWN, 1, 0, -1, -1, (1 << 3) | PAL_OW_GREEN, PERSONTYPE_SCRIPT, 0, CeladonHomeDecorStore3FYoungsterScript, -1
-	person_event SPRITE_BEAUTY, 3, 9, SPRITEMOVEDATA_STANDING_LEFT, 0, 0, -1, -1, (1 << 3) | PAL_OW_BLUE, PERSONTYPE_SCRIPT, 0, CeladonHomeDecorStore3FBeautyScript, -1

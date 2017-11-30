@@ -1,19 +1,30 @@
-const_value set 2
-	const VIRIDIANGYM_BLUE
-	const VIRIDIANGYM_GYM_GUY
-	const VIRIDIANGYM_COOLTRAINERM1
-	const VIRIDIANGYM_COOLTRAINERF1
-	const VIRIDIANGYM_COOLTRAINERF2
-	const VIRIDIANGYM_COOLTRAINERF3
-	const VIRIDIANGYM_COOLTRAINERM2
-	const VIRIDIANGYM_COOLTRAINERF4
-
 ViridianGym_MapScriptHeader:
-.MapTriggers:
-	db 0
 
-.MapCallbacks:
-	db 0
+.MapTriggers: db 0
+
+.MapCallbacks: db 0
+
+ViridianGym_MapEventHeader:
+
+.Warps: db 2
+	warp_def 45, 6, 1, VIRIDIAN_CITY
+	warp_def 45, 7, 1, VIRIDIAN_CITY
+
+.XYTriggers: db 0
+
+.Signposts: db 2
+	signpost 43, 4, SIGNPOST_READ, ViridianGymStatue
+	signpost 43, 9, SIGNPOST_READ, ViridianGymStatue
+
+.PersonEvents: db 8
+	person_event SPRITE_BLUE, 2, 7, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, -1, 0, PERSONTYPE_SCRIPT, 0, BlueScript_0x9aa26, EVENT_VIRIDIAN_GYM_BLUE
+	person_event SPRITE_GYM_GUY, 43, 8, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, -1, (1 << 3) | PAL_OW_BLUE, PERSONTYPE_SCRIPT, 0, ViridianGymGuyScript, EVENT_VIRIDIAN_GYM_BLUE
+	person_event SPRITE_COOLTRAINER_M, 35, 7, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, -1, (1 << 3) | PAL_OW_RED, PERSONTYPE_TRAINER, 1, TrainerAceDuoAraandbela1, -1
+	person_event SPRITE_COOLTRAINER_F, 35, 6, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, -1, (1 << 3) | PAL_OW_RED, PERSONTYPE_TRAINER, 1, TrainerAceDuoAraandbela2, -1
+	person_event SPRITE_COOLTRAINER_F, 34, 3, SPRITEMOVEDATA_STANDING_RIGHT, 0, 0, -1, -1, (1 << 3) | PAL_OW_RED, PERSONTYPE_TRAINER, 1, TrainerCooltrainerfSalma, -1
+	person_event SPRITE_COOLTRAINER_F, 20, 3, SPRITEMOVEDATA_STANDING_RIGHT, 0, 0, -1, -1, (1 << 3) | PAL_OW_RED, PERSONTYPE_TRAINER, 1, TrainerCooltrainerfBonita, -1
+	person_event SPRITE_COOLTRAINER_M, 8, 6, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, -1, (1 << 3) | PAL_OW_RED, PERSONTYPE_TRAINER, 1, TrainerAceDuoElanandida1, -1
+	person_event SPRITE_COOLTRAINER_F, 8, 7, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, -1, (1 << 3) | PAL_OW_RED, PERSONTYPE_TRAINER, 1, TrainerAceDuoElanandida2, -1
 
 BlueScript_0x9aa26:
 	faceplayer
@@ -39,104 +50,60 @@ BlueScript_0x9aa26:
 	setflag ENGINE_EARTHBADGE
 	setevent EVENT_FINAL_BATTLE_WITH_LYRA
 .FightDone:
-	checkevent EVENT_GOT_TM41_STONE_EDGE
-	iftrue BlueEpilogueScript
+	checkevent EVENT_GOT_TM71_STONE_EDGE
+	iftrue_jumpopenedtext LeaderBlueEpilogueText
 	writetext LeaderBlueAfterText
 	buttonsound
 	verbosegivetmhm TM_STONE_EDGE
-	setevent EVENT_GOT_TM41_STONE_EDGE
-	writetext BlueOutroText
-	waitbutton
-	closetext
-	end
-
-BlueEpilogueScript:
-	writetext LeaderBlueEpilogueText
-	waitbutton
-	closetext
-	end
+	setevent EVENT_GOT_TM71_STONE_EDGE
+	jumpopenedtext BlueOutroText
 
 ViridianGymGuyScript:
-	faceplayer
-	opentext
 	checkevent EVENT_BEAT_BLUE
-	iftrue .ViridianGymGuyWinScript
-	writetext ViridianGymGuyText
-	waitbutton
-	closetext
-	end
-
-.ViridianGymGuyWinScript:
-	writetext ViridianGymGuyWinText
-	waitbutton
-	closetext
-	end
+	iftrue_jumptextfaceplayer ViridianGymGuyWinText
+	jumptextfaceplayer ViridianGymGuyText
 
 TrainerAceDuoAraandbela1:
 	trainer EVENT_BEAT_ACE_DUO_ARA_AND_BELA, ACE_DUO, ARAANDBELA1, AceDuoAraandbela1SeenText, AceDuoAraandbela1BeatenText, 0, AceDuoAraandbela1Script
 
 AceDuoAraandbela1Script:
 	end_if_just_battled
-	opentext
-	writetext AceDuoAraandbela1AfterText
-	waitbutton
-	closetext
-	end
+	jumptextfaceplayer AceDuoAraandbela1AfterText
 
 TrainerAceDuoAraandbela2:
 	trainer EVENT_BEAT_ACE_DUO_ARA_AND_BELA, ACE_DUO, ARAANDBELA2, AceDuoAraandbela2SeenText, AceDuoAraandbela2BeatenText, 0, AceDuoAraandbela2Script
 
 AceDuoAraandbela2Script:
 	end_if_just_battled
-	opentext
-	writetext AceDuoAraandbela2AfterText
-	waitbutton
-	closetext
-	end
+	jumptextfaceplayer AceDuoAraandbela2AfterText
 
 TrainerCooltrainerfSalma:
 	trainer EVENT_BEAT_COOLTRAINERF_SALMA, COOLTRAINERF, SALMA, CooltrainerfSalmaSeenText, CooltrainerfSalmaBeatenText, 0, CooltrainerfSalmaScript
 
 CooltrainerfSalmaScript:
 	end_if_just_battled
-	opentext
-	writetext CooltrainerfSalmaAfterText
-	waitbutton
-	closetext
-	end
+	jumptextfaceplayer CooltrainerfSalmaAfterText
 
 TrainerCooltrainerfBonita:
 	trainer EVENT_BEAT_COOLTRAINERF_BONITA, COOLTRAINERF, BONITA, CooltrainerfBonitaSeenText, CooltrainerfBonitaBeatenText, 0, CooltrainerfBonitaScript
 
 CooltrainerfBonitaScript:
 	end_if_just_battled
-	opentext
-	writetext CooltrainerfBonitaAfterText
-	waitbutton
-	closetext
-	end
+	jumptextfaceplayer CooltrainerfBonitaAfterText
 
 TrainerAceDuoElanandida1:
 	trainer EVENT_BEAT_ACE_DUO_ELAN_AND_IDA, ACE_DUO, ELANANDIDA1, AceDuoElanandida1SeenText, AceDuoElanandida1BeatenText, 0, AceDuoElanandida1Script
 
 AceDuoElanandida1Script:
 	end_if_just_battled
-	opentext
-	writetext AceDuoElanandida1AfterText
-	waitbutton
-	closetext
-	end
+	jumptextfaceplayer AceDuoElanandida1AfterText
 
 TrainerAceDuoElanandida2:
 	trainer EVENT_BEAT_ACE_DUO_ELAN_AND_IDA, ACE_DUO, ELANANDIDA2, AceDuoElanandida2SeenText, AceDuoElanandida2BeatenText, 0, AceDuoElanandida2Script
 
 AceDuoElanandida2Script:
 	end_if_just_battled
-	opentext
-	writetext AceDuoElanandida2AfterText
-	waitbutton
-	closetext
-	end
+	jumptextfaceplayer AceDuoElanandida2AfterText
 
 ViridianGymStatue:
 	trainertotext BLUE, 1, $1
@@ -397,28 +364,3 @@ AceDuoElanandida2AfterText:
 	para "Strategy is also"
 	line "important!"
 	done
-
-ViridianGym_MapEventHeader:
-.Warps:
-	db 2
-	warp_def $2d, $6, 1, VIRIDIAN_CITY
-	warp_def $2d, $7, 1, VIRIDIAN_CITY
-
-.XYTriggers:
-	db 0
-
-.Signposts:
-	db 2
-	signpost 43, 4, SIGNPOST_READ, ViridianGymStatue
-	signpost 43, 9, SIGNPOST_READ, ViridianGymStatue
-
-.PersonEvents:
-	db 8
-	person_event SPRITE_BLUE, 2, 7, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, -1, 0, PERSONTYPE_SCRIPT, 0, BlueScript_0x9aa26, EVENT_VIRIDIAN_GYM_BLUE
-	person_event SPRITE_GYM_GUY, 43, 8, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, -1, (1 << 3) | PAL_OW_BLUE, PERSONTYPE_SCRIPT, 0, ViridianGymGuyScript, EVENT_VIRIDIAN_GYM_BLUE
-	person_event SPRITE_COOLTRAINER_M, 35, 7, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, -1, (1 << 3) | PAL_OW_RED, PERSONTYPE_TRAINER, 1, TrainerAceDuoAraandbela1, -1
-	person_event SPRITE_COOLTRAINER_F, 35, 6, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, -1, (1 << 3) | PAL_OW_RED, PERSONTYPE_TRAINER, 1, TrainerAceDuoAraandbela2, -1
-	person_event SPRITE_COOLTRAINER_F, 34, 3, SPRITEMOVEDATA_STANDING_RIGHT, 0, 0, -1, -1, (1 << 3) | PAL_OW_RED, PERSONTYPE_TRAINER, 1, TrainerCooltrainerfSalma, -1
-	person_event SPRITE_COOLTRAINER_F, 20, 3, SPRITEMOVEDATA_STANDING_RIGHT, 0, 0, -1, -1, (1 << 3) | PAL_OW_RED, PERSONTYPE_TRAINER, 1, TrainerCooltrainerfBonita, -1
-	person_event SPRITE_COOLTRAINER_M, 8, 6, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, -1, (1 << 3) | PAL_OW_RED, PERSONTYPE_TRAINER, 1, TrainerAceDuoElanandida1, -1
-	person_event SPRITE_COOLTRAINER_F, 8, 7, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, -1, (1 << 3) | PAL_OW_RED, PERSONTYPE_TRAINER, 1, TrainerAceDuoElanandida2, -1

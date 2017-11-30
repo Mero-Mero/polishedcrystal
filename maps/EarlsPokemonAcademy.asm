@@ -1,17 +1,33 @@
-const_value set 2
-	const EARLSPOKEMONACADEMY_EARL
-	const EARLSPOKEMONACADEMY_YOUNGSTER
-	const EARLSPOKEMONACADEMY_GAMEBOY_KID1
-	const EARLSPOKEMONACADEMY_GAMEBOY_KID2
-	const EARLSPOKEMONACADEMY_CHILD
-	const EARLSPOKEMONACADEMY_BOOK
-
 EarlsPokemonAcademy_MapScriptHeader:
-.MapTriggers:
-	db 0
 
-.MapCallbacks:
-	db 0
+.MapTriggers: db 0
+
+.MapCallbacks: db 0
+
+EarlsPokemonAcademy_MapEventHeader:
+
+.Warps: db 2
+	warp_def 15, 3, 3, VIOLET_CITY
+	warp_def 15, 4, 3, VIOLET_CITY
+
+.XYTriggers: db 0
+
+.Signposts: db 4
+	signpost 1, 0, SIGNPOST_READ, PokemonJournalWillScript
+	signpost 1, 1, SIGNPOST_READ, PokemonJournalWillScript
+	signpost 0, 3, SIGNPOST_READ, AcademyBlackboard
+	signpost 0, 4, SIGNPOST_READ, AcademyBlackboard
+
+.PersonEvents: db 6
+	person_event SPRITE_FISHER, 2, 4, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, -1, (1 << 3) | PAL_OW_GREEN, PERSONTYPE_SCRIPT, 0, AcademyEarl, EVENT_EARLS_ACADEMY_EARL
+	person_event SPRITE_BOOK, 4, 2, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, -1, (1 << 3) | PAL_OW_BROWN, PERSONTYPE_SCRIPT, 0, AcademyNotebook, -1
+	person_event SPRITE_YOUNGSTER, 5, 2, SPRITEMOVEDATA_STANDING_UP, 0, 0, -1, -1, (1 << 3) | PAL_OW_RED, PERSONTYPE_COMMAND, jumptextfaceplayer, UnknownText_0x68d80, -1
+	person_event SPRITE_CHILD, 7, 4, SPRITEMOVEDATA_STANDING_UP, 0, 0, -1, -1, 0, PERSONTYPE_COMMAND, jumptextfaceplayer, UnknownText_0x68e39, -1
+	person_event SPRITE_GAMEBOY_KID, 11, 3, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, -1, 0, PERSONTYPE_SCRIPT, 0, GameboyKidScript_0x68a86, -1
+	person_event SPRITE_GAMEBOY_KID, 11, 4, SPRITEMOVEDATA_STANDING_LEFT, 0, 0, -1, -1, (1 << 3) | PAL_OW_RED, PERSONTYPE_SCRIPT, 0, GameboyKidScript_0x68a91, -1
+
+const_value set 1
+	const EARLSPOKEMONACADEMY_EARL
 
 AcademyEarl:
 	applymovement EARLSPOKEMONACADEMY_EARL, MovementData_0x68b2d
@@ -22,45 +38,22 @@ AcademyEarl:
 	iffalse .Part1
 	writetext UnknownText_0x68bbd
 	yesorno
-	iffalse .Done
+	iffalse_jumpopenedtext UnknownText_0x68d31
 .Part1:
 	writetext UnknownText_0x68c51
 	yesorno
-	iffalse .Done
-	writetext UnknownText_0x68c7b
-	waitbutton
-	closetext
-	end
-
-.Done:
-	writetext UnknownText_0x68d31
-	waitbutton
-	closetext
-	end
-
-YoungsterScript_0x68a83:
-	jumptextfaceplayer UnknownText_0x68d80
+	iffalse_jumpopenedtext UnknownText_0x68d31
+	jumpopenedtext UnknownText_0x68c7b
 
 GameboyKidScript_0x68a86:
-	faceplayer
-	opentext
-	writetext UnknownText_0x68dda
-	waitbutton
-	closetext
-	spriteface EARLSPOKEMONACADEMY_GAMEBOY_KID1, DOWN
+	showtextfaceplayer UnknownText_0x68dda
+	spriteface LAST_TALKED, DOWN
 	end
 
 GameboyKidScript_0x68a91:
-	faceplayer
-	opentext
-	writetext UnknownText_0x68e07
-	waitbutton
-	closetext
-	spriteface EARLSPOKEMONACADEMY_GAMEBOY_KID2, DOWN
+	showtextfaceplayer UnknownText_0x68e07
+	spriteface LAST_TALKED, DOWN
 	end
-
-ChildScript_0x68a9c:
-	jumptextfaceplayer UnknownText_0x68e39
 
 AcademyBlackboard:
 	opentext
@@ -74,8 +67,7 @@ AcademyBlackboard:
 	if_equal $3, .Sleep
 	if_equal $4, .Burn
 	if_equal $5, .Freeze
-	closetext
-	end
+	endtext
 
 .Poison:
 	writetext AcademyPoisonText
@@ -138,8 +130,7 @@ AcademyNotebook:
 	writetext AcademyNotebookText3
 	waitbutton
 .Done:
-	closetext
-	end
+	endtext
 
 PokemonJournalWillScript:
 	setflag ENGINE_READ_WILL_JOURNAL
@@ -416,28 +407,3 @@ PokemonJournalWillText:
 	line "refuses to specu-"
 	cont "late."
 	done
-
-EarlsPokemonAcademy_MapEventHeader:
-.Warps:
-	db 2
-	warp_def $f, $3, 3, VIOLET_CITY
-	warp_def $f, $4, 3, VIOLET_CITY
-
-.XYTriggers:
-	db 0
-
-.Signposts:
-	db 4
-	signpost 1, 0, SIGNPOST_READ, PokemonJournalWillScript
-	signpost 1, 1, SIGNPOST_READ, PokemonJournalWillScript
-	signpost 0, 3, SIGNPOST_READ, AcademyBlackboard
-	signpost 0, 4, SIGNPOST_READ, AcademyBlackboard
-
-.PersonEvents:
-	db 6
-	person_event SPRITE_FISHER, 2, 4, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, -1, (1 << 3) | PAL_OW_GREEN, PERSONTYPE_SCRIPT, 0, AcademyEarl, EVENT_EARLS_ACADEMY_EARL
-	person_event SPRITE_YOUNGSTER, 5, 2, SPRITEMOVEDATA_STANDING_UP, 0, 0, -1, -1, (1 << 3) | PAL_OW_RED, PERSONTYPE_SCRIPT, 0, YoungsterScript_0x68a83, -1
-	person_event SPRITE_GAMEBOY_KID, 11, 3, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, -1, 0, PERSONTYPE_SCRIPT, 0, GameboyKidScript_0x68a86, -1
-	person_event SPRITE_GAMEBOY_KID, 11, 4, SPRITEMOVEDATA_STANDING_LEFT, 0, 0, -1, -1, (1 << 3) | PAL_OW_RED, PERSONTYPE_SCRIPT, 0, GameboyKidScript_0x68a91, -1
-	person_event SPRITE_CHILD, 7, 4, SPRITEMOVEDATA_STANDING_UP, 0, 0, -1, -1, 0, PERSONTYPE_SCRIPT, 0, ChildScript_0x68a9c, -1
-	person_event SPRITE_BOOK_UNOWN_R, 4, 2, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, -1, (1 << 3) | PAL_OW_BROWN, PERSONTYPE_SCRIPT, 0, AcademyNotebook, -1

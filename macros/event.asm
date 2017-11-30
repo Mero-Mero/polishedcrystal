@@ -79,13 +79,13 @@ if_less_than: macro
 	enum jumpstd_command
 jumpstd: macro
 	db jumpstd_command
-	dw \1 ; predefined_script
+	db \1 ; predefined_script
 	endm
 
 	enum callstd_command
 callstd: macro
 	db callstd_command
-	dw \1 ; predefined_script
+	db \1 ; predefined_script
 	endm
 
 	enum callasm_command
@@ -97,13 +97,8 @@ callasm: macro
 	enum special_command
 special: macro
 	db special_command
-	dw (\1Special - SpecialsPointers) / 3
+	db (\1Special - SpecialsPointers) / 3
 	endm
-
-add_special: MACRO
-\1Special::
-	dba \1
-ENDM
 
 	enum ptcallasm_command
 ptcallasm: macro
@@ -378,12 +373,6 @@ wildoff: macro
 	db wildoff_command
 	endm
 
-	enum xycompare_command
-xycompare: macro
-	db xycompare_command
-	dw \1 ; pointer
-	endm
-
 	enum warpmod_command
 warpmod: macro
 	db warpmod_command
@@ -477,7 +466,6 @@ opentext: macro
 	enum refreshscreen_command
 refreshscreen: macro
 	db refreshscreen_command
-	db \1 ; dummy
 	endm
 
 	enum closetext_command
@@ -797,7 +785,7 @@ delcmdqueue: macro
 	enum playmusic_command
 playmusic: macro
 	db playmusic_command
-	dw \1 ; music_pointer
+	db \1 ; music_id
 	endm
 
 	enum encountermusic_command
@@ -808,7 +796,7 @@ encountermusic: macro
 	enum musicfadeout_command
 musicfadeout: macro
 	db musicfadeout_command
-	dw \1 ; music
+	db \1 ; music
 	db \2 ; fadetime
 	endm
 
@@ -825,13 +813,13 @@ dontrestartmapmusic: macro
 	enum cry_command
 cry: macro
 	db cry_command
-	dw \1 ; cry_id
+	db \1 ; cry_id
 	endm
 
 	enum playsound_command
 playsound: macro
 	db playsound_command
-	dw \1 ; sound_pointer
+	db \1 ; sound_id
 	endm
 
 	enum waitsfx_command
@@ -915,7 +903,7 @@ end_all: macro
 pokemart: macro
 	db pokemart_command
 	db \1 ; dialog_id
-	dw \2 ; mart_id
+	db \2 ; mart_id
 	endm
 
 	enum elevator_command
@@ -957,12 +945,13 @@ describedecoration: macro
 fruittree: macro
 	db fruittree_command
 	db \1 ; tree_id
+	db \2 ; fruit_id
 	endm
 
 	enum specialphonecall_command
 specialphonecall: macro
 	db specialphonecall_command
-	dw \1 ; call_id
+	db \1 ; call_id
 	endm
 
 	enum checkphonecall_command
@@ -1058,11 +1047,6 @@ count_seen_caught: macro
 	db count_seen_caught_command
 	endm
 
-	enum count_unown_caught_command
-count_unown_caught: macro
-	db count_unown_caught_command
-	endm
-
 	enum trainerpic_command
 trainerpic: macro
 	db trainerpic_command
@@ -1118,3 +1102,123 @@ unowntypeface: macro
 restoretypeface: macro
 	db restoretypeface_command
 	endm
+
+	enum jumpstashedtext_command
+jumpstashedtext: macro
+	db jumpstashedtext_command
+	endm
+
+	enum jumpopenedtext_command
+jumpopenedtext: macro
+	db jumpopenedtext_command
+	dw \1 ; text_pointer
+	endm
+
+	enum iftrue_jumptext_command
+iftrue_jumptext: macro
+	db iftrue_jumptext_command
+	dw \1 ; text_pointer
+	endm
+
+	enum iffalse_jumptext_command
+iffalse_jumptext: macro
+	db iffalse_jumptext_command
+	dw \1 ; text_pointer
+	endm
+
+	enum iftrue_jumptextfaceplayer_command
+iftrue_jumptextfaceplayer: macro
+	db iftrue_jumptextfaceplayer_command
+	dw \1 ; text_pointer
+	endm
+
+	enum iffalse_jumptextfaceplayer_command
+iffalse_jumptextfaceplayer: macro
+	db iffalse_jumptextfaceplayer_command
+	dw \1 ; text_pointer
+	endm
+
+	enum iftrue_jumpopenedtext_command
+iftrue_jumpopenedtext: macro
+	db iftrue_jumpopenedtext_command
+	dw \1 ; text_pointer
+	endm
+
+	enum iffalse_jumpopenedtext_command
+iffalse_jumpopenedtext: macro
+	db iffalse_jumpopenedtext_command
+	dw \1 ; text_pointer
+	endm
+
+	enum thistext_command
+thistext: macro
+	db thistext_command
+	endm
+
+	enum thistextfaceplayer_command
+thistextfaceplayer: macro
+	db thistextfaceplayer_command
+	endm
+
+	enum thisopenedtext_command
+thisopenedtext: macro
+	db thisopenedtext_command
+	endm
+
+	enum showtext_command
+showtext: macro
+	db showtext_command
+	dw \1 ; text_pointer
+	endm
+
+	enum showtextfaceplayer_command
+showtextfaceplayer: macro
+	db showtextfaceplayer_command
+	dw \1 ; text_pointer
+	endm
+
+	enum applyonemovement_command
+applyonemovement: macro
+	db applyonemovement_command
+	db \1 ; person
+	db movement_\2 ; movement data
+	db movement_step_end
+	endm
+
+	enum showcrytext_command
+showcrytext: macro
+	db showcrytext_command
+	dw \1 ; text_pointer
+	db \2 ; cry_id
+	endm
+
+	enum endtext_command
+endtext: macro
+	db endtext_command
+	endm
+
+	enum waitendtext_command
+waitendtext: macro
+	db waitendtext_command
+	endm
+
+	enum iftrue_endtext_command
+iftrue_endtext: macro
+	db iftrue_endtext_command
+	endm
+
+	enum iffalse_endtext_command
+iffalse_endtext: macro
+	db iffalse_endtext_command
+	endm
+
+	enum loadgrottomon_command
+loadgrottomon: macro
+	db loadgrottomon_command
+	endm
+
+thisasm: macro
+	callasm .asm\@
+	end
+.asm\@
+endm

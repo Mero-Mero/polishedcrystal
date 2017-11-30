@@ -1,13 +1,24 @@
-const_value set 2
-	const ROUTE39FARMHOUSE_POKEFAN_M
-	const ROUTE39FARMHOUSE_POKEFAN_F
-
 Route39Farmhouse_MapScriptHeader:
-.MapTriggers:
-	db 0
 
-.MapCallbacks:
-	db 0
+.MapTriggers: db 0
+
+.MapCallbacks: db 0
+
+Route39Farmhouse_MapEventHeader:
+
+.Warps: db 2
+	warp_def 7, 2, 2, ROUTE_39
+	warp_def 7, 3, 2, ROUTE_39
+
+.XYTriggers: db 0
+
+.Signposts: db 2
+	signpost 1, 6, SIGNPOST_JUMPSTD, picturebookshelf
+	signpost 1, 7, SIGNPOST_JUMPSTD, picturebookshelf
+
+.PersonEvents: db 2
+	person_event SPRITE_POKEFAN_M, 2, 3, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, -1, (1 << 3) | PAL_OW_BLUE, PERSONTYPE_SCRIPT, 0, PokefanMScript_0x9ceb4, -1
+	person_event SPRITE_POKEFAN_F, 4, 5, SPRITEMOVEDATA_STANDING_LEFT, 0, 0, -1, -1, (1 << 3) | PAL_OW_BROWN, PERSONTYPE_SCRIPT, 0, PokefanFScript_0x9cf0e, -1
 
 PokefanMScript_0x9ceb4:
 	faceplayer
@@ -21,7 +32,7 @@ PokefanMScript_0x9ceb4:
 	end
 
 UnknownScript_0x9cec5:
-	checkitem MOOMOO_MILK
+	checkflag ENGINE_BOUGHT_MOOMOO_MILK
 	iftrue UnknownScript_0x9cf08
 	writetext UnknownText_0x9cfe1
 	special PlaceMoneyTopRight
@@ -48,32 +59,23 @@ UnknownScript_0x9cec5:
 	takemoney $0, 6000
 
 .Done:
+	setflag ENGINE_BOUGHT_MOOMOO_MILK
 	special PlaceMoneyTopRight
 	waitsfx
 	playsound SFX_TRANSACTION
 	writetext UnknownText_0x9d05d
 	buttonsound
 	itemnotify
-	closetext
-	end
+	endtext
 
 .Cancel:
-	writetext UnknownText_0x9d0b7
-	waitbutton
-	closetext
-	end
+	jumpopenedtext UnknownText_0x9d0b7
 
 .NotEnoughMoney:
-	writetext UnknownText_0x9d07c
-	waitbutton
-	closetext
-	end
+	jumpopenedtext UnknownText_0x9d07c
 
 .BagFull:
-	writetext UnknownText_0x9d09d
-	waitbutton
-	closetext
-	end
+	jumpopenedtext UnknownText_0x9d09d
 
 .MenuDataHeader:
 	db $40 ; flags
@@ -90,10 +92,7 @@ UnknownScript_0x9cec5:
 	db "Cancel@"
 
 UnknownScript_0x9cf08:
-	writetext UnknownText_0x9d0dc
-	waitbutton
-	closetext
-	end
+	jumpopenedtext UnknownText_0x9d0dc
 
 PokefanFScript_0x9cf0e:
 	faceplayer
@@ -102,10 +101,7 @@ PokefanFScript_0x9cf0e:
 	iftrue UnknownScript_0x9cf2f
 	checkevent EVENT_HEALED_MOOMOO
 	iftrue UnknownScript_0x9cf22
-	writetext UnknownText_0x9d0f6
-	waitbutton
-	closetext
-	end
+	jumpopenedtext UnknownText_0x9d0f6
 
 UnknownScript_0x9cf22:
 	writetext UnknownText_0x9d156
@@ -113,13 +109,7 @@ UnknownScript_0x9cf22:
 	verbosegivetmhm TM_ACROBATICS
 	setevent EVENT_GOT_TM62_ACROBATICS_FROM_MOOMOO_FARM
 UnknownScript_0x9cf2f:
-	writetext UnknownText_0x9d1c7
-	waitbutton
-	closetext
-	end
-
-FarmhouseBookshelf:
-	jumpstd picturebookshelf
+	jumpopenedtext UnknownText_0x9d1c7
 
 UnknownText_0x9cf38:
 	text "My Miltank ain't"
@@ -214,22 +204,3 @@ UnknownText_0x9d1c7:
 	line "you ought to use"
 	cont "it, hon."
 	done
-
-Route39Farmhouse_MapEventHeader:
-.Warps:
-	db 2
-	warp_def $7, $2, 2, ROUTE_39
-	warp_def $7, $3, 2, ROUTE_39
-
-.XYTriggers:
-	db 0
-
-.Signposts:
-	db 2
-	signpost 1, 0, SIGNPOST_READ, FarmhouseBookshelf
-	signpost 1, 1, SIGNPOST_READ, FarmhouseBookshelf
-
-.PersonEvents:
-	db 2
-	person_event SPRITE_POKEFAN_M, 2, 3, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, -1, (1 << 3) | PAL_OW_BLUE, PERSONTYPE_SCRIPT, 0, PokefanMScript_0x9ceb4, -1
-	person_event SPRITE_POKEFAN_F, 4, 5, SPRITEMOVEDATA_STANDING_LEFT, 0, 0, -1, -1, (1 << 3) | PAL_OW_BROWN, PERSONTYPE_SCRIPT, 0, PokefanFScript_0x9cf0e, -1

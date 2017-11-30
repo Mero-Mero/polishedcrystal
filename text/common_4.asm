@@ -400,3 +400,38 @@ TMMartCostsThisMuchText::
 	deciram hMoneyTemp, 3, 7
 	text "."
 	done
+
+BTMartHowMayIHelpYouText::
+	text "Welcome to the"
+	line "Exchange Service"
+	cont "Corner!"
+
+	para "You can trade your"
+	line "BP for prizes."
+	done
+
+BTMartCostsThisMuchText::
+	deciram wItemQuantityChangeBuffer, 1, 2
+	text " @"
+	text_from_ram StringBuffer1
+	text "(s)"
+	line "will cost @"
+	deciram hMoneyTemp, 3, 3
+	text " BP."
+	done
+
+BTMartInsufficientFundsText::
+	text "I'm sorry, but you"
+	line "don't have enough"
+	cont "BP."
+	done
+
+BTMartBagFullText::
+	text "I'm sorry, but your"
+	line "Bag is full."
+	done
+
+BTMartComeAgainText::
+	text "Please come back"
+	line "any time you want!"
+	done

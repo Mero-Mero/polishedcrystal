@@ -1,21 +1,31 @@
-const_value set 2
-	const LUCKYISLAND_FISHER
-	const LUCKYISLAND_BAKER1
-	const LUCKYISLAND_BAKER2
-	const LUCKYISLAND_ARTIST1
-	const LUCKYISLAND_ARTIST2
-	const LUCKYISLAND_SIGHTSEER_M
-	const LUCKYISLAND_SIGHTSEER_F
-	const LUCKYISLAND_FRUIT_TREE
-	const LUCKYISLAND_POKE_BALL
-
 LuckyIsland_MapScriptHeader:
-.MapTriggers:
-	db 0
 
-.MapCallbacks:
-	db 1
+.MapTriggers: db 0
+
+.MapCallbacks: db 1
 	dbw MAPCALLBACK_TILES, Script_ChangeLuckyIslandMap
+
+LuckyIsland_MapEventHeader:
+
+.Warps: db 0
+
+.XYTriggers: db 0
+
+.Signposts: db 0
+
+.PersonEvents: db 9
+	person_event SPRITE_BALL_CUT_FRUIT, 18, 27, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, -1, (1 << 3) | PAL_OW_RED, PERSONTYPE_SCRIPT, 0, LuckyIslandLuckyEgg, EVENT_LUCKY_ISLAND_LUCKY_EGG
+	person_event SPRITE_FISHER, 6, 29, SPRITEMOVEDATA_STANDING_RIGHT, 0, 0, -1, -1, (1 << 3) | PAL_OW_GREEN, PERSONTYPE_TRAINER, 1, TrainerFisherHall, EVENT_LUCKY_ISLAND_CIVILIANS
+	person_event SPRITE_BAKER, 16, 21, SPRITEMOVEDATA_STANDING_LEFT, 0, 0, -1, -1, 0, PERSONTYPE_TRAINER, 4, TrainerBakerMargaret, EVENT_LUCKY_ISLAND_CIVILIANS
+	person_event SPRITE_BAKER, 23, 32, SPRITEMOVEDATA_SPINCLOCKWISE, 0, 0, -1, -1, 0, PERSONTYPE_TRAINER, 3, TrainerBakerOlga, EVENT_LUCKY_ISLAND_CIVILIANS
+	person_event SPRITE_ARTIST, 21, 20, SPRITEMOVEDATA_SPINCOUNTERCLOCKWISE, 0, 0, -1, -1, 0, PERSONTYPE_TRAINER, 2, TrainerArtistReina, EVENT_LUCKY_ISLAND_CIVILIANS
+	person_event SPRITE_ARTIST, 16, 36, SPRITEMOVEDATA_STANDING_LEFT, 0, 0, -1, -1, 0, PERSONTYPE_TRAINER, 4, TrainerArtistAlina, EVENT_LUCKY_ISLAND_CIVILIANS
+	person_event SPRITE_SIGHTSEER_M, 11, 23, SPRITEMOVEDATA_STANDING_RIGHT, 0, 0, -1, -1, (1 << 3) | PAL_OW_PURPLE, PERSONTYPE_TRAINER, 1, TrainerSightseersLiandsu1, EVENT_LUCKY_ISLAND_CIVILIANS
+	person_event SPRITE_LADY, 12, 23, SPRITEMOVEDATA_STANDING_RIGHT, 0, 0, -1, -1, (1 << 3) | PAL_OW_PURPLE, PERSONTYPE_TRAINER, 1, TrainerSightseersLiandsu2, EVENT_LUCKY_ISLAND_CIVILIANS
+	fruittree_event 16, 25, FRUITTREE_LUCKY_ISLAND, LIECHI_BERRY, EVENT_LUCKY_ISLAND_CIVILIANS
+
+const_value set 1
+	const LUCKYISLAND_POKE_BALL
 
 Script_ChangeLuckyIslandMap:
 	special CheckIfTrendyPhraseIsLucky
@@ -39,11 +49,7 @@ TrainerFisherHall:
 
 .Script:
 	end_if_just_battled
-	opentext
-	writetext .AfterText
-	waitbutton
-	closetext
-	end
+	jumptextfaceplayer .AfterText
 
 .SeenText:
 	text "Dopefish lives!"
@@ -65,11 +71,7 @@ TrainerBakerMargaret:
 
 .Script:
 	end_if_just_battled
-	opentext
-	writetext .AfterText
-	waitbutton
-	closetext
-	end
+	jumptextfaceplayer .AfterText
 
 .SeenText:
 	text "If an egg tumbles"
@@ -93,11 +95,7 @@ TrainerBakerOlga:
 
 .Script:
 	end_if_just_battled
-	opentext
-	writetext .AfterText
-	waitbutton
-	closetext
-	end
+	jumptextfaceplayer .AfterText
 
 .SeenText:
 	text "Hey, you!"
@@ -124,11 +122,7 @@ TrainerArtistReina:
 
 .Script:
 	end_if_just_battled
-	opentext
-	writetext .AfterText
-	waitbutton
-	closetext
-	end
+	jumptextfaceplayer .AfterText
 
 .SeenText:
 	text "This sunny meadow"
@@ -151,11 +145,7 @@ TrainerArtistAlina:
 
 .Script:
 	end_if_just_battled
-	opentext
-	writetext .AfterText
-	waitbutton
-	closetext
-	end
+	jumptextfaceplayer .AfterText
 
 .SeenText:
 	text "This island hardly"
@@ -180,11 +170,7 @@ TrainerSightseersLiandsu1:
 
 .Script:
 	end_if_just_battled
-	opentext
-	writetext .AfterText
-	waitbutton
-	closetext
-	end
+	jumptextfaceplayer .AfterText
 
 .SeenText:
 	text "Li: What came"
@@ -210,11 +196,7 @@ TrainerSightseersLiandsu2:
 
 .Script:
 	end_if_just_battled
-	opentext
-	writetext .AfterText
-	waitbutton
-	closetext
-	end
+	jumptextfaceplayer .AfterText
 
 .SeenText:
 	text "Su: What came"
@@ -235,9 +217,6 @@ TrainerSightseersLiandsu2:
 	cont "come from Eggs?"
 	done
 
-LuckyIslandFruitTree:
-	fruittree FRUITTREE_LUCKY_ISLAND
-
 LuckyIslandLuckyEgg:
 	giveitem LUCKY_EGG
 	iffalse .NoRoom
@@ -248,40 +227,16 @@ LuckyIslandLuckyEgg:
 	playsound SFX_ITEM
 	pause 60
 	itemnotify
-	closetext
-	end
+	endtext
 
 .NoRoom:
 	opentext
 	writetext .Text
 	waitbutton
 	pocketisfull
-	closetext
-	end
+	endtext
 
 .Text:
 	text "<PLAYER> found"
 	line "Lucky Egg!"
 	done
-
-LuckyIsland_MapEventHeader:
-.Warps:
-	db 0
-
-.XYTriggers:
-	db 0
-
-.Signposts:
-	db 0
-
-.PersonEvents:
-	db 9
-	person_event SPRITE_FISHER, 4, 29, SPRITEMOVEDATA_STANDING_RIGHT, 0, 0, -1, -1, (1 << 3) | PAL_OW_GREEN, PERSONTYPE_TRAINER, 1, TrainerFisherHall, EVENT_LUCKY_ISLAND_CIVILIANS
-	person_event SPRITE_BAKER, 14, 21, SPRITEMOVEDATA_STANDING_LEFT, 0, 0, -1, -1, 0, PERSONTYPE_TRAINER, 4, TrainerBakerMargaret, EVENT_LUCKY_ISLAND_CIVILIANS
-	person_event SPRITE_BAKER, 21, 32, SPRITEMOVEDATA_SPINCLOCKWISE, 0, 0, -1, -1, 0, PERSONTYPE_TRAINER, 3, TrainerBakerOlga, EVENT_LUCKY_ISLAND_CIVILIANS
-	person_event SPRITE_ARTIST, 19, 20, SPRITEMOVEDATA_SPINCOUNTERCLOCKWISE, 0, 0, -1, -1, 0, PERSONTYPE_TRAINER, 2, TrainerArtistReina, EVENT_LUCKY_ISLAND_CIVILIANS
-	person_event SPRITE_ARTIST, 14, 36, SPRITEMOVEDATA_STANDING_LEFT, 0, 0, -1, -1, 0, PERSONTYPE_TRAINER, 4, TrainerArtistAlina, EVENT_LUCKY_ISLAND_CIVILIANS
-	person_event SPRITE_SIGHTSEER_M, 9, 23, SPRITEMOVEDATA_STANDING_RIGHT, 0, 0, -1, -1, (1 << 3) | PAL_OW_PURPLE, PERSONTYPE_TRAINER, 1, TrainerSightseersLiandsu1, EVENT_LUCKY_ISLAND_CIVILIANS
-	person_event SPRITE_LADY, 10, 23, SPRITEMOVEDATA_STANDING_RIGHT, 0, 0, -1, -1, (1 << 3) | PAL_OW_PURPLE, PERSONTYPE_TRAINER, 1, TrainerSightseersLiandsu2, EVENT_LUCKY_ISLAND_CIVILIANS
-	person_event SPRITE_BALL_CUT_FRUIT, 14, 25, SPRITEMOVEDATA_STANDING_LEFT, 0, 0, -1, -1, 0, PERSONTYPE_SCRIPT, 0, LuckyIslandFruitTree, EVENT_LUCKY_ISLAND_CIVILIANS
-	person_event SPRITE_BALL_CUT_FRUIT, 16, 27, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, -1, (1 << 3) | PAL_OW_RED, PERSONTYPE_SCRIPT, 0, LuckyIslandLuckyEgg, EVENT_LUCKY_ISLAND_LUCKY_EGG

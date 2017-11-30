@@ -10,10 +10,10 @@ _TitleScreen: ; 10ed67
 
 ; Reset timing variables
 	ld hl, wJumptableIndex
-	ld [hli], a ; cf63 ; Scene?
-	ld [hli], a ; cf64
-	ld [hli], a ; cf65 ; Timer lo
-	ld [hl], a  ; cf66 ; Timer hi
+	ld [hli], a ; wJumptableIndex
+	ld [hli], a ; wIntroSceneFrameCounter
+	ld [hli], a ; wTitleScreenTimerLo
+	ld [hl], a  ; wTitleScreenTimerHi
 
 ; Turn LCD off
 	call DisableLCD
@@ -32,7 +32,7 @@ _TitleScreen: ; 10ed67
 
 ; Clear screen palettes
 	hlbgcoord 0, 0
-	ld bc, 20 bgrows
+	ld bc, SCREEN_WIDTH bgrows
 	xor a
 	call ByteFill
 
@@ -116,21 +116,20 @@ _TitleScreen: ; 10ed67
 
 ; Draw Pokemon logo
 	hlcoord 0, 3
-	lb bc, 7, 20
-	lb de, $80, $14
+	lb bc, 7, SCREEN_WIDTH
+	lb de, $80, SCREEN_WIDTH
 	call DrawTitleGraphic
 
 ; Draw copyright text
 	hlbgcoord 4, 0, VBGMap1
 	lb bc, 1, 13
-	lb de, $c, $10
+	lb de, $0c, 0
 	call DrawTitleGraphic
 
 IF DEF(FAITHFUL)
 	hlbgcoord 17, 0, VBGMap1
 	lb bc, 1, 1
-	ld d, $19
-	ld e, $10
+	lb de, $19, 0
 	call DrawTitleGraphic
 endc
 
@@ -151,12 +150,12 @@ endc
 ; Update palette colors
 	ld hl, TitleScreenPalettes
 	ld de, UnknBGPals
-	ld bc, 4 * 32
+	ld bc, 16 palettes
 	call CopyBytes
 
 	ld hl, TitleScreenPalettes
 	ld de, BGPals
-	ld bc, 4 * 32
+	ld bc, 16 palettes
 	call CopyBytes
 
 ; Restore WRAM bank
@@ -168,29 +167,13 @@ endc
 
 	ld a, [rSVBK]
 	push af
-	ld a, 5 ; BANK(LYOverrides)
+	ld a, BANK(LYOverrides)
 	ld [rSVBK], a
 
-; Make alternating lines come in from opposite sides
-
-; ( This part is actually totally pointless, you can't
-;   see anything until these values are overwritten!  )
-
-	ld b, 80 / 2 ; alternate for 80 lines
+; Make sure the LYOverrides buffer is empty
 	ld hl, LYOverrides
-.loop
-; $00 is the middle position
-	ld [hl], +112 ; coming from the left
-	inc hl
-	ld [hl], -112 ; coming from the right
-	inc hl
-	dec b
-	jr nz, .loop
-
-; Make sure the rest of the buffer is empty
-	ld hl, LYOverrides + 80
 	xor a
-	ld bc, LYOverridesEnd - (LYOverrides + 80)
+	ld bc, LYOverridesEnd - LYOverrides
 	call ByteFill
 
 ; Let LCD Stat know we're messing around with SCX
@@ -226,7 +209,7 @@ endc
 	ld [hBGMapMode], a
 
 	xor a
-	ld [UnknBGPals + 2], a
+	ld [UnknBGPals palette 0 + 2], a
 
 ; Play starting sound effect
 	call SFXChannelsOff
@@ -237,7 +220,7 @@ endc
 ; 10eea7
 
 SuicuneFrameIterator: ; 10eea7
-	ld hl, UnknBGPals + 2
+	ld hl, UnknBGPals palette 0 + 2
 	ld a, [hl]
 	ld c, a
 	inc [hl]
@@ -287,7 +270,7 @@ LoadSuicuneFrame: ; 10eed2
 	ld a, SCREEN_WIDTH - 8
 	add l
 	ld l, a
-	ld a, 0 ; not xor a; preserve carry flag?
+	ld a, 0 ; not xor a; preserve carry flag
 	adc h
 	ld h, a
 	ld a, 8
@@ -330,8 +313,7 @@ DrawTitleGraphic: ; 10eeef
 
 InitializeBackground: ; 10ef06
 	ld hl, Sprites
-	ld d, -$22
-	ld e, $0
+	lb de, -$22, $0
 	ld c, 5
 .loop
 	push bc
@@ -346,8 +328,7 @@ InitializeBackground: ; 10ef06
 ; 10ef1c
 
 .InitColumn: ; 10ef1c
-	ld c, $6
-	ld b, $40
+	lb bc, $40, $6
 .loop2
 	ld a, d
 	ld [hli], a
@@ -407,6 +388,7 @@ INCBIN "gfx/title/crystal.w48.interleave.2bpp.lz"
 
 TitleScreenPalettes:
 ; BG
+if !DEF(MONOCHROME)
 	RGB 00, 00, 00
 	RGB 19, 00, 00
 	RGB 15, 08, 31
@@ -487,3 +469,84 @@ TitleScreenPalettes:
 	RGB 00, 00, 00
 	RGB 00, 00, 00
 	RGB 00, 00, 00
+else
+	RGB_MONOCHROME_BLACK
+	RGB_MONOCHROME_LIGHT
+	RGB_MONOCHROME_DARK
+	RGB_MONOCHROME_DARK
+
+	RGB_MONOCHROME_BLACK
+	RGB_MONOCHROME_WHITE
+	RGB_MONOCHROME_LIGHT
+	RGB_MONOCHROME_DARK
+
+	RGB_MONOCHROME_BLACK
+	RGB_MONOCHROME_LIGHT
+	RGB_MONOCHROME_WHITE
+	RGB_MONOCHROME_DARK
+
+	RGB_MONOCHROME_BLACK
+	RGB_MONOCHROME_LIGHT
+	RGB_MONOCHROME_WHITE
+	RGB_MONOCHROME_DARK
+
+	RGB_MONOCHROME_BLACK
+	RGB_MONOCHROME_LIGHT
+	RGB_MONOCHROME_WHITE
+	RGB_MONOCHROME_DARK
+
+	RGB_MONOCHROME_BLACK
+	RGB_MONOCHROME_LIGHT
+	RGB_MONOCHROME_WHITE
+	RGB_MONOCHROME_DARK
+
+	RGB_MONOCHROME_BLACK
+	RGB_MONOCHROME_LIGHT
+	RGB_MONOCHROME_WHITE
+	RGB_MONOCHROME_DARK
+
+	RGB_MONOCHROME_BLACK
+	RGB_MONOCHROME_DARK
+	RGB_MONOCHROME_WHITE
+	RGB_MONOCHROME_BLACK
+
+	RGB_MONOCHROME_BLACK
+	RGB_MONOCHROME_DARK
+	RGB_MONOCHROME_LIGHT
+	RGB_MONOCHROME_WHITE
+
+	RGB_MONOCHROME_WHITE
+	RGB_MONOCHROME_BLACK
+	RGB_MONOCHROME_BLACK
+	RGB_MONOCHROME_BLACK
+
+	RGB_MONOCHROME_WHITE
+	RGB_MONOCHROME_BLACK
+	RGB_MONOCHROME_BLACK
+	RGB_MONOCHROME_BLACK
+
+	RGB_MONOCHROME_WHITE
+	RGB_MONOCHROME_BLACK
+	RGB_MONOCHROME_BLACK
+	RGB_MONOCHROME_BLACK
+
+	RGB_MONOCHROME_WHITE
+	RGB_MONOCHROME_BLACK
+	RGB_MONOCHROME_BLACK
+	RGB_MONOCHROME_BLACK
+
+	RGB_MONOCHROME_WHITE
+	RGB_MONOCHROME_BLACK
+	RGB_MONOCHROME_BLACK
+	RGB_MONOCHROME_BLACK
+
+	RGB_MONOCHROME_WHITE
+	RGB_MONOCHROME_BLACK
+	RGB_MONOCHROME_BLACK
+	RGB_MONOCHROME_BLACK
+
+	RGB_MONOCHROME_WHITE
+	RGB_MONOCHROME_BLACK
+	RGB_MONOCHROME_BLACK
+	RGB_MONOCHROME_BLACK
+endc

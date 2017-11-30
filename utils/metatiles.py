@@ -29,6 +29,9 @@ def rgb_bytes(rgbs):
 num_shades = 4
 default_rgb = (0xAB, 0xCD, 0xEF)
 
+RGBC = lambda c: c * 8 # c * 33 // 4 for BGB instead of VBA
+RGB5 = lambda r, g, b: (RGBC(r), RGBC(g), RGBC(b))
+
 def load_palette(filename):
 	try:
 		palette = []
@@ -37,7 +40,7 @@ def load_palette(filename):
 			for line in f:
 				line = line.strip()
 				if line.startswith('RGB '):
-					rgb = [int(b) * 8 for b in line[4:].split(',')]
+					rgb = [RGBC(int(b)) for b in line[4:].split(',')]
 					assert len(rgb) == 3
 					hue.append(rgb)
 					if len(hue) == 4:
@@ -45,14 +48,14 @@ def load_palette(filename):
 						hue = []
 	except:
 		palette = [
-			[(30*8,28*8,26*8), (19*8,19*8,19*8), (13*8,13*8,13*8), (7*8,7*8,7)],
-			[(30*8,28*8,26*8), (31*8,19*8,24*8), (30*8,10*8,6*8), (7*8,7*8,7)],
-			[(18*8,24*8,9*8), (15*8,20*8,1*8), (9*8,13*8,0*8), (7*8,7*8,7)],
-			[(30*8,28*8,26*8), (15*8,16*8,31*8), (9*8,9*8,31*8), (7*8,7*8,7)],
-			[(30*8,28*8,26*8), (31*8,31*8,7*8), (31*8,16*8,1*8), (7*8,7*8,7)],
-			[(26*8,24*8,17*8), (21*8,17*8,7*8), (16*8,13*8,3*8), (7*8,7*8,7)],
-			[(30*8,28*8,26*8), (17*8,19*8,31*8), (14*8,16*8,31*8), (7*8,7*8,7)],
-			[(31*8,31*8,16*8), (31*8,31*8,16*8), (14*8,9*8,0*8), (0*8,0*8,0)]
+			[RGB5(30,28,26), RGB5(19,19,19), RGB5(13,13,13), RGBC( 7, 7, 7)],
+			[RGB5(30,28,26), RGB5(31,19,24), RGB5(30,10, 6), RGBC( 7, 7, 7)],
+			[RGB5(18,24, 9), RGB5(15,20, 1), RGB5( 9,13, 0), RGBC( 7, 7, 7)],
+			[RGB5(30,28,26), RGB5(15,16,31), RGB5( 9, 9,31), RGBC( 7, 7, 7)],
+			[RGB5(30,28,26), RGB5(31,31, 7), RGB5(31,16, 1), RGBC( 7, 7, 7)],
+			[RGB5(26,24,17), RGB5(21,17, 7), RGB5(16,13, 3), RGBC( 7, 7, 7)],
+			[RGB5(30,28,26), RGB5(17,19,31), RGB5(14,16,31), RGBC( 7, 7, 7)],
+			[RGB5(31,31,16), RGB5(31,31,16), RGB5(14, 9, 0), RGBC( 0, 0, 0)]
 		]
 	assert len(palette) >= 8
 	return palette
@@ -109,113 +112,123 @@ class Tileset(object):
 			writer.write(file, chunk(rgb_bytes(self.data), self.w * 3))
 
 class PaletteMap(object):
-	color_constants = {'GRAY': 0, 'RED': 1, 'GREEN': 2, 'WATER': 3,
-		'YELLOW': 4, 'BROWN': 5, 'ROOF': 6, 'TEXT': 7}
+	color_constants = {
+		'GRAY': 0, 'RED': 1, 'GREEN': 2, 'WATER': 3,
+		'YELLOW': 4, 'BROWN': 5, 'ROOF': 6, 'TEXT': 7,
+		'PRIORITY_GRAY': 0, 'PRIORITY_RED': 1,
+		'PRIORITY_GREEN': 2, 'PRIORITY_WATER': 3,
+		'PRIORITY_YELLOW': 4, 'PRIORITY_BROWN': 5,
+		'PRIORITY_ROOF': 6, 'PRIORITY_TEXT': 7
+	}
 
 	day_palette = staticmethod(lambda:
-		(lambda x=load_palette('tilesets/bg.pal'): x[8:11]+[x[0x29]]+x[12:16])())
+		(lambda x=load_palette('tilesets/palettes/bg.pal'): x[8:11]+[x[0x29]]+x[12:16])())
 	nite_palette = staticmethod(lambda:
-		(lambda x=load_palette('tilesets/bg.pal'): x[16:19]+[x[0x2a]]+x[20:24])())
+		(lambda x=load_palette('tilesets/palettes/bg.pal'): x[16:19]+[x[0x2a]]+x[20:24])())
 	indoor_palette = staticmethod(lambda:
-		load_palette('tilesets/bg.pal')[32:40])
+		load_palette('tilesets/palettes/bg.pal')[32:40])
 
 	map_palettes = {
-		'maps/BellchimeTrail.blk': lambda: load_palette('tilesets/bellchime_trail.pal')[8:16],
-		'maps/BrunosRoom.blk': lambda: load_palette('tilesets/brunos_room.pal'),
-		'maps/CeladonHomeDecorStore4F.blk': lambda: load_palette('tilesets/celadon_home_decor_store_4f.pal'),
-		'maps/CeladonMansionRoof.blk': lambda: load_palette('tilesets/celadon_mansion_roof.pal')[8:16],
-		'maps/CeruleanCave1F.blk': lambda: load_palette('tilesets/cerulean_cave.pal'),
-		'maps/CeruleanCave2F.blk': lambda: load_palette('tilesets/cerulean_cave.pal'),
-		'maps/CeruleanCaveB1F.blk': lambda: load_palette('tilesets/cerulean_cave.pal'),
-		'maps/CeruleanGym.blk': lambda: load_palette('tilesets/cerulean_gym.pal'),
-		'maps/CharcoalKiln.blk': lambda: load_palette('tilesets/charcoal_kiln.pal'),
-		'maps/CinnabarLab.blk': lambda: load_palette('tilesets/cinnabar_lab.pal'),
-		'maps/CinnabarVolcano1F.blk': lambda: load_palette('tilesets/cinnabar_volcano.pal'),
-		'maps/CinnabarVolcanoB1F.blk': lambda: load_palette('tilesets/cinnabar_volcano.pal'),
-		'maps/CinnabarVolcanoB2F.blk': lambda: load_palette('tilesets/cinnabar_volcano.pal'),
+		'maps/BellchimeTrail.blk': lambda: load_palette('tilesets/palettes/bellchime_trail.pal')[8:16],
+		'maps/BrunosRoom.blk': lambda: load_palette('tilesets/palettes/brunos_room.pal'),
+		'maps/CeladonHomeDecorStore4F.blk': lambda: load_palette('tilesets/palettes/celadon_home_decor_store_4f.pal'),
+		'maps/CeladonMansionRoof.blk': lambda: load_palette('tilesets/palettes/celadon_mansion_roof.pal')[8:16],
+		'maps/CeruleanCave1F.blk': lambda: load_palette('tilesets/palettes/cerulean_cave.pal'),
+		'maps/CeruleanCave2F.blk': lambda: load_palette('tilesets/palettes/cerulean_cave.pal'),
+		'maps/CeruleanCaveB1F.blk': lambda: load_palette('tilesets/palettes/cerulean_cave.pal'),
+		'maps/CeruleanGym.blk': lambda: load_palette('tilesets/palettes/cerulean_gym.pal'),
+		'maps/CharcoalKiln.blk': lambda: load_palette('tilesets/palettes/charcoal_kiln.pal'),
+		'maps/CinnabarLab.blk': lambda: load_palette('tilesets/palettes/cinnabar_lab.pal'),
+		'maps/CinnabarVolcano1F.blk': lambda: load_palette('tilesets/palettes/cinnabar_volcano.pal'),
+		'maps/CinnabarVolcanoB1F.blk': lambda: load_palette('tilesets/palettes/cinnabar_volcano.pal'),
+		'maps/CinnabarVolcanoB2F.blk': lambda: load_palette('tilesets/palettes/cinnabar_volcano.pal'),
 		'maps/CliffEdgeGate.blk': lambda: PaletteMap.day_palette(),
-		'maps/DarkCaveBlackthornEntrance.blk': lambda: load_palette('tilesets/dark_cave.pal'),
-		'maps/DarkCaveVioletEntrance.blk': lambda: load_palette('tilesets/dark_cave.pal'),
-		'maps/DimCave1F.blk': lambda: load_palette('tilesets/dim_cave.pal'),
-		'maps/DimCave2F.blk': lambda: load_palette('tilesets/dim_cave.pal'),
-		'maps/DimCave3F.blk': lambda: load_palette('tilesets/dim_cave.pal'),
-		'maps/DimCave4F.blk': lambda: load_palette('tilesets/dim_cave.pal'),
-		'maps/DimCave5F.blk': lambda: load_palette('tilesets/dim_cave.pal'),
+		'maps/DarkCaveBlackthornEntrance.blk': lambda: load_palette('tilesets/palettes/dark_cave.pal'),
+		'maps/DarkCaveVioletEntrance.blk': lambda: load_palette('tilesets/palettes/dark_cave.pal'),
+		'maps/DimCave1F.blk': lambda: load_palette('tilesets/palettes/dim_cave.pal'),
+		'maps/DimCave2F.blk': lambda: load_palette('tilesets/palettes/dim_cave.pal'),
+		'maps/DimCave3F.blk': lambda: load_palette('tilesets/palettes/dim_cave.pal'),
+		'maps/DimCave4F.blk': lambda: load_palette('tilesets/palettes/dim_cave.pal'),
+		'maps/DimCave5F.blk': lambda: load_palette('tilesets/palettes/dim_cave.pal'),
 		'maps/DragonsDenB1F.blk': lambda: PaletteMap.nite_palette(),
-		'maps/DragonShrine.blk': lambda: load_palette('tilesets/dragon_shrine.pal'),
-		'maps/EcruteakCity.blk': lambda: load_palette('tilesets/VioletEcruteakPalette.pal')[8:16],
-		'maps/EmbeddedTower.blk': lambda: load_palette('tilesets/embedded_tower.pal'),
-		'maps/FuchsiaGym.blk': lambda: load_palette('tilesets/fuchsia_gym.pal'),
-		'maps/GoldenrodDeptStoreRoof.blk': lambda: load_palette('tilesets/goldenrod_dept_store_roof.pal')[8:16],
-		'maps/HallOfFame.blk': lambda: load_palette('tilesets/lances_room.pal'),
-		'maps/HauntedRadioTower2F.blk': lambda: load_palette('tilesets/haunted_radio_tower.pal'),
-		'maps/HauntedRadioTower3F.blk': lambda: load_palette('tilesets/haunted_radio_tower.pal'),
-		'maps/HauntedRadioTower4F.blk': lambda: load_palette('tilesets/haunted_pokemon_tower.pal'),
-		'maps/HauntedRadioTower5F.blk': lambda: load_palette('tilesets/haunted_pokemon_tower.pal'),
-		'maps/HauntedRadioTower6F.blk': lambda: load_palette('tilesets/haunted_pokemon_tower.pal'),
-		'maps/IvysLab.blk': lambda: load_palette('tilesets/ivys_lab.pal'),
-		'maps/KarensRoom.blk': lambda: load_palette('tilesets/karens_room.pal'),
-		'maps/KogasRoom.blk': lambda: load_palette('tilesets/kogas_room.pal'),
-		'maps/LancesRoom.blk': lambda: load_palette('tilesets/lances_room.pal'),
-		'maps/LightningIsland.blk': lambda: load_palette('tilesets/lightning_island.pal'),
-		'maps/MountMortar1FInside.blk': lambda: load_palette('tilesets/dark_cave.pal'),
-		'maps/MountMortar1FOutside.blk': lambda: load_palette('tilesets/dark_cave.pal'),
-		'maps/MountMortar2FInside.blk': lambda: load_palette('tilesets/dark_cave.pal'),
-		'maps/MountMortarB1F.blk': lambda: load_palette('tilesets/dark_cave.pal'),
-		'maps/MurkySwamp.blk': lambda: load_palette('tilesets/murky_swamp.pal'),
-		'maps/MystriStage.blk': lambda: load_palette('tilesets/mystri_stage.pal'),
-		'maps/NavelRockInside.blk': lambda: load_palette('tilesets/navel_rock.pal')[8:16],
-		'maps/NavelRockRoof.blk': lambda: load_palette('tilesets/navel_rock.pal')[8:16],
-		'maps/NoisyForest.blk': lambda: load_palette('tilesets/shamouti_island.pal')[16:24],
-		'maps/OaksLab.blk': lambda: load_palette('tilesets/oaks_lab.pal'),
-		'maps/OlivineLighthouseRoof.blk': lambda: load_palette('tilesets/goldenrod_dept_store_roof.pal')[8:16],
-		'maps/SaffronGym.blk': lambda: load_palette('tilesets/saffron_gym.pal'),
-		'maps/ScaryCave1F.blk': lambda: load_palette('tilesets/scary_cave.pal'),
-		'maps/ScaryCaveB1F.blk': lambda: load_palette('tilesets/scary_cave.pal'),
-		'maps/ScaryCaveShipwreck.blk': lambda: load_palette('tilesets/scary_cave.pal'),
+		'maps/DragonShrine.blk': lambda: load_palette('tilesets/palettes/dragon_shrine.pal'),
+		'maps/EcruteakCity.blk': lambda: load_palette('tilesets/palettes/violet_ecruteak.pal')[8:16],
+		'maps/EmbeddedTower.blk': lambda: load_palette('tilesets/palettes/embedded_tower.pal'),
+		'maps/FuchsiaGym.blk': lambda: load_palette('tilesets/palettes/fuchsia_gym.pal'),
+		'maps/GoldenrodDeptStoreRoof.blk': lambda: load_palette('tilesets/palettes/goldenrod_dept_store_roof.pal')[8:16],
+		'maps/HallOfFame.blk': lambda: load_palette('tilesets/palettes/lances_room.pal'),
+		'maps/HauntedRadioTower2F.blk': lambda: load_palette('tilesets/palettes/haunted_radio_tower.pal'),
+		'maps/HauntedRadioTower3F.blk': lambda: load_palette('tilesets/palettes/haunted_radio_tower.pal'),
+		'maps/HauntedRadioTower4F.blk': lambda: load_palette('tilesets/palettes/haunted_pokemon_tower.pal'),
+		'maps/HauntedRadioTower5F.blk': lambda: load_palette('tilesets/palettes/haunted_pokemon_tower.pal'),
+		'maps/HauntedRadioTower6F.blk': lambda: load_palette('tilesets/palettes/haunted_pokemon_tower.pal'),
+		'maps/HiddenCaveGrotto.blk': lambda: load_palette('tilesets/palettes/hidden_cave_grotto.pal'),
+		'maps/HiddenTreeGrotto.blk': lambda: load_palette('tilesets/palettes/hidden_tree_grotto.pal'),
+		'maps/IvysLab.blk': lambda: load_palette('tilesets/palettes/ivys_lab.pal'),
+		'maps/KarensRoom.blk': lambda: load_palette('tilesets/palettes/karens_room.pal'),
+		'maps/KogasRoom.blk': lambda: load_palette('tilesets/palettes/kogas_room.pal'),
+		'maps/LancesRoom.blk': lambda: load_palette('tilesets/palettes/lances_room.pal'),
+		'maps/LightningIsland.blk': lambda: load_palette('tilesets/palettes/lightning_island.pal'),
+		'maps/MountMortar1FInside.blk': lambda: load_palette('tilesets/palettes/dark_cave.pal'),
+		'maps/MountMortar1FOutside.blk': lambda: load_palette('tilesets/palettes/dark_cave.pal'),
+		'maps/MountMortar2FInside.blk': lambda: load_palette('tilesets/palettes/dark_cave.pal'),
+		'maps/MountMortarB1F.blk': lambda: load_palette('tilesets/palettes/dark_cave.pal'),
+		'maps/MurkySwamp.blk': lambda: load_palette('tilesets/palettes/murky_swamp.pal'),
+		'maps/MystriStage.blk': lambda: load_palette('tilesets/palettes/mystri_stage.pal'),
+		'maps/NavelRockInside.blk': lambda: load_palette('tilesets/palettes/navel_rock.pal')[8:16],
+		'maps/NavelRockRoof.blk': lambda: load_palette('tilesets/palettes/navel_rock.pal')[8:16],
+		'maps/NoisyForest.blk': lambda: load_palette('tilesets/palettes/shamouti_island.pal')[16:24],
+		'maps/OaksLab.blk': lambda: load_palette('tilesets/palettes/oaks_lab.pal'),
+		'maps/OlivineLighthouseRoof.blk': lambda: load_palette('tilesets/palettes/goldenrod_dept_store_roof.pal')[8:16],
+		'maps/SaffronGym.blk': lambda: load_palette('tilesets/palettes/saffron_gym.pal'),
+		'maps/ScaryCave1F.blk': lambda: load_palette('tilesets/palettes/scary_cave.pal'),
+		'maps/ScaryCaveB1F.blk': lambda: load_palette('tilesets/palettes/scary_cave.pal'),
+		'maps/ScaryCaveShipwreck.blk': lambda: load_palette('tilesets/palettes/scary_cave.pal'),
 		'maps/SeafoamGym.blk': lambda: PaletteMap.day_palette(),
-		'maps/SilverCaveRoom1.blk': lambda: load_palette('tilesets/silver_cave.pal'),
-		'maps/SilverCaveRoom2.blk': lambda: load_palette('tilesets/silver_cave.pal'),
-		'maps/SilverCaveRoom3.blk': lambda: load_palette('tilesets/silver_cave.pal'),
-		'maps/TinTowerRoof.blk': lambda: load_palette('tilesets/tin_tower_roof.pal')[8:16],
-		'maps/VioletCity.blk': lambda: load_palette('tilesets/VioletEcruteakPalette.pal')[8:16],
-		'maps/ViridianGym.blk': lambda: load_palette('tilesets/viridian_gym.pal'),
-		'maps/WhirlIslandB1F.blk': lambda: load_palette('tilesets/dark_cave.pal'),
-		'maps/WhirlIslandB2F.blk': lambda: load_palette('tilesets/dark_cave.pal'),
-		'maps/WhirlIslandLugiaChamber.blk': lambda: load_palette('tilesets/dark_cave.pal'),
-		'maps/WhirlIslandNE.blk': lambda: load_palette('tilesets/dark_cave.pal'),
-		'maps/WhirlIslandSE.blk': lambda: load_palette('tilesets/dark_cave.pal'),
-		'maps/WhirlIslandSW.blk': lambda: load_palette('tilesets/dark_cave.pal'),
-		'maps/WillsRoom.blk': lambda: load_palette('tilesets/wills_room.pal'),
-		'maps/YellowForest.blk': lambda: load_palette('tilesets/yellow_forest.pal')[8:16],
+		'maps/SilverCaveRoom1.blk': lambda: load_palette('tilesets/palettes/silver_cave.pal'),
+		'maps/SilverCaveRoom2.blk': lambda: load_palette('tilesets/palettes/silver_cave.pal'),
+		'maps/SilverCaveRoom3.blk': lambda: load_palette('tilesets/palettes/silver_cave.pal'),
+		'maps/SinjohRuins.blk': lambda: load_palette('tilesets/palettes/sinjoh_ruins.pal')[8:16],
+		'maps/TinTowerRoof.blk': lambda: load_palette('tilesets/palettes/tin_tower_roof.pal')[8:16],
+		'maps/VioletCity.blk': lambda: load_palette('tilesets/palettes/violet_ecruteak.pal')[8:16],
+		'maps/ViridianGym.blk': lambda: load_palette('tilesets/palettes/viridian_gym.pal'),
+		'maps/WhirlIslandB1F.blk': lambda: load_palette('tilesets/palettes/whirl_islands.pal'),
+		'maps/WhirlIslandB2F.blk': lambda: load_palette('tilesets/palettes/whirl_islands.pal'),
+		'maps/WhirlIslandLugiaChamber.blk': lambda: load_palette('tilesets/palettes/whirl_islands.pal'),
+		'maps/WhirlIslandNE.blk': lambda: load_palette('tilesets/palettes/whirl_islands.pal'),
+		'maps/WhirlIslandSE.blk': lambda: load_palette('tilesets/palettes/whirl_islands.pal'),
+		'maps/WhirlIslandSW.blk': lambda: load_palette('tilesets/palettes/whirl_islands.pal'),
+		'maps/WillsRoom.blk': lambda: load_palette('tilesets/palettes/wills_room.pal'),
+		'maps/YellowForest.blk': lambda: load_palette('tilesets/palettes/yellow_forest.pal')[8:16],
 	}
 
 	tileset_palettes = {
 		'johto1': lambda: PaletteMap.day_palette(),
 		'johto2': lambda: PaletteMap.day_palette(),
 		'johto3': lambda: PaletteMap.day_palette(),
+		'johto4': lambda: PaletteMap.day_palette(),
 		'kanto1': lambda: PaletteMap.day_palette(),
 		'kanto2': lambda: PaletteMap.day_palette(),
 		'park': lambda: PaletteMap.day_palette(),
 		'forest': lambda: PaletteMap.nite_palette(),
 		'cave': lambda: PaletteMap.nite_palette(),
 		'tunnel': lambda: PaletteMap.nite_palette(),
-		'alph': lambda: load_palette('tilesets/ruins.pal'),
-		'battle_tower': lambda: load_palette('tilesets/battle_tower.pal'),
-		'faraway': lambda: load_palette('tilesets/faraway_island.pal')[8:16],
-		'game_corner': lambda: load_palette('tilesets/game_corner.pal'),
-		'gate': lambda: load_palette('tilesets/gate.pal'),
-		'hotel': lambda: load_palette('tilesets/hotel.pal'),
-		'ice_path': lambda: load_palette('tilesets/ice_path.pal'),
-		'mart': lambda: load_palette('tilesets/mart.pal'),
-		'pokecenter': lambda: load_palette('tilesets/pokecenter.pal'),
-		'pokecom': lambda: load_palette('tilesets/pokecom.pal'),
-		'quiet_cave': lambda: load_palette('tilesets/quiet_cave.pal'),
-		'radio_tower': lambda: load_palette('tilesets/radio_tower.pal'),
-		'ruins': lambda: load_palette('tilesets/ruins.pal'),
-		'safari': lambda: load_palette('tilesets/safari_zone.pal')[8:16],
-		'shamouti': lambda: load_palette('tilesets/shamouti_island.pal')[8:16],
-		'valencia': lambda: load_palette('tilesets/valencia_island.pal')[8:16],
+		'alph': lambda: load_palette('tilesets/palettes/ruins.pal'),
+		'battle_tower': lambda: load_palette('tilesets/palettes/battle_tower.pal'),
+		'faraway': lambda: load_palette('tilesets/palettes/faraway_island.pal')[8:16],
+		'game_corner': lambda: load_palette('tilesets/palettes/game_corner.pal'),
+		'gate': lambda: load_palette('tilesets/palettes/gate.pal'),
+		'hotel': lambda: load_palette('tilesets/palettes/hotel.pal'),
+		'ice_path': lambda: load_palette('tilesets/palettes/ice_path.pal'),
+		'mart': lambda: load_palette('tilesets/palettes/mart.pal'),
+		'pokecenter': lambda: load_palette('tilesets/palettes/pokecenter.pal'),
+		'pokecom': lambda: load_palette('tilesets/palettes/pokecom.pal'),
+		'quiet_cave': lambda: load_palette('tilesets/palettes/quiet_cave.pal'),
+		'radio_tower': lambda: load_palette('tilesets/palettes/radio_tower.pal'),
+		'ruins': lambda: load_palette('tilesets/palettes/ruins.pal'),
+		'safari': lambda: load_palette('tilesets/palettes/safari_zone.pal')[8:16],
+		'shamouti': lambda: load_palette('tilesets/palettes/shamouti_island.pal')[8:16],
+		'valencia': lambda: load_palette('tilesets/palettes/valencia_island.pal')[8:16],
 	}
 
 	def __init__(self, filename, key, map_blk):
@@ -228,10 +241,10 @@ class PaletteMap(object):
 		with open(filename, 'r') as file:
 			for line in file:
 				line = line.strip()
-				if line.startswith('tilepal'):
-					eight = line[7:].split(',')[-8:]
-					assert len(eight) == 8
-					self.data.extend([colors[c.strip()][::-1] for c in eight])
+				if line.startswith('tilepal '):
+					indexes = line[len('tilepal '):].split(',')[1:]
+					more_data = [colors[c.strip()][::-1] for c in indexes]
+					self.data.extend(more_data)
 
 	def color4(self, i):
 		return self.data[i] if i < len(self.data) else [default_rgb] * 4
@@ -248,7 +261,7 @@ class Metatiles(object):
 				tile_indexes = [ord(c) for c in file.read(Metatiles.t_per_m**2)]
 				if not len(tile_indexes):
 					break
-				metatile = [tileset.tile(ti if ti < 0x70 else ti - 0x10) for ti in tile_indexes]
+				metatile = [tileset.tile(ti) for ti in tile_indexes]
 				self.data.append(metatile)
 				i += 1
 
@@ -289,11 +302,11 @@ def process(key, tileset_name, palette_map_name, metatiles_name, map_blk):
 	tileset = Tileset(tileset_name, palette_map)
 	metatiles = Metatiles(metatiles_name, tileset)
 
-	tileset_colored_name = tileset_name[:-4] + '_colored.png'
+	tileset_colored_name = tileset_name[:-4] + '.colored.png'
 	tileset.export_colored(tileset_colored_name)
 	print('Exported', tileset_colored_name)
 
-	metatiles_colored_name = metatiles_name[:-4] + '_colored.png'
+	metatiles_colored_name = metatiles_name[:-4] + '.png'
 	metatiles.export_colored(metatiles_colored_name)
 	print('Exported', metatiles_colored_name)
 

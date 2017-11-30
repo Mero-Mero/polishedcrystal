@@ -1,4 +1,36 @@
-const_value set 2
+TinTower1F_MapScriptHeader:
+
+.MapTriggers: db 1
+	dw TinTower1FTrigger0
+
+.MapCallbacks: db 2
+	dbw MAPCALLBACK_OBJECTS, UnknownScript_0x18502f
+	dbw MAPCALLBACK_TILES, TinTowerStairsCallback
+
+TinTower1F_MapEventHeader:
+
+.Warps: db 3
+	warp_def 15, 7, 3, BELLCHIME_TRAIL
+	warp_def 15, 8, 3, BELLCHIME_TRAIL
+	warp_def 2, 8, 2, TIN_TOWER_2F
+
+.XYTriggers: db 0
+
+.Signposts: db 0
+
+.PersonEvents: db 10
+	person_event SPRITE_SUICUNE, 9, 7, SPRITEMOVEDATA_POKEMON, 0, 0, -1, -1, (1 << 3) | PAL_OW_BLUE, PERSONTYPE_SCRIPT, 0, ObjectEvent, EVENT_TIN_TOWER_1F_SUICUNE
+	person_event SPRITE_RAIKOU, 9, 5, SPRITEMOVEDATA_POKEMON, 0, 0, -1, -1, (1 << 3) | PAL_OW_BROWN, PERSONTYPE_SCRIPT, 0, ObjectEvent, EVENT_TIN_TOWER_1F_RAIKOU
+	person_event SPRITE_ENTEI, 9, 10, SPRITEMOVEDATA_POKEMON, 0, 0, -1, -1, (1 << 3) | PAL_OW_RED, PERSONTYPE_SCRIPT, 0, ObjectEvent, EVENT_TIN_TOWER_1F_ENTEI
+	person_event SPRITE_EUSINE, 3, 6, SPRITEMOVEDATA_SPINRANDOM_SLOW, 0, 0, -1, -1, 0, PERSONTYPE_COMMAND, jumptextfaceplayer, TinTowerEusineHoOhText, EVENT_TIN_TOWER_1F_EUSINE
+	person_event SPRITE_ELDER, 9, 3, SPRITEMOVEDATA_SPINRANDOM_SLOW, 0, 0, -1, -1, (1 << 3) | PAL_OW_GREEN, PERSONTYPE_COMMAND, jumptextfaceplayer, UnknownText_0x185386, EVENT_TIN_TOWER_1F_WISE_TRIO_1
+	person_event SPRITE_ELDER, 11, 9, SPRITEMOVEDATA_SPINRANDOM_SLOW, 0, 0, -1, -1, (1 << 3) | PAL_OW_GREEN, PERSONTYPE_COMMAND, jumptextfaceplayer, UnknownText_0x185433, EVENT_TIN_TOWER_1F_WISE_TRIO_1
+	person_event SPRITE_ELDER, 6, 12, SPRITEMOVEDATA_SPINRANDOM_SLOW, 0, 0, -1, -1, (1 << 3) | PAL_OW_GREEN, PERSONTYPE_COMMAND, jumptextfaceplayer, UnknownText_0x185544, EVENT_TIN_TOWER_1F_WISE_TRIO_1
+	person_event SPRITE_ELDER, 2, 2, SPRITEMOVEDATA_WALK_UP_DOWN, 1, 0, -1, -1, (1 << 3) | PAL_OW_GREEN, PERSONTYPE_SCRIPT, 0, SageScript_0x18517c, EVENT_TIN_TOWER_1F_WISE_TRIO_2
+	person_event SPRITE_ELDER, 1, 7, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, -1, (1 << 3) | PAL_OW_GREEN, PERSONTYPE_SCRIPT, 0, SageScript_0x185188, EVENT_TIN_TOWER_1F_WISE_TRIO_2
+	person_event SPRITE_ELDER, 2, 12, SPRITEMOVEDATA_WALK_LEFT_RIGHT, 0, 1, -1, -1, (1 << 3) | PAL_OW_GREEN, PERSONTYPE_SCRIPT, 0, SageScript_0x1851bc, EVENT_TIN_TOWER_1F_WISE_TRIO_2
+
+const_value set 1
 	const TINTOWER1F_SUICUNE
 	const TINTOWER1F_RAIKOU
 	const TINTOWER1F_ENTEI
@@ -6,21 +38,8 @@ const_value set 2
 	const TINTOWER1F_SAGE1
 	const TINTOWER1F_SAGE2
 	const TINTOWER1F_SAGE3
-	const TINTOWER1F_SAGE4
-	const TINTOWER1F_SAGE5
-	const TINTOWER1F_SAGE6
 
-TinTower1F_MapScriptHeader:
-.MapTriggers:
-	db 1
-	dw .Trigger0
-
-.MapCallbacks:
-	db 2
-	dbw MAPCALLBACK_OBJECTS, UnknownScript_0x18502f
-	dbw MAPCALLBACK_TILES, TinTowerStairsCallback
-
-.Trigger0:
+TinTower1FTrigger0:
 	priorityjump SuicuneBattle
 	end
 
@@ -75,7 +94,7 @@ UnknownScript_0x185077:
 TinTowerStairsCallback:
 	checkevent EVENT_GOT_RAINBOW_WING
 	iftrue .NoChange
-	changeblock $8, $2, $9
+	changeblock 8, 2, $9
 .NoChange:
 	return
 
@@ -133,29 +152,26 @@ SuicuneBattle:
 	pause 20
 	playmusic MUSIC_MYSTICALMAN_ENCOUNTER
 	playsound SFX_ENTER_DOOR
-	moveperson TINTOWER1F_EUSINE, $8, $f
+	moveperson TINTOWER1F_EUSINE, 8, 15
 	appear TINTOWER1F_EUSINE
 	applymovement TINTOWER1F_EUSINE, MovementData_0x1851ec
 	playsound SFX_ENTER_DOOR
-	moveperson TINTOWER1F_SAGE1, $7, $f
+	moveperson TINTOWER1F_SAGE1, 7, 15
 	appear TINTOWER1F_SAGE1
 	applymovement TINTOWER1F_SAGE1, MovementData_0x1851f5
 	playsound SFX_ENTER_DOOR
-	moveperson TINTOWER1F_SAGE2, $7, $f
+	moveperson TINTOWER1F_SAGE2, 7, 15
 	appear TINTOWER1F_SAGE2
 	applymovement TINTOWER1F_SAGE2, MovementData_0x1851fb
 	playsound SFX_ENTER_DOOR
-	moveperson TINTOWER1F_SAGE3, $7, $f
+	moveperson TINTOWER1F_SAGE3, 7, 15
 	appear TINTOWER1F_SAGE3
 	applymovement TINTOWER1F_SAGE3, MovementData_0x1851fe
-	moveperson TINTOWER1F_SAGE1, $5, $d
-	moveperson TINTOWER1F_SAGE2, $7, $d
-	moveperson TINTOWER1F_SAGE3, $9, $d
+	moveperson TINTOWER1F_SAGE1, 5, 13
+	moveperson TINTOWER1F_SAGE2, 7, 13
+	moveperson TINTOWER1F_SAGE3, 9, 13
 	spriteface PLAYER, RIGHT
-	opentext
-	writetext TinTowerEusineSuicuneText
-	waitbutton
-	closetext
+	showtext TinTowerEusineSuicuneText
 	applymovement TINTOWER1F_EUSINE, MovementData_0x1851f1
 	playsound SFX_EXIT_BUILDING
 	disappear TINTOWER1F_EUSINE
@@ -164,15 +180,6 @@ SuicuneBattle:
 	pause 20
 	playmapmusic
 	end
-
-SageScript_0x185173:
-	jumptextfaceplayer UnknownText_0x185386
-
-SageScript_0x185176:
-	jumptextfaceplayer UnknownText_0x185433
-
-SageScript_0x185179:
-	jumptextfaceplayer UnknownText_0x185544
 
 SageScript_0x18517c:
 	checkevent EVENT_FOUGHT_HO_OH
@@ -193,26 +200,20 @@ SageScript_0x185188:
 	buttonsound
 	verbosegiveitem RAINBOW_WING
 	closetext
-	refreshscreen $0
+	refreshscreen
 	earthquake 72
 	waitsfx
 	playsound SFX_STRENGTH
-	changeblock $8, $2, $20
+	changeblock 8, 2, $20
 	reloadmappart
 	setevent EVENT_GOT_RAINBOW_WING
 	closetext
 	opentext
 UnknownScript_0x1851b0:
-	writetext UnknownText_0x18564a
-	waitbutton
-	closetext
-	end
+	jumpopenedtext UnknownText_0x18564a
 
 UnknownScript_0x1851b6:
-	writetext UnknownText_0x185803
-	waitbutton
-	closetext
-	end
+	jumpopenedtext UnknownText_0x185803
 
 SageScript_0x1851bc:
 	checkevent EVENT_FOUGHT_HO_OH
@@ -221,9 +222,6 @@ SageScript_0x1851bc:
 
 UnknownScript_0x1851c5:
 	jumptextfaceplayer UnknownText_0x1858d0
-
-TinTowerEusine:
-	jumptextfaceplayer TinTowerEusineHoOhText
 
 TinTowerPlayerMovement1:
 	slow_step_up
@@ -359,7 +357,11 @@ UnknownText_0x185386:
 	done
 
 UnknownText_0x185433:
+if DEF(FAITHFUL)
+	text "When the Brass"
+else
 	text "When the Gong"
+endc
 	line "Tower burned down,"
 
 	para "three nameless"
@@ -512,29 +514,3 @@ UnknownText_0x1858d0:
 	para "cooperative bond"
 	line "with Suicune."
 	done
-
-TinTower1F_MapEventHeader:
-.Warps:
-	db 3
-	warp_def $f, $7, 3, BELLCHIME_TRAIL
-	warp_def $f, $8, 3, BELLCHIME_TRAIL
-	warp_def $2, $8, 2, TIN_TOWER_2F
-
-.XYTriggers:
-	db 0
-
-.Signposts:
-	db 0
-
-.PersonEvents:
-	db 10
-	person_event SPRITE_SUICUNE, 9, 7, SPRITEMOVEDATA_POKEMON, 0, 0, -1, -1, (1 << 3) | PAL_OW_BLUE, PERSONTYPE_SCRIPT, 0, ObjectEvent, EVENT_TIN_TOWER_1F_SUICUNE
-	person_event SPRITE_RAIKOU, 9, 5, SPRITEMOVEDATA_POKEMON, 0, 0, -1, -1, (1 << 3) | PAL_OW_BROWN, PERSONTYPE_SCRIPT, 0, ObjectEvent, EVENT_TIN_TOWER_1F_RAIKOU
-	person_event SPRITE_ENTEI, 9, 10, SPRITEMOVEDATA_POKEMON, 0, 0, -1, -1, (1 << 3) | PAL_OW_RED, PERSONTYPE_SCRIPT, 0, ObjectEvent, EVENT_TIN_TOWER_1F_ENTEI
-	person_event SPRITE_SUPER_NERD, 3, 6, SPRITEMOVEDATA_SPINRANDOM_SLOW, 0, 0, -1, -1, (1 << 3) | PAL_OW_PURPLE, PERSONTYPE_SCRIPT, 0, TinTowerEusine, EVENT_TIN_TOWER_1F_EUSINE
-	person_event SPRITE_SAGE, 9, 3, SPRITEMOVEDATA_SPINRANDOM_SLOW, 0, 0, -1, -1, 0, PERSONTYPE_SCRIPT, 0, SageScript_0x185173, EVENT_TIN_TOWER_1F_WISE_TRIO_1
-	person_event SPRITE_SAGE, 11, 9, SPRITEMOVEDATA_SPINRANDOM_SLOW, 0, 0, -1, -1, 0, PERSONTYPE_SCRIPT, 0, SageScript_0x185176, EVENT_TIN_TOWER_1F_WISE_TRIO_1
-	person_event SPRITE_SAGE, 6, 12, SPRITEMOVEDATA_SPINRANDOM_SLOW, 0, 0, -1, -1, 0, PERSONTYPE_SCRIPT, 0, SageScript_0x185179, EVENT_TIN_TOWER_1F_WISE_TRIO_1
-	person_event SPRITE_SAGE, 2, 2, SPRITEMOVEDATA_WALK_UP_DOWN, 1, 0, -1, -1, 0, PERSONTYPE_SCRIPT, 0, SageScript_0x18517c, EVENT_TIN_TOWER_1F_WISE_TRIO_2
-	person_event SPRITE_SAGE, 1, 7, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, -1, 0, PERSONTYPE_SCRIPT, 0, SageScript_0x185188, EVENT_TIN_TOWER_1F_WISE_TRIO_2
-	person_event SPRITE_SAGE, 2, 12, SPRITEMOVEDATA_WALK_LEFT_RIGHT, 0, 1, -1, -1, 0, PERSONTYPE_SCRIPT, 0, SageScript_0x1851bc, EVENT_TIN_TOWER_1F_WISE_TRIO_2

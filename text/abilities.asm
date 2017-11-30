@@ -104,6 +104,7 @@ AbilityNames:
 	dw Rivalry
 	dw Steadfast
 	dw SnowCloak
+	dw Gluttony
 	dw AngerPoint
 	dw Unburden
 	dw DrySkin
@@ -236,6 +237,7 @@ MotorDrive:    db "Motor Drive@"
 Rivalry:       db "Rivalry@"
 Steadfast:     db "Steadfast@"
 SnowCloak:     db "Snow Cloak@"
+Gluttony:      db "Gluttony@"
 AngerPoint:    db "Anger Point@"
 Unburden:      db "Unburden@"
 DrySkin:       db "Dry Skin@"
@@ -408,6 +410,7 @@ AbilityDescriptions:
 	dw RivalryDescription
 	dw SteadfastDescription
 	dw SnowCloakDescription
+	dw GluttonyDescription
 	dw AngerPointDescription
 	dw UnburdenDescription
 	dw DrySkinDescription
@@ -749,6 +752,10 @@ SteadfastDescription:
 SnowCloakDescription:
 	db   "Boosts evasion in"
 	next "hailstorms.@"
+
+GluttonyDescription:
+	db   "Encourages early"
+	next "Berry use.@"
 
 AngerPointDescription:
 	db   "Maxes Attack after"

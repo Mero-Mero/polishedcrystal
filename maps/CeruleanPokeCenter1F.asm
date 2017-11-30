@@ -1,45 +1,47 @@
-const_value set 2
-	const CERULEANPOKECENTER1F_NURSE
-	const CERULEANPOKECENTER1F_SUPER_NERD
-	const CERULEANPOKECENTER1F_GYM_GUY
-
 CeruleanPokeCenter1F_MapScriptHeader:
-.MapTriggers:
-	db 0
 
-.MapCallbacks:
-	db 0
+.MapTriggers: db 0
 
-NurseScript_0x18820f:
-	jumpstd pokecenternurse
+.MapCallbacks: db 0
 
-SuperNerdScript_0x188212:
-	jumptextfaceplayer UnknownText_0x188221
+CeruleanPokeCenter1F_MapEventHeader:
 
-GymGuyScript_0x18821e:
-	checkunits
-	iftrue .metric
-	jumptextfaceplayer UnknownText_0x1882ff_Imperial
-.metric
-	jumptextfaceplayer UnknownText_0x1882ff_Metric
+.Warps: db 3
+	warp_def 7, 5, 4, CERULEAN_CITY
+	warp_def 7, 6, 4, CERULEAN_CITY
+	warp_def 7, 0, 1, POKECENTER_2F
+
+.XYTriggers: db 0
+
+.Signposts: db 1
+	signpost 1, 10, SIGNPOST_READ, PokemonJournalMistyScript
+
+.PersonEvents: db 3
+	pc_nurse_event 1, 5
+	person_event SPRITE_GYM_GUY, 5, 1, SPRITEMOVEDATA_WANDER, 1, 1, -1, -1, (1 << 3) | PAL_OW_GREEN, PERSONTYPE_SCRIPT, 0, CeruleanPokeCenter1FGymGuyScript, -1
+	person_event SPRITE_SUPER_NERD, 4, 8, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, -1, (1 << 3) | PAL_OW_PURPLE, PERSONTYPE_COMMAND, jumptextfaceplayer, CeruleanPokeCenter1FSuperNerdText, -1
 
 PokemonJournalMistyScript:
 	setflag ENGINE_READ_MISTY_JOURNAL
-	jumptext PokemonJournalMistyText
+	thistext
 
-UnknownText_0x188221:
-	text "For battles, I'd"
-	line "much rather use"
+	text "#mon Journal"
 
-	para "#mon I've been"
-	line "raising, even if"
+	para "Special Feature:"
+	line "Leader Misty!"
 
-	para "they're weaker"
-	line "than some newly"
-	cont "caught #mon."
+	para "Misty is said to"
+	line "worship Lorelei,"
+
+	para "a former member of"
+	line "the Elite Four."
 	done
 
-UnknownText_0x1882ff_Imperial:
+CeruleanPokeCenter1FGymGuyScript:
+	checkunits
+	iftrue_jumptextfaceplayer .MetricText
+	thistextfaceplayer
+
 	text "The Magnet Train"
 	line "travels at over"
 
@@ -53,7 +55,7 @@ UnknownText_0x1882ff_Imperial:
 	line "Johto accessible."
 	done
 
-UnknownText_0x1882ff_Metric:
+.MetricText:
 	text "The Magnet Train"
 	line "travels at over"
 
@@ -67,35 +69,14 @@ UnknownText_0x1882ff_Metric:
 	line "Johto accessible."
 	done
 
-PokemonJournalMistyText:
-	text "#mon Journal"
+CeruleanPokeCenter1FSuperNerdText:
+	text "For battles, I'd"
+	line "much rather use"
 
-	para "Special Feature:"
-	line "Leader Misty!"
+	para "#mon I've been"
+	line "raising, even if"
 
-	para "Misty is said to"
-	line "worship Lorelei,"
-
-	para "a former member of"
-	line "the Elite Four."
+	para "they're weaker"
+	line "than some newly"
+	cont "caught #mon."
 	done
-
-CeruleanPokeCenter1F_MapEventHeader:
-.Warps:
-	db 3
-	warp_def $7, $5, 4, CERULEAN_CITY
-	warp_def $7, $6, 4, CERULEAN_CITY
-	warp_def $7, $0, 1, POKECENTER_2F
-
-.XYTriggers:
-	db 0
-
-.Signposts:
-	db 1
-	signpost 1, 10, SIGNPOST_READ, PokemonJournalMistyScript
-
-.PersonEvents:
-	db 3
-	person_event SPRITE_NURSE, 1, 5, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, -1, 0, PERSONTYPE_SCRIPT, 0, NurseScript_0x18820f, -1
-	person_event SPRITE_SUPER_NERD, 4, 8, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, -1, (1 << 3) | PAL_OW_PURPLE, PERSONTYPE_SCRIPT, 0, SuperNerdScript_0x188212, -1
-	person_event SPRITE_GYM_GUY, 5, 1, SPRITEMOVEDATA_WANDER, 1, 1, -1, -1, (1 << 3) | PAL_OW_GREEN, PERSONTYPE_SCRIPT, 0, GymGuyScript_0x18821e, -1

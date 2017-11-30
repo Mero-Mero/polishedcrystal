@@ -1,12 +1,26 @@
-const_value set 2
-	const LYRASHOUSE1F_DAD
-
 LyrasHouse1F_MapScriptHeader:
-.MapTriggers:
-	db 0
 
-.MapCallbacks:
-	db 0
+.MapTriggers: db 0
+
+.MapCallbacks: db 0
+
+LyrasHouse1F_MapEventHeader:
+
+.Warps: db 3
+	warp_def 7, 2, 4, NEW_BARK_TOWN
+	warp_def 7, 3, 4, NEW_BARK_TOWN
+	warp_def 0, 0, 1, LYRAS_HOUSE_2F
+
+.XYTriggers: db 0
+
+.Signposts: db 4
+	signpost 1, 7, SIGNPOST_UP, LyrasFridgeScript
+	signpost 1, 8, SIGNPOST_JUMPTEXT, LyrasSinkText
+	signpost 1, 9, SIGNPOST_JUMPTEXT, LyrasStoveText
+	signpost 1, 2, SIGNPOST_UP, LyrasTVScript
+
+.PersonEvents: db 1
+	person_event SPRITE_DAD, 3, 2, SPRITEMOVEDATA_STANDING_RIGHT, 0, 0, -1, -1, 0, PERSONTYPE_SCRIPT, 0, LyrasDadScript, -1
 
 LyrasDadScript:
 	faceplayer
@@ -15,34 +29,13 @@ LyrasDadScript:
 	iffalse .LyraInside
 	checkevent EVENT_GOT_SS_TICKET_FROM_ELM
 	iftrue .LyraTraining
-	writetext LyrasDadHelpingText
-	waitbutton
-	closetext
-	end
+	jumpopenedtext LyrasDadHelpingText
 
 .LyraInside
-	writetext LyrasDadInsideText
-	waitbutton
-	closetext
-	end
+	jumpopenedtext LyrasDadInsideText
 
 .LyraTraining
-	writetext LyrasDadTrainingText
-	waitbutton
-	closetext
-	end
-
-LyrasFridgeScript:
-	jumptext LyrasFridgeText
-
-LyrasSinkScript:
-	jumptext LyrasSinkText
-
-LyrasStoveScript:
-	jumptext LyrasStoveText
-
-LyrasTVScript:
-	jumptext LyrasTVText
+	jumpopenedtext LyrasDadTrainingText
 
 LyrasDadInsideText:
 	text "Hi, <PLAYER>!"
@@ -71,7 +64,9 @@ LyrasDadTrainingText:
 	cont "Johto!"
 	done
 
-LyrasFridgeText:
+LyrasFridgeScript:
+	thistext
+
 	text "Let's see what's"
 	line "in the fridge…"
 
@@ -89,7 +84,9 @@ LyrasStoveText:
 	line "on the stove."
 	done
 
-LyrasTVText:
+LyrasTVScript:
+	thistext
+
 	text "There's a movie on"
 	line "TV: A girl with"
 
@@ -100,24 +97,3 @@ LyrasTVText:
 	para "I'd better get"
 	line "going too!"
 	done
-
-LyrasHouse1F_MapEventHeader:
-.Warps:
-	db 3
-	warp_def $7, $2, 4, NEW_BARK_TOWN
-	warp_def $7, $3, 4, NEW_BARK_TOWN
-	warp_def $0, $0, 1, LYRAS_HOUSE_2F
-
-.XYTriggers:
-	db 0
-
-.Signposts:
-	db 4
-	signpost 1, 7, SIGNPOST_READ, LyrasFridgeScript
-	signpost 1, 8, SIGNPOST_READ, LyrasSinkScript
-	signpost 1, 9, SIGNPOST_READ, LyrasStoveScript
-	signpost 1, 2, SIGNPOST_READ, LyrasTVScript
-
-.PersonEvents:
-	db 1
-	person_event SPRITE_DAD, 3, 2, SPRITEMOVEDATA_STANDING_RIGHT, 0, 0, -1, -1, 0, PERSONTYPE_SCRIPT, 0, LyrasDadScript, -1

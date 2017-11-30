@@ -80,8 +80,7 @@ ReadMailMessage: ; 445f4
 	call AddNTimes
 	ld d, h
 	ld e, l
-	farcall ReadAnyMail
-	ret
+	farjp ReadAnyMail
 
 MoveMailFromPCToParty: ; 44607
 	ld a, BANK(sMailboxCount)
@@ -383,7 +382,7 @@ MailboxPC_PrintMailAuthor: ; 0x447fb
 
 MailboxPC: ; 0x44806
 	xor a
-	ld [OBPals + 8 * 6], a
+	ld [OBPals palette 6], a
 	ld a, 1
 	ld [wCurMessageIndex], a
 .loop
@@ -397,11 +396,11 @@ MailboxPC: ; 0x44806
 
 	ld a, [wCurMessageIndex]
 	ld [wMenuCursorBuffer], a
-	ld a, [OBPals + 8 * 6]
+	ld a, [OBPals palette 6]
 	ld [wMenuScrollPosition], a
 	call ScrollingMenu
 	ld a, [wMenuScrollPosition]
-	ld [OBPals + 8 * 6], a
+	ld [OBPals palette 6], a
 	ld a, [wMenuCursorY]
 	ld [wCurMessageIndex], a
 
@@ -421,13 +420,11 @@ MailboxPC: ; 0x44806
 	call LoadMenuDataHeader
 	call VerticalMenu
 	call ExitMenu
-	jr c, .subexit
+	ret c
 	ld a, [wMenuCursorY]
 	dec a
 	ld hl, .JumpTable
 	rst JumpTable
-
-.subexit
 	ret
 ; 0x44861
 

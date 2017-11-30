@@ -7,6 +7,7 @@ DoBattle: ; 3c000
 	ld [wBattleParticipantsIncludingFainted], a
 	ld [wPlayerAction], a
 	ld [BattleEnded], a
+	ld [InverseBattleScore], a
 	inc a
 	ld [wBattleHasJustStarted], a
 	ld hl, OTPartyMon1HP
@@ -27,8 +28,8 @@ DoBattle: ; 3c000
 	and a
 	jr z, .not_linked
 
-	ld a, [hLinkPlayerNumber]
-	cp $2
+	ld a, [hSerialConnectionStatus]
+	cp USING_INTERNAL_CLOCK
 	jr z, .player_2
 
 .not_linked
@@ -62,7 +63,9 @@ DoBattle: ; 3c000
 	call Call_LoadTempTileMapToTileMap
 	ld a, [BattleType]
 	cp BATTLETYPE_TUTORIAL
-	jp z, .tutorial_debug
+	jp z, BattleMenu ; No real turns in a tutorial
+	cp BATTLETYPE_SAFARI
+	jp z, SafariBattleTurn ; do not send out a player mon in a Safari Battle
 	xor a
 	ld [CurPartyMon], a
 .loop2
@@ -100,8 +103,8 @@ DoBattle: ; 3c000
 	ld a, [wLinkMode]
 	and a
 	jr z, .not_linked_2
-	ld a, [hLinkPlayerNumber]
-	cp $2
+	ld a, [hSerialConnectionStatus]
+	cp USING_INTERNAL_CLOCK
 	jr nz, .not_linked_2
 	xor a
 	ld [wEnemySwitchMonIndex], a
@@ -111,16 +114,15 @@ DoBattle: ; 3c000
 	call EnemySwitch
 	call SetEnemyTurn
 	call HandleFirstAirBalloon
+	call AutomaticRainWhenOvercast
 	call RunBothActivationAbilities
 	jp BattleTurn
 
 .not_linked_2
 	call HandleFirstAirBalloon
+	call AutomaticRainWhenOvercast
 	call RunBothActivationAbilities
 	jp BattleTurn
-
-.tutorial_debug
-	jp BattleMenu
 ; 3c0e5
 
 WildFled_EnemyFled_LinkBattleCanceled: ; 3c0e5
@@ -164,7 +166,7 @@ WildFled_EnemyFled_LinkBattleCanceled: ; 3c0e5
 BattleTurn: ; 3c12f
 .loop
 	call CheckContestBattleOver
-	jp c, .quit
+	ret c
 
 	xor a
 	ld [wPlayerIsSwitching], a
@@ -182,19 +184,19 @@ BattleTurn: ; 3c12f
 	jr c, .skip_iteration
 .loop1
 	call BattleMenu
-	jr c, .quit
+	ret c
 	ld a, [BattleEnded]
 	and a
-	jr nz, .quit
+	ret nz
 	ld a, [wForcedSwitch] ; roared/teleported
 	and a
-	jr nz, .quit
+	ret nz
 .skip_iteration
 	call ParsePlayerAction
 	jr nz, .loop1
 
 	call EnemyTriesToFlee
-	jr c, .quit
+	ret c
 
 	call DetermineMoveOrder
 	jr c, .false
@@ -205,22 +207,41 @@ BattleTurn: ; 3c12f
 .proceed
 	ld a, [wForcedSwitch]
 	and a
-	jr nz, .quit
+	ret nz
 
 	ld a, [BattleEnded]
 	and a
-	jr nz, .quit
+	ret nz
 
 	call HandleBetweenTurnEffects
 	ld a, [BattleEnded]
 	and a
-	jr nz, .quit
+	ret nz
 	jp .loop
-
-.quit
-	ret
 ; 3c1bf
 
+SafariBattleTurn:
+.loop
+	call CheckSafariBattleOver
+	ret c
+
+	call BattleMenu
+	ret c
+
+	ld a, [BattleEnded]
+	and a
+	ret nz
+
+	call HandleSafariAngerEatingStatus
+
+	call CheckSafariMonRan
+	ret c
+
+	ld a, [BattleEnded]
+	and a
+	ret nz
+
+	jr .loop
 
 HandleBetweenTurnEffects: ; 3c1d6
 	call CheckFaint
@@ -250,14 +271,14 @@ HandleBetweenTurnEffects: ; 3c1d6
 	call HandleHealingItems
 	farcall HandleAbilities
 	call HandleStatusOrbs
+	call HandleRoost
 	call UpdateBattleMonInParty
 	call LoadTileMapToTempTileMap
 	jp HandleEncore
-; 3c23c
 
 CheckFaint:
-	ld a, [hLinkPlayerNumber]
-	cp $1
+	ld a, [hSerialConnectionStatus]
+	cp USING_EXTERNAL_CLOCK
 	jr z, .enemy_first
 	call .check_player
 	call nc, .check_enemy
@@ -294,8 +315,8 @@ CheckFaint:
 	ret
 
 HandleBerserkGene: ; 3c27c
-	ld a, [hLinkPlayerNumber]
-	cp $1
+	ld a, [hSerialConnectionStatus]
+	cp USING_EXTERNAL_CLOCK
 	jr z, .reverse
 
 	call .player
@@ -415,10 +436,6 @@ DetermineMoveOrder: ; 3c314
 
 GetSpeed::
 ; Sets bc to speed after items and stat changes.
-; If d=1, check (and proc) Quick Claw, which increases b by
-; 128, effectively increasing final speed by 32768. This way,
-; no awkward specific checks need to be made for Quick Claw
-; ties and similar.
 	push hl
 	push de
 	ld a, [hBattleTurn]
@@ -429,122 +446,79 @@ GetSpeed::
 	ld a, [EnemySpdLevel]
 	ld hl, EnemyMonSpeed
 .got_speed
-	ld b, [hl]
-	inc hl
-	ld c, [hl]
-	ld d, a
-
-	; Apply stat changes
-	sub 7
-	jr z, .stat_changes_done
-	jr nc, .no_overflow1
-	xor a
-.no_overflow1
-	add 2
-	ld [hMultiplier], a
+	ld b, a
 	xor a
 	ld [hMultiplicand + 0], a
-	ld a, b
+	ld a, [hli]
 	ld [hMultiplicand + 1], a
-	ld a, c
+	ld a, [hl]
 	ld [hMultiplicand + 2], a
-	call Multiply
-	ld b, 4
-	ld a, 7
-	sub d
-	jr nc, .no_overflow2
-	xor a
-.no_overflow2
-	add 2
-	ld [hDivisor], a
-	call Divide
-	ld a, [hQuotient + 1]
-	ld b, a
-	ld a, [hQuotient + 2]
-	ld c, a
-.stat_changes_done
-	; Apply paralyze effect
+
+	; Apply stat changes
+	farcall FarDoStatChangeMod
+	ld a, b
+	call ApplyDamageMod
+
+	; Halve speed if paralyzed unless we have Quick Feet
 	ld a, BATTLE_VARS_STATUS
 	call GetBattleVar
-	and 1 << PAR
-	jr z, .paralyze_check_done
-	; Quick Feet ignores this
+	bit PAR, a
+	jr z, .paralyze_done
 	ld a, BATTLE_VARS_ABILITY
 	call GetBattleVar
 	cp QUICK_FEET
-	jr nz, .paralyze_check_done
-	; Cut speed in half. Consistent with
-	; VII (I-VI quartered it)
-	srl b
-	rr c
-.paralyze_check_done
+	ld a, $12
+	call nz, ApplyDamageMod
+
+.paralyze_done
 	farcall ApplySpeedAbilities
 
 	; Apply Unburden
 	ld a, BATTLE_VARS_SUBSTATUS1
 	call GetBattleVar
 	bit SUBSTATUS_UNBURDEN, a
-	jr z, .unburden_done
-	sla c
-	rl b
+	ld a, $21
+	call nz, ApplyDamageMod
 
 .unburden_done
 	; Apply item effects
-	push bc
-	farcall GetUserItem
-	ld h, c
+	farcall GetUserItemAfterUnnerve
 	ld a, b
-	pop bc
-	pop de ; needed early to check quick claw allowance
-	cp HELD_QUICK_CLAW
-	jr z, .quick_claw
 	cp HELD_QUICK_POWDER
 	jr z, .quick_powder
 	cp HELD_CHOICE
 	jr nz, .done
 	ld a, c
 	cp SPEED
-	jr z, .choice_scarf
-	jr .done
-.quick_claw
-	ld a, d
-	and a
-	jr z, .done ; don't apply quick claw
-	push hl
-	call BattleRandom
-	pop hl
-	cp h
-	jr nc, .done
-	; TODO: item animation
-	ld a, b
-	add 128
-	ld b, a
-	jr .done
-.choice_scarf
-	; Add a 50% boost
-	ld h, b
-	ld l, c
-	srl b
-	rr c
-	add hl, bc
-	ld b, h
-	ld c, l
-	jr .done
+	jr nz, .done
+	ld a, $32
+	jr .apply_item_mod
 .quick_powder
 	; Double speed, but only for Ditto
-	ld a, MON_SPECIES
-	call BattlePartyAttr
 	ld a, [hBattleTurn]
 	and a
-	ld a, [hl]
-	jr nz, .got_species
-	ld a, [TempEnemyMonSpecies]
+	ld hl, BattleMonSpecies
+	jr z, .got_species
+	ld hl, EnemyMonSpecies
 .got_species
 	cp DITTO
 	jr nz, .done
-	sla c
-	rl b
+	ld a, $21
+.apply_item_mod
+	call ApplyDamageMod
 .done
+	ld a, [hMultiplicand + 0]
+	and a
+	jr z, .not_capped
+	lb bc, $ff, $ff
+	jr .end
+.not_capped
+	ld a, [hMultiplicand + 1]
+	ld b, a
+	ld a, [hMultiplicand + 2]
+	ld c, a
+.end
+	pop de
 	pop hl
 	ret
 
@@ -566,6 +540,17 @@ CheckContestBattleOver: ; 3c3f5
 	and a
 	ret
 ; 3c410
+
+CheckSafariBattleOver:
+	ld a, [wSafariBallsRemaining]
+	and a
+	ret nz
+	ld a, [wBattleResult]
+	and $c0
+	add $2
+	ld [wBattleResult], a
+	scf
+	ret
 
 CheckPlayerLockedIn: ; 3c410
 	ld a, [PlayerSubStatus4]
@@ -623,8 +608,8 @@ ParsePlayerAction: ; 3c434
 	call Call_LoadTempTileMapToTileMap
 	call UpdateBattleHuds
 
-	ld hl, UnknBGPals
-	ld de, UnknBGPals + 6 palettes
+	ld hl, UnknBGPals palette PAL_BATTLE_BG_PLAYER
+	ld de, UnknBGPals palette PAL_BATTLE_BG_TYPE_CAT
 	ld bc, 1 palettes
 	ld a, $5
 	call FarCopyWRAM
@@ -646,20 +631,12 @@ ParsePlayerAction: ; 3c434
 	farcall UpdateMoveData
 	xor a
 	ld [wPlayerCharging], a
-	ld a, [wPlayerMoveStruct]
-	cp FURY_CUTTER
-	jr z, .continue_fury_cutter
-	xor a
-	ld [PlayerFuryCutterCount], a
 
-.continue_fury_cutter
 	ld a, [wPlayerMoveStruct + MOVE_EFFECT]
 	cp EFFECT_RAGE
 	jr z, .continue_rage
 	ld hl, PlayerSubStatus4
 	res SUBSTATUS_RAGE, [hl]
-	xor a
-	ld [wPlayerRageCounter], a
 
 .continue_rage
 	ld a, [wPlayerMoveStruct + MOVE_EFFECT]
@@ -676,9 +653,7 @@ ParsePlayerAction: ; 3c434
 	; SUBSTATUS_BIDE (it fellthrough to locked_in afterwards)
 .locked_in
 	xor a
-	ld [PlayerFuryCutterCount], a
 	ld [PlayerProtectCount], a
-	ld [wPlayerRageCounter], a
 	ld hl, PlayerSubStatus4
 	res SUBSTATUS_RAGE, [hl]
 
@@ -689,9 +664,7 @@ ParsePlayerAction: ; 3c434
 
 .reset_rage
 	xor a
-	ld [PlayerFuryCutterCount], a
 	ld [PlayerProtectCount], a
-	ld [wPlayerRageCounter], a
 	ld hl, PlayerSubStatus4
 	res SUBSTATUS_RAGE, [hl]
 .lavender_ghost
@@ -701,8 +674,8 @@ ParsePlayerAction: ; 3c434
 ; 3c4df
 
 HandleEncore: ; 3c4df
-	ld a, [hLinkPlayerNumber]
-	cp $1
+	ld a, [hSerialConnectionStatus]
+	cp USING_EXTERNAL_CLOCK
 	jr z, .player_1
 	call .do_player
 	jr .do_enemy
@@ -917,6 +890,7 @@ MoveEffectPriorities: ; 3c5df
 	db PROTECT,       4
 	db ENDURE,        4
 	db EXTREMESPEED,  2
+	db AQUA_JET,      1
 	db SUCKER_PUNCH,  1
 	db BULLET_PUNCH,  1
 	db ICE_SHARD,     1
@@ -989,6 +963,10 @@ Battle_PlayerFirst: ; 3c664
 	call SetEnemyTurn
 	farcall AI_SwitchOrTryItem
 	push af
+	jr nc, .enemy_used_move
+	ld a, 1
+	ld [wEnemyGoesFirst], a
+.enemy_used_move
 	call PlayerTurn_EndOpponentProtectEndureDestinyBond
 	pop bc
 	ld a, [wForcedSwitch]
@@ -1033,17 +1011,15 @@ PlayerTurn_EndOpponentProtectEndureDestinyBond: ; 3c6cf
 	call SetPlayerTurn
 	call EndUserDestinyBond
 	farcall DoPlayerTurn
-	jp EndOpponentProtectEndureDestinyBond
-; 3c6de
+	jr EndOpponentProtectEndureDestinyBond
 
 EnemyTurn_EndOpponentProtectEndureDestinyBond: ; 3c6de
 	call SetEnemyTurn
 	call EndUserDestinyBond
 	farcall DoEnemyTurn
-	jp EndOpponentProtectEndureDestinyBond
-; 3c6ed
+	; fallthrough
 
-EndOpponentProtectEndureDestinyBond: ; 3c6ed
+EndOpponentProtectEndureDestinyBond:
 	ld a, BATTLE_VARS_SUBSTATUS1_OPP
 	call GetBattleVarAddr
 	res SUBSTATUS_PROTECT, [hl]
@@ -1052,19 +1028,20 @@ EndOpponentProtectEndureDestinyBond: ; 3c6ed
 	call GetBattleVarAddr
 	res SUBSTATUS_DESTINY_BOND, [hl]
 	ret
-; 3c6fe
 
-EndUserDestinyBond: ; 3c6fe
+EndUserDestinyBond:
 	ld a, BATTLE_VARS_SUBSTATUS2
 	call GetBattleVarAddr
 	res SUBSTATUS_DESTINY_BOND, [hl]
 	ret
-; 3c706
+
+SetFastestTurn:
+	call CheckSpeed
+	jp nz, SetEnemyTurn
+	jp SetPlayerTurn
 
 HandleResidualDamage:
-	call SetPlayerTurn
-	call CheckSpeed
-	call nz, SetEnemyTurn
+	call SetFastestTurn
 	call .do_it
 	call SwitchTurn
 
@@ -1138,9 +1115,9 @@ HandleResidualDamage:
 	ld de, EnemyToxicCount
 .check_toxic
 
-	ld a, BATTLE_VARS_SUBSTATUS2
+	ld a, BATTLE_VARS_STATUS
 	call GetBattleVar
-	bit SUBSTATUS_TOXIC, a
+	bit TOX, a
 	jr z, .did_toxic
 	call GetSixteenthMaxHP
 	ld a, [de]
@@ -1178,20 +1155,21 @@ HandleResidualDamage:
 
 	call GetEighthMaxHP
 	call SubtractHPFromUser
+	call SwitchTurn
+	farcall HandleBigRoot
 	ld a, $1
 	ld [hBGMapMode], a
-	ld a, BATTLE_VARS_ABILITY
+	ld a, BATTLE_VARS_ABILITY_OPP
 	call GetBattleVar
 	cp LIQUID_OOZE
 	jr z, .hurt
-	call RestoreEnemyHP
+	call RestoreHP
 	jr .sap_text
 .hurt
-	farcall ShowAbilityActivation
-	call SwitchTurn
+	farcall ShowEnemyAbilityActivation
 	call SubtractHPFromUser
-	call SwitchTurn
 .sap_text
+	call SwitchTurn
 	ld hl, LeechSeedSapsText
 	call StdBattleTextBox
 .not_seeded
@@ -1235,9 +1213,7 @@ CheckFullHP:
 	ret
 
 HandlePerishSong: ; 3c801
-	call SetPlayerTurn
-	call CheckSpeed
-	call nz, SetEnemyTurn
+	call SetFastestTurn
 	call .do_it
 	call SwitchTurn
 
@@ -1297,9 +1273,7 @@ HandlePerishSong: ; 3c801
 ; 3c874
 
 HandleWrap: ; 3c874
-	call SetPlayerTurn
-	call CheckSpeed
-	call nz, SetEnemyTurn
+	call SetFastestTurn
 	call .do_it
 	call SwitchTurn
 
@@ -1362,9 +1336,7 @@ HandleWrap: ; 3c874
 ; 3c8e4
 
 HandleLeftovers:
-	call SetPlayerTurn
-	call CheckSpeed
-	call nz, SetEnemyTurn
+	call SetFastestTurn
 	call .do_it
 	call SwitchTurn
 
@@ -1396,9 +1368,7 @@ HandleLeftovers:
 	jp StdBattleTextBox
 
 HandleLeppaBerry:
-	call SetPlayerTurn
-	call CheckSpeed
-	call nz, SetEnemyTurn
+	call SetFastestTurn
 	call .do_it
 	call SwitchTurn
 
@@ -1406,7 +1376,7 @@ HandleLeppaBerry:
 	farcall GetUserItemAfterUnnerve
 	ld a, b
 	cp HELD_RESTORE_PP
-	jr nz, .quit
+	ret nz
 	ld hl, PartyMon1PP
 	ld a, [CurBattleMon]
 	call GetPartyLocation
@@ -1437,7 +1407,7 @@ HandleLeppaBerry:
 .loop
 	ld a, [hl]
 	and a
-	jr z, .quit
+	ret z
 	ld a, [de]
 	and $3f
 	jr z, .restore
@@ -1447,8 +1417,6 @@ HandleLeppaBerry:
 	ld a, c
 	cp NUM_MOVES
 	jr nz, .loop
-
-.quit
 	ret
 
 .restore
@@ -1525,9 +1493,7 @@ HandleLeppaBerry:
 	jp StdBattleTextBox
 
 HandleFutureSight:
-	call SetPlayerTurn
-	call CheckSpeed
-	call nz, SetEnemyTurn
+	call SetFastestTurn
 	call .do_it
 	call SwitchTurn
 
@@ -1577,11 +1543,8 @@ HandleFutureSight:
 
 HandleSafeguard:
 	call CheckSpeed
-	jr nz, .enemy_first
-	call .CheckPlayer
-	jr .CheckEnemy
+	jr z, .player_first
 
-.enemy_first
 	call .CheckEnemy
 .CheckPlayer:
 	ld a, [PlayerScreens]
@@ -1595,6 +1558,8 @@ HandleSafeguard:
 	xor a
 	jr .print
 
+.player_first
+	call .CheckPlayer
 .CheckEnemy:
 	ld a, [EnemyScreens]
 	bit SCREENS_SAFEGUARD, a
@@ -1679,7 +1644,7 @@ HandleScreens:
 
 HandleWeather:
 	ld a, [Weather]
-	cp WEATHER_NONE
+	and a ; cp WEATHER_NONE
 	ret z
 
 	ld hl, WeatherCount
@@ -1690,7 +1655,7 @@ HandleWeather:
 	; able to time it out, but otherwise check
 	; Cloud Nine
 	call GetWeatherAfterCloudNine
-	cp WEATHER_NONE
+	and a ; cp WEATHER_NONE
 	ret z
 
 	ld hl, .WeatherMessages
@@ -1767,14 +1732,18 @@ HandleWeather:
 
 HandleWeatherEffects:
 ; sandstorm/hail damage, abilities like rain dish, etc.
+	farcall GetUserItemAfterUnnerve
+	ld a, b
+	cp HELD_SAFETY_GOGGLES
+	jr z, .run_weather_abilities
 	call GetWeatherAfterCloudNine
 	cp WEATHER_HAIL
 	call z, .HandleHail
 	call GetWeatherAfterCloudNine
 	cp WEATHER_SANDSTORM
 	call z, .HandleSandstorm
-	farcall RunWeatherAbilities
-	ret
+.run_weather_abilities
+	farjp RunWeatherAbilities
 
 .HandleSandstorm
 	ld a, BATTLE_VARS_SUBSTATUS3
@@ -1803,9 +1772,8 @@ HandleWeatherEffects:
 
 	ld hl, SandstormHitsText
 	call StdBattleTextBox
-
 	call GetSixteenthMaxHP
-	jp SubtractHPFromUser
+	jr SubtractHPFromUser
 
 .HandleHail
 	ld a, BATTLE_VARS_SUBSTATUS3
@@ -1825,11 +1793,11 @@ HandleWeatherEffects:
 
 	call CheckIfUserIsIceType
 	ret z
-	ld hl, HailHitsText
-	jp StdBattleTextBox
 
+	ld hl, HailHitsText
+	call StdBattleTextBox
 	call GetSixteenthMaxHP
-	jp SubtractHPFromUser
+	; fallthrough
 
 SubtractHPFromUser:
 	call SubtractHP
@@ -1867,94 +1835,52 @@ SubtractHP: ; 3cc45
 	ret
 
 GetThirdMaxHP::
-; divides by 3 without using arithmetic helpers (screws up dam calc)
-; Parts of this function relies on the fact that the result can't
-; be more than 1 byte (Blissey's base 255 HP is at most 718 at L100)
-; This works because x/3 is x/4 + x/16 + x/64 + ...
+; Assumes HP<768
 	call GetMaxHP
-	push de
-	ld d, 0
-	; if b is nonzero, involve b in the bitshift
-	ld a, b
-	and a
-	ld a, c
-	jr z, .loop
-
-	and 3
-	ld e, a
-	srl b
-	rr c
-	srl b
-	rr c
-	jr .postshift
+	xor a
+	inc b
 .loop
-	cp 3
-	jr c, .loop_end_skip_add
-	jr z, .loop_end
-	and 3
-	ld e, a
-	srl c
-	srl c
-.postshift
-	ld a, d
-	add c
-	ld d, a
-	ld a, c
-	add e
+	dec b
+	inc a
+	dec bc
+	dec bc
+	dec bc
+	inc b
+	jr nz, .loop
+	dec a
 	ld c, a
-	jr .loop
-.loop_end
-	inc d
-.loop_end_skip_add
-	ld a, d
-	pop de
-; floor = 1
-	and a
-	ld c, a
-	jr nz, .end
+	ret nz
 	inc c
-.end
 	ret
 
-GetEighthMaxHP:
-	call GetMaxHP
-	jr EighthHP
+GetSixteenthMaxHP:
+	call GetEighthMaxHP
+	jr HalfHP
 
-GetQuarterMaxHP:
-	call GetMaxHP
-	jr QuarterHP
+GetEighthMaxHP:
+	call GetQuarterMaxHP
+	jr HalfHP
 
 GetSixthMaxHP:
 	call GetThirdMaxHP
 	jr HalfHP
 
-GetHalfMaxHP:
-	call GetMaxHP
+GetQuarterMaxHP:
+	call GetHalfMaxHP
 	jr HalfHP
 
-GetSixteenthMaxHP:
+GetHalfMaxHP:
 	call GetMaxHP
-	srl b
-	rr c
-	; fallthrough
-EighthHP:
-	srl b
-	rr c
-QuarterHP:
-	srl b
-	rr c
 HalfHP:
 	srl b
 	rr c
 
-; floor = 1
+	; floor = 1
 	ld a, c
 	or b
-	jr nz, .end
+	ret nz
 	inc c
-.end
 	ret
-; 3ccac
 
 
 GetMaxHP: ; 3ccac
@@ -2110,8 +2036,8 @@ HandleEnemyMonFaint: ; 3cd55
 ; 3cdca
 
 DoubleSwitch: ; 3cdca
-	ld a, [hLinkPlayerNumber]
-	cp $1
+	ld a, [hSerialConnectionStatus]
+	cp USING_EXTERNAL_CLOCK
 	jr z, .player_1
 	call ClearSprites
 	hlcoord 0, 0
@@ -2193,14 +2119,21 @@ UpdateBattleStateAndExperienceAfterEnemyFaint: ; 3ce01
 	ld a, [wBattleResult]
 	and $c0
 	ld [wBattleResult], a
+; fallthrough
 
 GiveExperiencePointsAfterCatch:
+; give experience to participants
+	xor a
+	ld [wGivingExperienceToExpShareHolders], a
+	call GiveExperiencePoints
 	call IsAnyMonHoldingExpShare
+	ret z
+; give experience to Exp.Share holders
 	ld a, [wBattleParticipantsNotFainted]
 	push af
-	or d
+	ld a, d
 	ld [wBattleParticipantsNotFainted], a
-	xor a
+	ld a, $1
 	ld [wGivingExperienceToExpShareHolders], a
 	call GiveExperiencePoints
 	pop af
@@ -2440,8 +2373,7 @@ WinTrainerBattle: ; 3cfa4
 	or [hl]
 	ret nz
 	call ClearTileMap
-	call ClearBGPalettes
-	ret
+	jp ClearBGPalettes
 
 .GiveMoney:
 	ld a, [wAmuletCoin]
@@ -2877,8 +2809,7 @@ SetUpBattlePartyMenu_NoLoop: ; 3d2f7
 SetUpBattlePartyMenu: ; switch to fullscreen menu?
 	farcall LoadPartyMenuGFX
 	farcall InitPartyMenuWithCancel
-	farcall InitPartyMenuGFX
-	ret
+	farjp InitPartyMenuGFX
 ; 3d313
 
 JumpToPartyMenuAndPrintText: ; 3d313
@@ -2890,8 +2821,7 @@ JumpToPartyMenuAndPrintText: ; 3d313
 ; 3d329
 
 SelectBattleMon: ; 3d329
-	farcall PartyMenuSelect
-	ret
+	farjp PartyMenuSelect
 ; 3d33c
 
 PickPartyMonInBattle: ; 3d33c
@@ -3053,20 +2983,19 @@ LostBattle: ; 3d38e
 EnemyMonFaintedAnimation: ; 3d432
 	hlcoord 12, 5
 	decoord 12, 6
-	jp MonFaintedAnimation
+	jr MonFaintedAnimation
 ; 3d43b
 
 PlayerMonFaintedAnimation: ; 3d43b
 	hlcoord 1, 10
 	decoord 1, 11
-	jp MonFaintedAnimation
-; 3d444
+	; fallthrough
 
 MonFaintedAnimation: ; 3d444
-	ld a, [wcfbe]
+	ld a, [InputFlags]
 	push af
 	set 6, a
-	ld [wcfbe], a
+	ld [InputFlags], a
 	ld b, 7
 
 .OuterLoop:
@@ -3109,7 +3038,7 @@ MonFaintedAnimation: ; 3d444
 	jr nz, .OuterLoop
 
 	pop af
-	ld [wcfbe], a
+	ld [InputFlags], a
 	ret
 ; 3d488
 
@@ -3402,8 +3331,7 @@ FinalPkmnMusicAndAnimation:
 	call SlideEnemyPicOut
 	ld c, 10
 	call DelayFrames
-	call FinalPkmnSlideInEnemyMonFrontpic
-	ret
+	jp FinalPkmnSlideInEnemyMonFrontpic
 
 CheckWhetherToAskSwitch: ; 3d714
 	ld a, [wBattleHasJustStarted]
@@ -3569,9 +3497,8 @@ rept 3
 endr
 	ld [hl], a
 	ld [EnemyDisableCount], a
-	ld [EnemyFuryCutterCount], a
 	ld [EnemyProtectCount], a
-	ld [wEnemyRageCounter], a
+	ld [EnemyToxicCount], a
 	ld [EnemyDisabledMove], a
 	ld [wEnemyMinimized], a
 	ld [wPlayerWrapCount], a
@@ -3587,7 +3514,7 @@ ResetPlayerAbility:
 	ld b, a
 	ld a, [BattleMonSpecies]
 	ld c, a
-	farcall GetAbility
+	call GetAbility
 	ld a, b
 	ld [PlayerAbility], a
 	xor a
@@ -3598,7 +3525,7 @@ ResetEnemyAbility:
 	ld b, a
 	ld a, [EnemyMonSpecies]
 	ld c, a
-	farcall GetAbility
+	call GetAbility
 	ld a, b
 	ld [EnemyAbility], a
 	xor a
@@ -3645,15 +3572,15 @@ CheckIfCurPartyMonIsFitToFight: ; 3d887
 	ld a, [wBattleHasJustStarted]
 	and a
 	jr nz, .finish_fail
-	ld hl, PartySpecies
+
 	ld a, [CurPartyMon]
-	ld c, a
-	ld b, 0
-	add hl, bc
+	ld hl, PartyMon1IsEgg
+	ld bc, PARTYMON_STRUCT_LENGTH
+	call AddNTimes
 	ld a, [hl]
-	cp EGG
+	and IS_EGG_MASK
 	ld hl, BattleText_AnEGGCantBattle
-	jr z, .print_textbox
+	jr nz, .print_textbox
 
 	ld hl, BattleText_TheresNoWillToBattle
 
@@ -3717,10 +3644,6 @@ endc
 	ld de, BattleMonNick
 	ld bc, PKMN_NAME_LENGTH
 	call CopyBytes
-	ld hl, BattleMonStats
-	ld de, PlayerStats
-	ld bc, BattleMonStatsEnd - BattleMonStats
-	call CopyBytes
 	jp ResetPlayerAbility
 ; 3da74
 
@@ -3734,8 +3657,7 @@ BattleCheckEnemyShininess: ; 3da79
 BattleCheckShininess: ; 3da7c
 	ld b, h
 	ld c, l
-	farcall CheckShininess
-	ret
+	farjp CheckShininess
 ; 3da85
 
 GetPartyMonDVs: ; 3da85
@@ -3749,10 +3671,6 @@ GetPartyMonDVs: ; 3da85
 ; 3da97
 
 GetEnemyMonDVs: ; 3da97
-	ld hl, EnemyMonDVs
-	ld a, [EnemySubStatus2]
-	bit SUBSTATUS_TRANSFORMED, a
-	ret z
 	ld hl, wEnemyBackupDVs
 	ld a, [wBattleMode]
 	dec a
@@ -3772,10 +3690,6 @@ GetPartyMonPersonality:
 	jp GetPartyLocation
 
 GetEnemyMonPersonality:
-	ld hl, EnemyMonPersonality
-	ld a, [EnemySubStatus2]
-	bit SUBSTATUS_TRANSFORMED, a
-	ret z
 	ld hl, wEnemyBackupPersonality
 	ld a, [wBattleMode]
 	dec a
@@ -3820,10 +3734,6 @@ InitEnemyMon: ; 3dabd
 	call SkipNames
 	ld de, EnemyMonNick
 	ld bc, PKMN_NAME_LENGTH
-	call CopyBytes
-	ld hl, EnemyMonStats
-	ld de, EnemyStats
-	ld bc, PARTYMON_STRUCT_LENGTH - MON_STATS
 	call CopyBytes
 	ld hl, BaseType1
 	ld de, EnemyMonType1
@@ -3894,7 +3804,7 @@ SendOutPlayerMon: ; 3db5f
 	call GetMonBackpic
 	xor a
 	ld [hGraphicStartTile], a
-	ld [wd0d2], a
+	ld [wBattleMenuCursorBuffer], a
 	ld [CurMoveNum], a
 	ld [TypeModifier], a
 	ld [wPlayerMoveStruct + MOVE_ANIM], a
@@ -3955,9 +3865,8 @@ rept 3
 endr
 	ld [hl], a
 	ld [PlayerDisableCount], a
-	ld [PlayerFuryCutterCount], a
 	ld [PlayerProtectCount], a
-	ld [wPlayerRageCounter], a
+	ld [PlayerToxicCount], a
 	ld [DisabledMove], a
 	ld [wPlayerMinimized], a
 	ld [wEnemyWrapCount], a
@@ -3981,12 +3890,7 @@ HandleFirstAirBalloon:
 ; speed checks to see whose air balloon to announce first.
 	ld a, [hBattleTurn]
 	push af
-	call SetPlayerTurn
-	call CheckSpeed
-	jr z, .got_order
-	call SetEnemyTurn
-.got_order
-	; No Spikes are actually on the field, but this prints the Air Balloon message
+	call SetFastestTurn
 	call SpikesDamage
 	call SwitchTurn
 	call SpikesDamage
@@ -3994,20 +3898,26 @@ HandleFirstAirBalloon:
 	ld [hBattleTurn], a
 	ret
 
+RemoveToxicAfterBattle::
+; removes toxic from mons after battle
+	ld a, [PartyCount]
+	ld hl, PartyMon1Status
+	ld bc, PARTYMON_STRUCT_LENGTH
+	inc a
+.loop
+	dec a
+	ret z
+	res TOX, [hl]
+	add hl, bc
+	jr .loop
+
 RunBothActivationAbilities:
 ; runs both pokémon's activation abilities (Intimidate, etc.).
 ; The faster Pokémon activates abilities first. This mostly
 ; just matter for weather abilities.
 	ld a, [hBattleTurn]
 	push af
-	call SetPlayerTurn
-	call CheckSpeed
-	jr z, .got_order
-	call SetEnemyTurn
-.got_order
-	; Don't run RunActivationAbilities, it
-	; will make Traced abilities activate
-	; twice
+	call SetFastestTurn
 	farcall RunActivationAbilitiesInner
 	call SwitchTurn
 	farcall RunActivationAbilitiesInner
@@ -4038,41 +3948,137 @@ SpikesDamage_CheckMoldBreaker:
 ; Called when a Pokémon with Mold Breaker uses Roar/Whirlwind.
 ; This is neccessary because it negates Levitate (but not Magic Guard for some reason),
 ; but can't be checked unconditionally since other kind of switches ignore MB as usual.
-	ld a, BATTLE_VARS_ABILITY_OPP
-	call GetBattleVar
-	cp MOLD_BREAKER
-	jr z, SpikesDamage_SkipLevitate
+	call SwitchTurn
+	call GetOpponentAbilityAfterMoldBreaker
+	ld b, a
+	call SwitchTurn
+	ld c, 1
+	jr SpikesDamage_GotAbility
 SpikesDamage: ; 3dc23
 	ld a, BATTLE_VARS_ABILITY
 	call GetBattleVar
-	cp LEVITATE
-	jr z, HandleAirBalloon ; still print the message even if we have levitate
-SpikesDamage_SkipLevitate:
+	ld b, a
+	ld c, 0
+SpikesDamage_GotAbility:
+; Input: b: ability, c: 1 if forced out, 0 otherwise
+	push bc
 	call HandleAirBalloon
+	pop bc
 	ret z
-	ld a, BATTLE_VARS_ABILITY
-	cp MAGIC_GUARD
+
+	ld a, b
+	cp LEVITATE
 	ret z
+
+	; Flying-types aren't affected by Spikes.
+	push bc
+	call CheckIfUserIsFlyingType
+	pop bc
+	ret z
+
 	ld a, [hBattleTurn]
 	and a
 	ld hl, PlayerScreens
 	jr z, .ok
 	ld hl, EnemyScreens
 .ok
+	push hl
+	call .Spikes
+	pop hl
+	call .ToxicSpikes
+	ret
 
-	bit SCREENS_SPIKES, [hl]
+.Spikes:
+	ld a, b
+	cp MAGIC_GUARD
 	ret z
 
-	; Flying-types aren't affected by Spikes.
-	call CheckIfUserIsFlyingType
+	ld a, [hl]
+	and SCREENS_SPIKES
 	ret z
 
-	call GetEighthMaxHP
+	ld hl, GetEighthMaxHP
+	sub SCREENS_SPIKES / 3
+	jr z, .got_hp
+	ld hl, GetSixthMaxHP
+	sub SCREENS_SPIKES / 3
+	jr z, .got_hp
+	ld hl, GetQuarterMaxHP
+.got_hp
+	call _hl_
 	call SubtractHPFromUser
 	call UpdateUserInParty
 
 	ld hl, BattleText_UserHurtBySpikes
 	jp StdBattleTextBox
+
+.ToxicSpikes:
+	ld a, [hl]
+	and SCREENS_TOXIC_SPIKES
+	ret z
+
+	push af
+	push bc
+	push hl
+	call CheckIfUserIsPoisonType
+	pop hl
+	pop bc
+	jr nz, .no_poison_type
+	pop af
+
+	; Grounded Poison types absorb the Toxic Spikes
+	cpl
+	and [hl]
+	ld [hl], a
+	ret
+
+.no_poison_type
+	pop af
+	push bc
+	push hl
+	call SwitchTurn
+	ld b, c
+	farcall CanPoisonTarget
+	push af
+	call SwitchTurn
+	pop af
+	pop hl
+	pop bc
+	ret nz
+
+	ld a, [hl]
+	and SCREENS_TOXIC_SPIKES
+	cp (SCREENS_TOXIC_SPIKES / 3) * 2
+	ld a, 1 << PSN
+	ld hl, WasPoisonedText
+	jr nz, .no_toxic
+	or 1 << TOX
+	ld hl, BadlyPoisonedText
+.no_toxic
+	push bc
+	push hl
+	push af
+	ld a, BATTLE_VARS_STATUS
+	call GetBattleVarAddr
+	pop af
+	ld [hl], a
+	ld de, ANIM_PSN
+	call Call_PlayBattleAnim
+	call RefreshBattleHuds
+	pop hl
+
+	call SwitchTurn
+	call StdBattleTextBox
+	pop bc
+	ld a, c
+	and a
+	jr z, .no_synchronize
+	farcall PostStatusWithSynchronize
+	jr .poststatus_done
+.no_synchronize
+	farcall PostStatus
+.poststatus_done
+	jp SwitchTurn
 
 HandleAirBalloon:
 ; prints air balloon msg and returns z if we have air balloon
@@ -4101,21 +4107,20 @@ PursuitSwitch: ; 3dc5b
 	push af
 
 	; Kludge: if player is target, override CurPlayerMon to
-	; properly update party struct (FIXME: make this unneccessary)
-	ld hl, DoPlayerTurn
+	; properly update party struct (TODO: make this unneccessary)
 	ld a, [hBattleTurn]
 	and a
-	jr z, .do_turn
-	ld hl, DoEnemyTurn
+	jr nz, .enemy
+	farcall DoPlayerTurn
+	jr .finish_pursuit
+.enemy
 	ld a, [LastPlayerMon]
 	ld [CurBattleMon], a
-.do_turn
-	ld a, BANK(DoPlayerTurn)
-	rst FarCall
-
+	farcall DoEnemyTurn
+.finish_pursuit
 	ld a, BATTLE_VARS_MOVE
 	call GetBattleVarAddr
-	ld a, $ff
+	xor a
 	ld [hl], a
 
 	pop af
@@ -4200,32 +4205,32 @@ RecallPlayerMon: ; 3dce6
 ; 3dcf9
 
 HandleHealingItems: ; 3dcf9
-	call SetPlayerTurn
-	call CheckSpeed
-	call nz, SetEnemyTurn
+	call SetFastestTurn
 	call .do_it
 	call SwitchTurn
 
 .do_it
 	call HandleHPHealingItem
 	call UseHeldStatusHealingItem
+	call HandleStatBoostBerry
 	jp UseConfusionHealingItem
 
 HandleStatusOrbs:
-	call SetPlayerTurn
-	call CheckSpeed
-	call nz, SetEnemyTurn
+	call SetFastestTurn
+	; Done for target to simplify checks so invert
+	; turn
+	call SwitchTurn
 	call .do_it
 	call SwitchTurn
 
 .do_it
-	farcall GetUserItemAfterUnnerve
+	farcall GetOpponentItemAfterUnnerve
 	ld a, b
 	cp HELD_SELF_BRN
 	ld b, 1 << BRN
 	jr z, .burn
 	cp HELD_SELF_PSN
-	ld b, 1 << PSN
+	ld b, 1 << PSN | 1 << TOX
 	jr z, .poison
 	ret
 .poison
@@ -4233,9 +4238,7 @@ HandleStatusOrbs:
 	ld b, 0
 	farcall CanPoisonTarget
 	pop bc
-	ld a, BATTLE_VARS_SUBSTATUS2
-	call GetBattleVarAddr
-	set SUBSTATUS_TOXIC, [hl]
+	ret nz
 	ld de, ANIM_PSN
 	ld hl, BadlyPoisonedText
 	jr .do_status
@@ -4249,14 +4252,89 @@ HandleStatusOrbs:
 	ld hl, WasBurnedText
 	; fallthrough
 .do_status
+	push hl
+	ld a, BATTLE_VARS_STATUS_OPP
+	call GetBattleVarAddr
+	ld [hl], b
 	xor a
 	ld [wNumHits], a
-	push hl
-	call Call_PlayBattleAnim
+	farcall PlayOpponentBattleAnim
+	call RefreshBattleHuds
 	pop hl
+	jp StdBattleTextBox
+
+HandleRoost:
+	call SetFastestTurn
+	call .do_it
 	call SwitchTurn
+
+.do_it
+	ld a, BATTLE_VARS_SUBSTATUS4
+	call GetBattleVarAddr
+	bit SUBSTATUS_ROOST, [hl]
+	res SUBSTATUS_ROOST, [hl]
+	ret z
+
+	ld a, [hBattleTurn]
+	and a
+	ld hl, BattleMonType1
+	jr z, .got_types
+	ld hl, EnemyMonType1
+.got_types
+	; Check which type is ???
+	ld a, [hl]
+	cp UNKNOWN_T
+	jr z, .got_target
+	inc hl
+	ld a, [hl]
+	cp UNKNOWN_T
+	jr nz, .aerliate
+.got_target
+	ld [hl], FLYING
+	ret
+.aerliate
+	; Set Flying types on both
+	ld a, FLYING
+	ld [hld], a
+	ld [hl], a
+	ret
+
+HandleStatBoostBerry:
+	ld a, BATTLE_VARS_ABILITY
+	call GetBattleVar
+	cp GLUTTONY
+	jr z, .gluttony
+	call GetQuarterMaxHP
+	jr .compare_hp
+.gluttony
+	call GetHalfMaxHP
+.compare_hp
+	call CompareHP
+	jr z, .ok
+	ret nc
+.ok
+	farcall GetUserItemAfterUnnerve
+	ld a, b
+	cp HELD_RAISE_STAT
+	ret nz
+	ld b, c
+	farcall BattleCommand_StatUp
+	ld a, [FailedMessage]
+	and a
+	ret nz
+	call ItemRecoveryAnim
+	farcall GetUserItemAfterUnnerve
+	ld a, [hl]
+	ld [wNamedObjectIndexBuffer], a
+	call GetItemName
+	ld a, [LoweredStat]
+	and $f
+	ld b, a
+	inc b
+	farcall GetStatName
+	ld hl, BattleText_ItemRaised
 	call StdBattleTextBox
-	jp SwitchTurn
+	jp ConsumeUserItem
 
 HandleHPHealingItem:
 	; only restore HP if HP<=1/2
@@ -4269,6 +4347,23 @@ HandleHPHealingItem:
 	ld a, b
 	cp HELD_BERRY
 	ret nz
+	ld a, [hl]
+	cp FIGY_BERRY
+	jr nz, .not_figy
+
+	; Gluttony makes Figy activate at 50%HP like the others
+	ld a, BATTLE_VARS_ABILITY
+	call GetBattleVar
+	cp GLUTTONY
+	jr z, .figy_ok
+	call GetQuarterMaxHP
+	call CompareHP
+	jr z, .figy_ok
+	ret nc
+.figy_ok
+	call GetHalfMaxHP
+	jr .got_hp_to_restore
+.not_figy
 	ld b, 0 ; c contains HP to restore
 	call ItemRecoveryAnim
 	ld a, [hl]
@@ -4287,7 +4382,7 @@ UseBattleItem:
 	call StdBattleTextBox
 	jp ConsumeUserItem
 
-ItemRecoveryAnim:
+ItemRecoveryAnim::
 	push hl
 	push de
 	push bc
@@ -4330,10 +4425,6 @@ UseHeldStatusHealingItem: ; 3dde9
 	push bc
 	call UpdateUserInParty
 	pop bc
-	ld a, BATTLE_VARS_SUBSTATUS2
-	call GetBattleVarAddr
-	and [hl]
-	res SUBSTATUS_TOXIC, [hl]
 	ld a, b
 	cp ALL_STATUS
 	jr nz, .skip_confuse
@@ -4342,15 +4433,6 @@ UseHeldStatusHealingItem: ; 3dde9
 	res SUBSTATUS_CONFUSED, [hl]
 
 .skip_confuse
-	ld hl, CalcPlayerStats
-	ld a, [hBattleTurn]
-	and a
-	jr z, .got_pointer
-	ld hl, CalcEnemyStats
-
-.got_pointer
-	ld a, BANK(CalcEnemyStats)
-	rst FarCall
 	call ItemRecoveryAnim
 	call UseBattleItem
 	ld a, $1
@@ -4502,14 +4584,8 @@ DrawPlayerHUD: ; 3df58
 	ld [hl], $55
 	inc hl
 	ld [hl], $56
-	farcall InstantReloadPaletteHack
-	ret
+	farjp InstantReloadPaletteHack
 ; 3df98
-
-UpdatePlayerHPPal: ; 3df98
-	ld hl, PlayerHPPal
-	jp UpdateHPPal
-; 3df9e
 
 CheckDanger: ; 3df9e
 	ld hl, BattleMonHP
@@ -4518,7 +4594,7 @@ CheckDanger: ; 3df9e
 	jr z, .no_danger
 	ld a, [wDanger]
 	and a
-	jr nz, .done
+	ret nz
 	ld a, [PlayerHPPal]
 	cp HP_RED
 	jr z, .danger
@@ -4526,13 +4602,11 @@ CheckDanger: ; 3df9e
 .no_danger
 	xor a
 	ld [Danger], a
-	jr .done
+	ret
 
 .danger
 	ld hl, Danger
 	set 7, [hl]
-
-.done
 	ret
 ; 3dfbf
 
@@ -4578,7 +4652,7 @@ endr
 	ld bc, BattleMonShiny
 	farcall CheckShininess
 	jr nc, .not_own_shiny
-	ld a, $61 ; colored "★"
+	ld a, "<STAR>"
 	hlcoord 19, 8
 	ld [hl], a
 
@@ -4588,9 +4662,9 @@ endr
 	farcall GetGender
 	ld a, " "
 	jr c, .got_gender_char
-	ld a, $5f ; colored "♂"
+	ld a, "<MALE>"
 	jr nz, .got_gender_char
-	ld a, $60 ; colored "♀"
+	ld a, "<FEMALE>"
 
 .got_gender_char
 	hlcoord 18, 8
@@ -4635,12 +4709,8 @@ DrawEnemyHUD: ; 3e043
 	ld l, c
 	dec hl
 
-	ld hl, EnemyMonDVs
+	call GetEnemyMonDVs
 	ld de, TempMonDVs
-	ld a, [EnemySubStatus2]
-	bit SUBSTATUS_TRANSFORMED, a
-	jr z, .ok
-	ld hl, wEnemyBackupDVs
 .ok
 rept 4
 	ld a, [hli]
@@ -4653,7 +4723,7 @@ endr
 	ld bc, EnemyMonShiny
 	farcall CheckShininess
 	jr nc, .not_shiny
-	ld a, $61 ; colored "★"
+	ld a, "<STAR>"
 	hlcoord 9, 1
 	ld [hl], a
 
@@ -4663,9 +4733,9 @@ endr
 	farcall GetGender
 	ld a, " "
 	jr c, .got_gender
-	ld a, $5f ; colored "♂"
+	ld a, "<MALE>"
 	jr nz, .got_gender
-	ld a, $60 ; colored "♀"
+	ld a, "<FEMALE>"
 
 .got_gender
 	hlcoord 8, 1
@@ -4745,15 +4815,16 @@ endr
 	ld [hl], $57
 	inc hl
 	ld [hl], $58
-	farcall InstantReloadPaletteHack
-	ret
+	farjp InstantReloadPaletteHack
 ; 3e127
+
+UpdatePlayerHPPal: ; 3df98
+	ld hl, PlayerHPPal
+	jr UpdateHPPal
 
 UpdateEnemyHPPal: ; 3e127
 	ld hl, EnemyHPPal
-	jp UpdateHPPal
-; 3e12e
-
+	; fallthrough
 UpdateHPPal: ; 3e12e
 	ld b, [hl]
 	call SetHPPal
@@ -4771,6 +4842,8 @@ BattleMenu: ; 3e139
 	ld a, [BattleType]
 	cp BATTLETYPE_TUTORIAL
 	jr z, .ok
+	cp BATTLETYPE_SAFARI
+	jr z, .ok
 	call EmptyBattleTextBox
 	call UpdateBattleHuds
 	call EmptyBattleTextBox
@@ -4779,9 +4852,14 @@ BattleMenu: ; 3e139
 
 .loop
 	ld a, [BattleType]
+	cp BATTLETYPE_SAFARI
+	jr z, .safari_game
 	cp BATTLETYPE_CONTEST
 	jr nz, .not_contest
 	farcall ContestBattleMenu
+	jr .next
+.safari_game
+	farcall SafariBattleMenu
 	jr .next
 .not_contest
 
@@ -4798,25 +4876,107 @@ BattleMenu: ; 3e139
 .next
 	ld a, $1
 	ld [hBGMapMode], a
-	ld a, [wd0d2]
-	cp $1
-	jp z, BattleMenu_Fight
-	cp $3
-	jp z, BattleMenu_Pack
-	cp $2
-	jp z, BattleMenu_PKMN
-	cp $4
-	jp z, BattleMenu_Run
+	ld a, [wBattleMenuCursorBuffer]
+	dec a
+	jp z, BattleMenu_Fight ; $1
+	dec a
+	jp z, BattleMenu_PKMN ; $2
+	dec a
+	jp z, BattleMenu_Pack ; $3
+	dec a
+	jp z, BattleMenu_Run ; $4
 	jr .loop
 ; 3e192
 
 BattleMenu_Fight: ; 3e192
+	ld a, [BattleType]
+	cp BATTLETYPE_SAFARI
+	jp z, BattleMenu_SafariBall
+
 	xor a
 	ld [wNumFleeAttempts], a
 	call Call_LoadTempTileMapToTileMap
 	and a
 	ret
-; 3e19b
+
+BattleMenu_Bait:
+	ld hl, BattleText_ThrewBait
+	call StdBattleTextBox
+	ld hl, EnemyMonCatchRate
+	srl [hl] ; halve catch rate
+	; TODO: Play bait animation
+	ld hl, wSafariMonEating
+	ld de, wSafariMonAngerCount
+	jr BattleMenu_BaitRock_Common
+
+BattleMenu_Rock:
+	ld hl, BattleText_ThrewRock
+	call StdBattleTextBox
+	ld hl, EnemyMonCatchRate
+	ld a, [hl]
+	add a ; double catch rate
+	jr nc, .noCarry
+	ld a, $ff
+.noCarry
+	ld [hl], a
+	; TODO: Play the rock animation
+	ld hl, wSafariMonAngerCount
+	ld de, wSafariMonEating
+	; fallthrough
+
+BattleMenu_BaitRock_Common:
+	xor a
+	ld [de], a ; zero the Eating counter (rock) or the Anger counter (bait)
+.randomLoop ; loop until a number less than 5 is generated
+	call BattleRandom
+	and 7
+	cp 5
+	jr nc, .randomLoop
+	inc a ; increment the random number, giving a range from 1 to 5 inclusive
+	ld b, a
+	ld a, [hl]
+	add b ; increase Eating or Anger counter appropriately
+	jr nc, .noCarry
+	ld a, $ff
+.noCarry
+	ld [hl], a
+	and a
+	ret
+
+CheckSafariMonRan:
+; Wildmon always runs when you are out of Safari Balls
+	ld a, [wSafariBallsRemaining]
+	and a
+	jp z, WildFled_EnemyFled_LinkBattleCanceled
+; otherwise, check its speed, bait, and rock factors
+; this probably could stand to be cleaned up or rewritten later
+; it is basically taken directly from Gen 1
+	ld a, [EnemyMonSpeed + 1]
+	add a
+	ld b, a ; init b (which is later compared with random value) to (enemy speed % 256) * 2
+	jp c, WildFled_EnemyFled_LinkBattleCanceled ; if (enemy speed % 256) > 127, the enemy runs
+	ld a, [wSafariMonEating]
+	and a ; is bait factor 0?
+	jr z, .checkEscapeFactor
+; bait factor is not 0
+; divide b by 4 (making the mon less likely to run)
+	srl b
+	srl b
+.checkEscapeFactor
+	ld a, [wSafariMonAngerCount]
+	and a ; is escape factor 0?
+	jr z, .compareWithRandomValue
+; escape factor is not 0
+; multiply b by 2 (making the mon more likely to run)
+	sla b
+	jr nc, .compareWithRandomValue
+; cap b at 255
+	ld b, $ff
+.compareWithRandomValue
+	call BattleRandom
+	cp b
+	ret nc
+	jp WildFled_EnemyFled_LinkBattleCanceled ; if b was greater than the random value, the enemy runs
 
 LoadBattleMenu2: ; 3e19b
 	farcall LoadBattleMenu
@@ -4825,6 +4985,12 @@ LoadBattleMenu2: ; 3e19b
 ; 3e1c7
 
 BattleMenu_Pack: ; 3e1c7
+	ld a, [BattleType]
+	cp BATTLETYPE_SAFARI
+	jp z, BattleMenu_Rock
+	; fallthrough
+
+BattleMenu_SafariBall:
 	ld a, [wLinkMode]
 	and a
 	jp nz, .ItemsCantBeUsed
@@ -4840,6 +5006,8 @@ BattleMenu_Pack: ; 3e1c7
 	jr z, .tutorial
 	cp BATTLETYPE_CONTEST
 	jr z, .contest
+	cp BATTLETYPE_SAFARI
+	jr z, .safari
 
 	farcall BattlePack
 	ld a, [wPlayerAction]
@@ -4850,6 +5018,12 @@ BattleMenu_Pack: ; 3e1c7
 .tutorial
 	farcall TutorialPack
 	ld a, POKE_BALL
+	ld [CurItem], a
+	call DoItemEffect
+	jr .got_item
+
+.safari
+	ld a, SAFARI_BALL
 	ld [CurItem], a
 	call DoItemEffect
 	jr .got_item
@@ -4899,6 +5073,8 @@ BattleMenu_Pack: ; 3e1c7
 	ld a, [BattleType]
 	cp BATTLETYPE_TUTORIAL
 	jr z, .tutorial2
+	cp BATTLETYPE_SAFARI
+	jr z, .tutorial2
 	call GetMonBackpic
 
 .tutorial2
@@ -4906,7 +5082,9 @@ BattleMenu_Pack: ; 3e1c7
 	ld a, $1
 	ld [wMenuCursorY], a
 	call ExitMenu
-	call UpdateBattleHUDs
+	ld a, [BattleType]
+	cp BATTLETYPE_SAFARI
+	call nz, UpdateBattleHUDs
 	call WaitBGMap
 	call LoadTileMapToTempTileMap
 	call ClearWindowData
@@ -4927,6 +5105,10 @@ BattleMenu_Pack: ; 3e1c7
 ; 3e28d
 
 BattleMenu_PKMN: ; 3e28d
+	ld a, [BattleType]
+	cp BATTLETYPE_SAFARI
+	jp z, BattleMenu_Bait ; "PKMN" is replaced with "Bait" in that mode
+
 	call LoadStandardMenuDataHeader
 BattleMenuPKMN_ReturnFromStats:
 	call ExitMenu
@@ -4973,8 +5155,7 @@ BattleMenuPKMN_Loop:
 ; 3e2f5
 
 .GetMenu: ; 3e2f5
-	farcall BattleMonMenu
-	ret
+	farjp BattleMonMenu
 ; 3e308
 
 Battle_StatsScreen: ; 3e308
@@ -5003,8 +5184,7 @@ Battle_StatsScreen: ; 3e308
 	ld de, VTiles2
 	ld bc, $31 tiles
 	call CopyBytes
-	call EnableLCD
-	ret
+	jp EnableLCD
 ; 3e358
 
 
@@ -5020,6 +5200,10 @@ TryPlayerSwitch: ; 3e358
 
 .check_trapped
 	call SetPlayerTurn
+	farcall GetUserItemAfterUnnerve
+	ld a, b
+	cp HELD_SHED_SHELL
+	jr z, .try_switch
 	call CheckIfTrappedByAbility_Core
 	jr nz, .check_other_trapped
 	ld a, BATTLE_VARS_ABILITY_OPP
@@ -5091,8 +5275,8 @@ PlayerSwitch: ; 3e3ad
 	jp WildFled_EnemyFled_LinkBattleCanceled
 
 .dont_run
-	ld a, [hLinkPlayerNumber]
-	cp $1
+	ld a, [hSerialConnectionStatus]
+	cp USING_EXTERNAL_CLOCK
 	jr z, .player_1
 	call BattleMonEntrance
 	call EnemyMonEntrance
@@ -5165,7 +5349,6 @@ PassedBattleMonEntrance: ; 3e459
 	call InitBattleMon
 	xor a
 	ld [wd265], a
-	call ApplyStatLevelMultiplierOnAllStats
 	call SendOutPlayerMon
 	call EmptyBattleTextBox
 	call LoadTileMapToTempTileMap
@@ -5190,6 +5373,11 @@ BattleMenu_Run: ; 3e489
 ; 3e4a8
 
 CheckRunSpeed:
+; In a safari battle, most of the battle engine is ignored, you have no active Pokemon, and can always run
+	ld a, [BattleType]
+	cp BATTLETYPE_SAFARI
+	jp z, .can_escape
+
 ; Sets up speed stats properly and attempts to flee.
 	ld a, [hBattleTurn]
 	push af
@@ -5269,61 +5457,64 @@ CheckRunSpeed:
 	ld a, [wNumFleeAttempts]
 	inc a
 	ld [wNumFleeAttempts], a
-	ld a, h
-	ld [hStringCmpString2 + 0], a
-	ld a, l
-	ld [hStringCmpString2 + 1], a
-	ld a, d
-	ld [hStringCmpString1 + 0], a
-	ld a, e
-	ld [hStringCmpString1 + 1], a
-	call Call_LoadTempTileMapToTileMap
-	ld de, hStringCmpString2
-	ld hl, hStringCmpString1
-	ld c, $2
-	call StringCmp
-	jr nc, .can_escape
 
-	xor a
-	ld [hMultiplicand], a
-	ld a, $20
-	ld [hMultiplier], a
-	call Multiply
-	ld a, [hProduct + 2]
-	ld [hDividend + 0], a
-	ld a, [hProduct + 3]
+	; hl = player speed
+	; de = enemy speed
+
+	push hl
+	push de
+	call Call_LoadTempTileMapToTileMap
+	pop de
+	pop hl
+
+	; compare hl and de
+	ld a, l
+	sub e
+	ld a, h
+	sbc d
+	jr nc, .can_escape
+	; multiply player speed by 32
+	add hl, hl ; x2
+	add hl, hl ; x4
+	add hl, hl ; x8
+	add hl, hl ; x16
+	add hl, hl ; x32
+
+	; store PSpeed*32 into dividend
+	ld a, h
+	ld [hDividend], a
+	ld a, l
 	ld [hDividend + 1], a
-	ld a, [hStringCmpString1 + 0]
-	ld b, a
-	ld a, [hStringCmpString1 + 1]
-	srl b
-	rr a
-	srl b
-	rr a
-	and a
+
+	; divide ESpeed by 4
+	srl d
+	rr e
+	srl d
+	rr e
+	ld a, e
+	and a ; prevent division by 0
 	jr z, .can_escape
+	; calculate PSpeed*32/(ESpeed/4)
 	ld [hDivisor], a
 	ld b, 2
 	call Divide
 	ld a, [hQuotient + 1]
-	and a
+	and a ; player can escape if result is greater than 255
 	jr nz, .can_escape
 	ld a, [wNumFleeAttempts]
 	ld c, a
-.loop
-	dec c
-	jr z, .cant_escape_2
-	ld b, 30
 	ld a, [hQuotient + 2]
-	add b
-	ld [hQuotient + 2], a
+	jr .handleLoop
+.loop
+	add 30
 	jr c, .can_escape
-	jr .loop
-
-.cant_escape_2
+.handleLoop
+	dec c
+	jr nz, .loop
+	ld c, a
 	call BattleRandom
 	ld b, a
-	ld a, [hQuotient + 2]
+	ld a, c
 	cp b
 	jr nc, .can_escape
 	ld a, $1
@@ -5433,7 +5624,7 @@ MoveSelectionScreen:
 	jr z, .ether_elixer_menu
 	call SetPlayerTurn
 	call CheckUsableMoves
-	ret z ; use Struggle
+	jp nz, .struggle
 	ld hl, BattleMonMoves
 	jr .got_menu_type
 
@@ -5554,50 +5745,21 @@ MoveSelectionScreen:
 	pop af
 	ret nz
 
-	ld hl, BattleMonPP
 	ld a, [wMenuCursorY]
 	ld c, a
-	ld b, 0
-	add hl, bc
-	ld a, [hl]
-	and $3f
-	jr z, .no_pp_left
-	ld a, [PlayerDisableCount]
-	swap a
-	and $f
+	call CheckUsableMove
 	dec a
-	cp c
+	jr z, .no_pp_left
+	dec a
 	jr z, .move_disabled
-
-	ld a, [wMenuCursorY]
-	ld hl, BattleMonMoves
-	ld c, a
+	dec a
+	jr z, .choiced
+	dec a
+	jr z, .assault_vest
 	ld b, 0
+	ld hl, BattleMonMoves
 	add hl, bc
 	ld a, [hl]
-	ld b, a
-
-	; Some items limit move freedom
-	push bc
-	farcall GetPlayerItem
-	ld a, b
-	pop bc
-
-	cp HELD_CHOICE
-	jr z, .choice_check
-	cp HELD_ASSAULT_VEST
-	jr nz, .ok
-
-	; TODO: Check Assault Vest
-	jr .ok
-.choice_check
-	ld a, [PlayerSelectedMove]
-	and a
-	jr z, .ok
-	cp b
-	jr nz, .choiced
-.ok
-	ld a, b
 	ld [CurPlayerMove], a
 	xor a
 	ret
@@ -5749,7 +5911,16 @@ MoveSelectionScreen:
 	ld a, [wMenuCursorY]
 	ld [wMoveSwapBuffer], a
 	jp MoveSelectionScreen
-; 3e6c8
+
+.struggle
+	ld a, STRUGGLE
+	ld [CurPlayerMove], a
+	ld hl, BattleText_PkmnHasNoMovesLeft
+	call StdBattleTextBox
+	ld c, 60
+	call DelayFrames
+	xor a
+	ret
 
 MoveInfoBox: ; 3e6c8
 	xor a
@@ -5772,8 +5943,7 @@ MoveInfoBox: ; 3e6c8
 
 	hlcoord 1, 10
 	ld de, .Disabled
-	call PlaceString
-	jp .done
+	jp PlaceString
 
 .not_disabled
 	ld hl, wMenuCursorY
@@ -5898,10 +6068,7 @@ MoveInfoBox: ; 3e6c8
 
 	farcall LoadBattleCategoryAndTypePals
 	call WaitBGMap
-	call SetPalettes
-
-.done
-	ret
+	jp SetPalettes
 ; 3e74f
 
 .Disabled:
@@ -5934,115 +6101,124 @@ endr
 	jp PrintNum
 ; 3e786
 
-CheckUsableMoves: ; 3e786
+CheckUsableMoves:
+; Return nz if we have no usable moves
+	ld a, 4
+.loop
+	dec a
+	push af
+	call CheckUsableMove
+	jr z, .usable
+	pop af
+	and a
+	jr nz, .loop
+	inc a
+	ret
+.usable
+	pop af
+	xor a
+	ret
+
+FarCheckUsableMove:
+; Reads/writes to b instead of a for below
+	ld a, b
+	call CheckUsableMove
+	ld b, a
+	ret
+
+CheckUsableMove:
+; Check if move a in the move list is usable. Returns z if usable
+; Note that the first move in the list is move 0, not move 1.
+; If nz, a contains a number describing why it isn't usable:
+; 1 - no PP
+; 2 - disabled
+; 3 - choiced
+; 4 - assault vest on status move
 	push bc
 	push de
 	push hl
 
-	; Usable moves
-	ld e, %1111
-
-	; Zero out moves without PP (empty move slots have 0PP)
+	; Check if we're out of pp
+	ld c, a
+	ld b, 0
 	ld a, [hBattleTurn]
 	and a
 	ld hl, BattleMonPP
 	jr z, .got_pp
 	ld hl, EnemyMonPP
 .got_pp
-	ld b, %01111111
-	ld c, 4
-.pp_loop
-	rlc b
-	ld a, [hli]
+	add hl, bc
+	ld a, [hl]
 	and $3f
-	jr nz, .pp_next
-	ld a, e
-	and b
-	ld e, a
-.pp_next
-	dec c
-	jr nz, .pp_loop
+	ld a, 1
+	jr z, .end
 
-	; Zero out disabled moves
+	; Check Disable
 	ld a, [hBattleTurn]
 	and a
 	ld a, [PlayerDisableCount]
 	jr z, .got_disable_count
 	ld a, [EnemyDisableCount]
 .got_disable_count
-	and a
-	jr z, .disable_done
-	ld b, %01111111
 	swap a
 	and $f
-.disable_loop
-	rlc b
+	jr z, .not_disabled
 	dec a
-	jr nz, .disable_loop
-	ld a, e
-	and b
-	ld e, a
-.disable_done
-	; Item checks
-	push de
+	cp c
+	ld a, 2
+	jr z, .end
+
+.not_disabled
+	; Check items. This requires the actual move so get it into c
+	ld a, [hBattleTurn]
+	and a
+	ld hl, BattleMonMoves
+	jr z, .got_moves
+	ld hl, EnemyMonMoves
+.got_moves
+	add hl, bc
+	ld c, [hl]
+	push bc
 	farcall GetUserItem
-	pop de
 	ld a, b
+	pop bc
 	cp HELD_CHOICE
-	jr z, .choiced
+	jr z, .check_choiced
 	cp HELD_ASSAULT_VEST
-	jr nz, .items_done
+	jr nz, .usable
 
 	; Assault Vest check
-	jr .items_done
-.choiced
+	ld hl, Moves + MOVE_CATEGORY
+	ld a, c
+	dec a
+	call GetMoveAttr
+	cp STATUS
+	ld a, 4
+	jr z, .end
+	jr .usable
+.check_choiced
 	; Check if we did a move yet
 	ld a, [hBattleTurn]
 	and a
 	ld a, [PlayerSelectedMove]
-	ld hl, BattleMonMoves
 	jr z, .got_selected_move
 	ld a, [EnemySelectedMove]
-	ld hl, EnemyMonMoves
 .got_selected_move
 	and a
-	jr z, .items_done
-	ld c, a
-	ld b, %10000000
-.choice_loop
-	rlc b
-	ld a, [hli]
+	jr z, .usable
 	cp c
-	jr nz, .choice_loop
-	ld a, e
-	and b
-	ld e, a
-	; fallthrough
-.items_done
-	ld a, e
-	and a
+	ld a, 3
 	jr nz, .end
 
-.force_struggle
-	ld a, [hBattleTurn]
-	xor 1
-	jr z, .end
-	ret z
-
-	; player turn
-	ld a, STRUGGLE
-	ld [CurPlayerMove], a
-	ld hl, BattleText_PkmnHasNoMovesLeft
-	call StdBattleTextBox
-	ld c, 60
-	call DelayFrames
+	; fallthrough
+.usable
 	xor a
 .end
+	and a
 	pop hl
 	pop de
 	pop bc
 	ret
-
 
 ParseEnemyAction: ; 3e7c1
 	ld a, [wEnemyIsSwitching]
@@ -6073,24 +6249,8 @@ ParseEnemyAction: ; 3e7c1
 
 	call SetEnemyTurn
 	call CheckUsableMoves
-	jp z, .struggle
+	jp nz, .struggle
 
-	; Check if we're choice-locked
-	ld a, [EnemySelectedMove]
-	and a
-	jr z, .not_choiced
-	push bc
-	push de
-	push hl
-	farcall GetEnemyItem
-	ld a, b
-	pop hl
-	pop de
-	pop bc
-	cp HELD_CHOICE
-	ld a, [EnemySelectedMove]
-	jr z, .finish
-.not_choiced
 	ld hl, EnemySubStatus2
 	bit SUBSTATUS_ENCORED, [hl]
 	ld a, [LastEnemyMove]
@@ -6102,6 +6262,8 @@ ParseEnemyAction: ; 3e7c1
 	jp .finish
 
 .not_linked
+	call CheckUsableMoves
+	jp nz, .struggle
 	ld hl, EnemySubStatus2
 	bit SUBSTATUS_ENCORED, [hl]
 	jr z, .skip_encore
@@ -6111,63 +6273,6 @@ ParseEnemyAction: ; 3e7c1
 .skip_encore
 	call CheckEnemyLockedIn
 	jp nz, ResetVarsForSubstatusRage
-	jr .continue
-
-.continue
-	ld hl, EnemyMonMoves
-	ld de, EnemyMonPP
-	ld b, NUM_MOVES
-.loop
-	ld a, [hl]
-	and a
-	jp z, .struggle
-	ld a, [EnemyDisabledMove]
-	cp [hl]
-	jr z, .disabled
-	ld a, [de]
-	and $3f
-	jr nz, .enough_pp
-
-.disabled
-	inc hl
-	inc de
-	dec b
-	jr nz, .loop
-	jr .struggle
-
-.enough_pp
-	ld a, [wBattleMode]
-	dec a
-	jr nz, .skip_load
-; wild
-.loop2
-	ld hl, EnemyMonMoves
-	call BattleRandom
-	and %11 ; NUM_MOVES - 1
-	ld c, a
-	ld b, 0
-	add hl, bc
-	ld a, [EnemyDisableCount]
-	swap a
-	and $f
-	dec a
-	cp c
-	jr z, .loop2
-	ld a, [hl]
-	and a
-	jr z, .loop2
-	ld hl, EnemyMonPP
-	add hl, bc
-	ld b, a
-	ld a, [hl]
-	and $3f
-	jr z, .loop2
-	ld a, c
-	ld [CurEnemyMoveNum], a
-	ld a, b
-
-.finish
-	ld [CurEnemyMove], a
 
 .skip_load
 	call SetEnemyTurn
@@ -6178,20 +6283,11 @@ ParseEnemyAction: ; 3e7c1
 	ld [wEnemyCharging], a
 
 .raging
-	ld a, [wEnemyMoveStruct]
-	cp FURY_CUTTER
-	jr z, .fury_cutter
-	xor a
-	ld [EnemyFuryCutterCount], a
-
-.fury_cutter
 	ld a, [wEnemyMoveStruct + MOVE_EFFECT]
 	cp EFFECT_RAGE
 	jr z, .no_rage
 	ld hl, EnemySubStatus4
 	res SUBSTATUS_RAGE, [hl]
-	xor a
-	ld [wEnemyRageCounter], a
 
 .no_rage
 	ld a, [wEnemyMoveStruct + MOVE_EFFECT]
@@ -6205,14 +6301,13 @@ ParseEnemyAction: ; 3e7c1
 
 .struggle
 	ld a, STRUGGLE
-	jr .finish
-; 3e8c1
+.finish
+	ld [CurEnemyMove], a
+	jr .skip_load
 
 ResetVarsForSubstatusRage: ; 3e8c1
 	xor a
-	ld [EnemyFuryCutterCount], a
 	ld [EnemyProtectCount], a
-	ld [wEnemyRageCounter], a
 	ld hl, EnemySubStatus4
 	res SUBSTATUS_RAGE, [hl]
 	ret
@@ -6234,8 +6329,7 @@ CheckEnemyLockedIn: ; 3e8d1
 ; 3e8e4
 
 LinkBattleSendReceiveAction: ; 3e8e4
-	farcall _LinkBattleSendReceiveAction
-	ret
+	farjp _LinkBattleSendReceiveAction
 ; 3e8eb
 
 
@@ -6246,63 +6340,51 @@ LoadEnemyMon: ; 3e8eb
 ; Notes:
 ;   BattleRandom is used to ensure sync between Game Boys
 
-; Clear the whole EnemyMon struct
+	; Clear the whole EnemyMon struct
 	xor a
 	ld hl, EnemyMonSpecies
 	ld bc, EnemyMonEnd - EnemyMon
 	call ByteFill
 
-; We don't need to be here if we're in a link battle
+	; We don't need to be here if we're in a link battle or battle tower. In a trainer
+	; battle, we need the base experience, so that check is (slightly) later.
 	ld a, [wLinkMode]
 	and a
-	jp nz, InitEnemyMon
-
-; and also not in a BattleTower-Battle
+	jr nz, .initenemymon
 	ld a, [InBattleTowerBattle]
 	bit 0, a
-	jp nz, InitEnemyMon
+	jr nz, .initenemymon
 
-; Check ability of top party mon and store into b (for Compoundeyes, etc). This needs to
-; be done before the wildmon species metadata is loaded since this also needs to load
-; species metadata on its own
-	ld a, [PartyMon1Ability]
-	ld b, a
-	ld a, [PartyMon1Species]
-	ld c, a
-	farcall GetAbility
-	; ability is in b
-
-; Make sure everything knows what species we're working with
+	; Make sure everything knows what species we're working with
 	ld a, [TempEnemyMonSpecies]
 	ld [EnemyMonSpecies], a
 	ld [CurSpecies], a
 	ld [CurPartySpecies], a
 
-; Grab the BaseData for this species. Preserve bc (partymon1 ability)
-	push bc
+	; Mark as seen
+	dec a
+	ld c, a
+	ld b, SET_FLAG
+	ld hl, PokedexSeen
+	predef FlagPredef
+
+	; Grab the BaseData for this species
 	call GetBaseData
-	pop bc
 
-; Let's get the item:
+	ld a, [BaseExp]
+	ld [EnemyMonBaseExp], a
 
-; Is the item predetermined?
 	ld a, [wBattleMode]
 	dec a
-	jr z, .WildItem
+.initenemymon
+	jp nz, InitEnemyMon
 
-; If we're in a trainer battle, the item is in the party struct
-	ld a, [CurPartyMon]
-	ld hl, OTPartyMon1Item
-	call GetPartyLocation ; bc = PartyMon[CurPartyMon] - PartyMons
-	ld a, [hl]
-	jr .UpdateItem
+	ld a, [BaseCatchRate]
+	ld [EnemyMonCatchRate], a
 
-
-.WildItem
-; In a wild battle, we pull from the item slots in BaseData
-
-; Force Item1
-; Used for Snorlax, Ho-Oh, Lugia, and Kanto legendary encounters
+	; Let's get the item:
+	; Force Item1
+	; Used for Snorlax, Ho-Oh, Lugia, and Kanto legendary encounters
 	ld a, [BattleType]
 	cp BATTLETYPE_FORCEITEM
 	ld a, [BaseItems]
@@ -6313,141 +6395,90 @@ LoadEnemyMon: ; 3e8eb
 	ld a, [BaseItems]
 	jr z, .UpdateItem
 
-; Failing that, it's all up to chance
+	; Failing that, it's all up to chance
 
-	ld a, b
-
+	call GetLeadAbility
 if DEF(FAITHFUL)
 	cp COMPOUND_EYES
 	jr nz, .no_compound_eyes_or_amulet_coin
 else
 	cp COMPOUND_EYES
 	jr z, .compound_eyes
-; If the party lead holds an Amulet Coin, chances are increased
+	; If the party lead holds an Amulet Coin, chances are increased
 	ld a, [PartyMon1Item]
 	cp AMULET_COIN
 	jr nz, .no_compound_eyes_or_amulet_coin
 endc
 
 .compound_eyes:
-; 60% chance of getting Item1 with an Amulet Coin
+	; 60% chance of getting Item1
 	call BattleRandom
 	cp 60 percent
 	ld a, [BaseItems]
 	jr c, .UpdateItem
 
-; 20% chance of getting Item2 (50% of (100% - 60%) = 20%) with an Amulet Coin
+	; 20% chance of getting Item2 (50% of (100% - 60%) = 20%)
 	call BattleRandom
 	cp 50 percent
 	ld a, [BaseItems+1]
 	jr c, .UpdateItem
 
-; 20% chance of not getting an item (100% - 60% - 20% = 20%)
+	; 20% chance of not getting an item (100% - 60% - 20% = 20%)
 	ld a, NO_ITEM
 	jr .UpdateItem
 
-; Default chances without Compound Eyes or Amulet Coin
 .no_compound_eyes_or_amulet_coin:
-
-; 50% chance of getting Item1
+	; 50% chance of getting Item1
 	call BattleRandom
 	cp 50 percent
 	ld a, [BaseItems]
 	jr c, .UpdateItem
 
-; 5% chance of getting Item2 (10% of (100% - 50%) = 5%)
+	; 5% chance of getting Item2 (10% of (100% - 50%) = 5%)
 	call BattleRandom
 	cp 10 percent
 	ld a, [BaseItems+1]
 	jr c, .UpdateItem
 
-; 45% chance of not getting an item (100% - 50% - 5% = 45%)
+	; 45% chance of not getting an item (100% - 50% - 5% = 45%)
 	ld a, NO_ITEM
-
-
 .UpdateItem:
 	ld [EnemyMonItem], a
 
-
-; Initialize DVs and personality
-
-; If we're in a trainer battle, DVs and personality are predetermined
-	ld a, [wBattleMode]
-	and a
-	jr z, .InitDVs
-
-	ld a, [EnemySubStatus2]
-	bit SUBSTATUS_TRANSFORMED, a
-	jr z, .InitDVs
-
-; Transformed
-	ld hl, wEnemyBackupDVs
-	ld de, EnemyMonDVs
-rept 4
-	ld a, [hli]
-	ld [de], a
-	inc de
-endr
-	ld a, [hl]
-	ld [de], a
-	jp .Happiness
-
-
-.InitDVs:
-
-; Trainer DVs
-
-; All trainers have preset DVs, determined by class
-; See GetTrainerDVsAndPersonality for more on that
-; These are the DVs we'll use if we're actually in a trainer battle
-
-	ld a, [wBattleMode]
-	dec a
-	jr z, .WildDVs
-
-	ld a, [CurPartyMon]
-	ld hl, OTPartyMon1DVs
-	call GetPartyLocation
-	ld de, DVAndPersonalityBuffer
-	ld bc, 5 ; 3 DVs + 2 personality bytes
-	call CopyBytes
-	ld bc, DVAndPersonalityBuffer
-	jp .UpdateDVs
-
-.WildDVs:
-; Roaming monsters (Entei, Raikou) work differently
-; They have their own structs, which are shorter than normal
+	; Initialize DVs and personality
+	; Roaming monsters (Entei, Raikou) work differently
+	; They have their own structs, which are shorter than normal
 	ld a, [BattleType]
 	cp BATTLETYPE_ROAMING
 	jr nz, .GenerateDVs
 
-; Grab DVs and personality
+	; Grab DVs and personality
 	push bc
 	call GetRoamMonDVsAndPersonality
 	ld b, h
 	ld c, l
-; Grab HP
+	; Grab HP
 	push hl
 	call GetRoamMonHP
 	ld a, [hl]
 	pop hl
 	pop bc
-; Check if the HP has been initialized
+	; Check if the HP has been initialized
 	and a
-; If the RoamMon struct has already been initialized, we're done
+	; If the RoamMon struct has already been initialized, we're done
 	jr z, .GenerateRoamDVs
 	ld b, h
 	ld c, l
 	jp .UpdateDVs
 
-; If it hasn't, we need to initialize the DVs
-; (HP is initialized at the end of the battle)
-; Skip the setting of the DV/Personality buffer since we already have it
+	; If it hasn't, we need to initialize the DVs
+	; (HP is initialized at the end of the battle)
+	; Skip the setting of the DV/Personality buffer since we already have it
 .GenerateDVs:
 	ld hl, DVAndPersonalityBuffer
 .GenerateRoamDVs:
 	push hl
-; Random DVs
+	; Random DVs
 	call BattleRandom
 	ld [hli], a
 	call BattleRandom
@@ -6455,9 +6486,9 @@ endr
 	call BattleRandom
 	ld [hli], a
 
-; Random nature from 0 to 24
-; 50% chance of same nature with Synchronize ability
-	ld a, b
+	; Random nature from 0 to 24
+	; 50% chance of same nature with Synchronize ability
+	call GetLeadAbility
 	cp SYNCHRONIZE
 	jr nz, .no_synchronize
 	call BattleRandom
@@ -6472,8 +6503,11 @@ endr
 .got_nature
 	ld b, a
 
-; Random ability
-; 5% hidden ability, otherwise 50% either main ability
+	; Random ability
+	; 5% hidden ability, otherwise 50% either main ability
+	ld a, [BattleType]
+	cp BATTLETYPE_GROTTO
+	jr z, .hidden_ability
 	call BattleRandom
 	cp 1 + 5 percent
 	jr c, .hidden_ability
@@ -6491,14 +6525,38 @@ endr
 	add b
 	ld b, a
 
-; Random shininess
-; 1/4096 chance to be shiny, 3/4096 with Shiny Charm
+	; If the ability is Pickup, 10% chance of holding an item from that instead
+	push hl
+	push bc
+	ld b, a ; still the ability index, 1/2/hidden
+	ld a, [CurPartySpecies]
+	ld c, a
+	call GetAbility
+	ld a, b
+	cp PICKUP
+	jr nz, .not_pickup
+	call Random
+	cp 1 + (10 percent)
+	jr nc, .not_pickup
+	ld a, [EnemyMonLevel]
+	farcall GetRandomPickupItem
+	ld [EnemyMonItem], a
+.not_pickup
+	pop bc
+	pop hl
+
+	; Random shininess
+	; 1/4096 chance to be shiny, 3/4096 with Shiny Charm
 	ld a, [BattleType]
 	cp BATTLETYPE_SHINY
 	jr z, .shiny
+	cp BATTLETYPE_GROTTO
+	jr z, .not_shiny
 	call BattleRandom
 	and a
 	jr nz, .not_shiny ; 255/256 not shiny
+	ld a, [CurItem]
+	push af
 	ld a, SHINY_CHARM
 	ld [CurItem], a
 	push hl
@@ -6510,7 +6568,8 @@ endr
 	pop bc
 	pop hl
 	jr c, .shiny_charm
-.no_shiny_charm
+	pop af
+	ld [CurItem], a
 	call BattleRandom
 	cp $10
 	jr nc, .not_shiny ; 240/256 still not shiny
@@ -6518,6 +6577,8 @@ endr
 	ld a, SHINY_MASK
 	jr .got_shininess
 .shiny_charm
+	pop af
+	ld [CurItem], a
 	call BattleRandom
 	cp $30
 	jr c, .shiny ; 208/256 still not shiny
@@ -6527,13 +6588,31 @@ endr
 	add b
 	ld [hli], a
 
-; Random gender
-; Derived from base ratio
-; Random gender selection value
+	; Gender. If lead has Cute Charm, force opposite gender 2/3
+	; of the time
+	call GetLeadAbility
+	cp CUTE_CHARM
+	jr nz, .not_cute_charm
+	ld a, 3
+	call BattleRandomRange
+	and a
+	jr z, .not_cute_charm
+	ld a, [PartyMon1Gender]
+	cp FEMALE
+	ld a, %111
+	jr z, .cute_charm_ok
+	ld a, %000
+	jr .cute_charm_ok
+
+.not_cute_charm
+	; Random gender
+	; Derived from base ratio
+	; Random gender selection value
 	call BattleRandom
 	and %111
+.cute_charm_ok
 	ld b, a
-; We need the gender ratio to do anything with this.
+	; We need the gender ratio to do anything with this.
 	push hl
 	push bc
 	ld a, [CurPartySpecies]
@@ -6543,11 +6622,13 @@ endr
 	call AddNTimes
 	ld a, BANK(BaseData)
 	call GetFarByte
+	swap a
+	and $f
 	pop bc
 	pop hl
 	ld c, a
 	ld a, b
-; Ratios below the value are female, and vice-versa.
+	; Ratios below the value are female, and vice-versa.
 	cp c
 	ld a, FEMALE
 	jr c, .Female
@@ -6555,7 +6636,7 @@ endr
 .Female
 	ld b, a
 
-; Form 1
+	; Form 1
 	ld a, 1
 	add b
 	ld [hl], a
@@ -6572,12 +6653,7 @@ endr
 	ld a, [bc]
 	ld [hl], a
 
-; We've still got more to do if we're dealing with a wild monster
-	ld a, [wBattleMode]
-	dec a
-	jp nz, .Happiness
-
-; Unown
+	; Unown
 	ld a, [TempEnemyMonSpecies]
 	cp UNOWN
 	jr nz, .EkansArbok
@@ -6591,10 +6667,10 @@ endr
 	and $ff - FORM_MASK
 	add b
 	ld [EnemyMonForm], a
-; Get letter based on form
+	; Get letter based on form
 	ld hl, EnemyMonForm
 	predef GetVariant
-; Can't use any letters that haven't been unlocked
+	; Can't use any letters that haven't been unlocked
 	push de
 	call CheckUnownLetter
 	pop de
@@ -6627,7 +6703,7 @@ endr
 	cp MAGIKARP
 	jr nz, .Happiness
 
-; Random Magikarp pattern
+	; Random Magikarp pattern
 	ld a, NUM_MAGIKARP
 	call BattleRandomRange
 	inc a
@@ -6637,31 +6713,31 @@ endr
 	add b
 	ld [EnemyMonForm], a
 
-; Get Magikarp's length
+	; Get Magikarp's length
 	ld de, EnemyMonDVs
 	ld bc, PlayerID
 	farcall CalcMagikarpLength
 
-; We're clear if the length is < 1536
-	ld a, [MagikarpLength]
-	cp $06 ; $600 = 1536
+	; We're clear if the length is < 1536
+	ld a, [wMagikarpLengthMmHi]
+	cp $6 ; $600 = 1536
 	jr nz, .CheckMagikarpArea
 
-; 5% chance of skipping size checks
+	; 5% chance of skipping size checks
 	call Random
 	cp $0c ; / $100
 	jr c, .CheckMagikarpArea
-; Try again if > 1614
-	ld a, [MagikarpLength + 1]
+	; Try again if > 1614
+	ld a, [wMagikarpLengthMmLo]
 	cp $50
 	jp nc, .GenerateDVs
 
-; 20% chance of skipping this check
+	; 20% chance of skipping this check
 	call Random
 	cp $32 ; / $100
 	jr c, .CheckMagikarpArea
-; Try again if > 1598
-	ld a, [MagikarpLength + 1]
+	; Try again if > 1598
+	ld a, [wMagikarpLengthMmLo]
 	cp $40
 	jp nc, .GenerateDVs
 
@@ -6672,110 +6748,74 @@ endr
 	ld a, [MapNumber]
 	cp MAP_LAKE_OF_RAGE
 	jr nz, .Happiness
-; 40% chance of not flooring
+.LakeOfRageMagikarp
+	; 40% chance of not flooring
 	call Random
 	cp $64 ; / $100
 	jr c, .Happiness
-; Floor at length 1024
-	ld a, [MagikarpLength]
+	; Floor at length 1024
+	ld a, [wMagikarpLengthMmHi]
 	cp 1024 >> 8
 	jp c, .GenerateDVs ; try again
 
 
-; Finally done with DVs
+	; Finally done with DVs
 
 .Happiness:
-; Set happiness
+	; Set happiness
 	ld a, BASE_HAPPINESS
 	ld [EnemyMonHappiness], a
-; Set level
+	; Set level
 	ld a, [CurPartyLevel]
 	ld [EnemyMonLevel], a
-; Fill stats
+	; Fill stats
 	ld de, EnemyMonMaxHP
 	ld b, FALSE
 	ld hl, EnemyMonDVs - (MON_DVS - (MON_EVS - 1))
 	predef CalcPkmnStats
 
-; If we're in a trainer battle,
-; get the rest of the parameters from the party struct
-	ld a, [wBattleMode]
-	cp TRAINER_BATTLE
-	jr z, .OpponentParty
-
-; If we're in a wild battle, check wild-specific stuff
-	and a
-	jr z, .TreeMon
-
-	ld a, [EnemySubStatus2]
-	bit SUBSTATUS_TRANSFORMED, a
-	jp nz, .Moves
-
-.TreeMon:
-; If we're headbutting trees, some monsters enter battle asleep
+	; If we're headbutting trees, some monsters enter battle asleep
 	call CheckSleepingTreeMon
-	ld a, SLP ; Asleep for 7 turns
+	ld a, SLP & 3 ; Asleep for 3 turns
 	jr c, .UpdateStatus
-; Otherwise, no status
+	; Otherwise, no status
 	xor a
 
 .UpdateStatus:
 	ld hl, EnemyMonStatus
 	ld [hli], a
 
-; Unused byte
+	; Unused byte
 	xor a
 	ld [hli], a
 
-; Full HP..
+	; Full HP..
 	ld a, [EnemyMonMaxHP]
 	ld [hli], a
 	ld a, [EnemyMonMaxHP + 1]
 	ld [hl], a
 
-; ..unless it's a RoamMon
+	; ..unless it's a RoamMon
 	ld a, [BattleType]
 	cp BATTLETYPE_ROAMING
 	jr nz, .Moves
 
-; Grab HP
+	; Grab HP
 	call GetRoamMonHP
 	ld a, [hl]
-; Check if it's been initialized again
+	; Check if it's been initialized again
 	and a
 	jr z, .InitRoamHP
-; Update from the struct if it has
+	; Update from the struct if it has
 	ld a, [hl]
 	ld [EnemyMonHP + 1], a
 	jr .Moves
 
 .InitRoamHP:
-; HP only uses the lo byte in the RoamMon struct since
-; Raikou/Entei/Suicune will have < 256 hp at level 40
+	; HP only uses the lo byte in the RoamMon struct since
+	; Raikou/Entei/Suicune will have < 256 hp at level 40
 	ld a, [EnemyMonHP + 1]
 	ld [hl], a
-	jr .Moves
-
-
-.OpponentParty:
-; Get HP from the party struct
-	ld hl, (OTPartyMon1HP + 1)
-	ld a, [CurPartyMon]
-	call GetPartyLocation
-	ld a, [hld]
-	ld [EnemyMonHP + 1], a
-	ld a, [hld]
-	ld [EnemyMonHP], a
-
-; Make sure everything knows which monster the opponent is using
-	ld a, [CurPartyMon]
-	ld [CurOTMon], a
-
-; Get status from the party struct
-	dec hl
-	ld a, [hl] ; OTPartyMonStatus
-	ld [EnemyMonStatus], a
-
 
 .Moves:
 	ld hl, BaseType1
@@ -6799,22 +6839,9 @@ if !DEF(FAITHFUL)
 .not_armored_mewtwo
 endc
 
-; Get moves
+	; Get moves
 	ld de, EnemyMonMoves
-; Are we in a trainer battle?
-	ld a, [wBattleMode]
-	cp TRAINER_BATTLE
-	jr nz, .WildMoves
-; Then copy moves from the party struct
-	ld hl, OTPartyMon1Moves
-	ld a, [CurPartyMon]
-	call GetPartyLocation
-	ld bc, NUM_MOVES
-	call CopyBytes
-	jp .PP
-
-.WildMoves:
-; Clear EnemyMonMoves
+	; Clear EnemyMonMoves
 	xor a
 	ld h, d
 	ld l, e
@@ -6822,36 +6849,19 @@ rept 3
 	ld [hli], a
 endr
 	ld [hl], a
-; Make sure the predef knows this isn't a partymon
-	ld [MagikarpLength], a
-; Fill moves based on level
+	; Make sure the predef knows this isn't a partymon
+	ld [wEvolutionOldSpecies], a
+	; Fill moves based on level
 	predef FillMoves
 
 	call CheckUniqueWildMove
 
-.PP:
-; Trainer battle?
-	ld a, [wBattleMode]
-	cp TRAINER_BATTLE
-	jr z, .TrainerPP
-
-; Fill wild PP
+	; Fill wild PP
 	ld hl, EnemyMonMoves
 	ld de, EnemyMonPP
 	predef FillPP
-	jr .Finish
 
-.TrainerPP:
-; Copy PP from the party struct
-	ld hl, OTPartyMon1PP
-	ld a, [CurPartyMon]
-	call GetPartyLocation
-	ld de, EnemyMonPP
-	ld bc, NUM_MOVES
-	call CopyBytes
-
-.Finish:
-; Only the first five base stats are copied..
+	; Only the first five base stats are copied..
 	ld hl, BaseStats
 	ld de, EnemyMonBaseStats
 	ld b, BaseSpecialDefense - BaseStats
@@ -6862,56 +6872,13 @@ endr
 	dec b
 	jr nz, .loop
 
-	ld a, [BaseCatchRate]
-	ld [de], a
-	inc de
-
-	ld a, [BaseExp]
-	ld [de], a
-
 	ld a, [TempEnemyMonSpecies]
-	ld [wd265], a
-
-; Did we catch it?
-	ld a, [wBattleMode]
-	and a
-	ret z
-
-; Update enemy nick
-	ld a, [wBattleMode]
-	dec a
-	jr z, .no_nickname
-	ld a, [OtherTrainerType]
-	bit TRNTYPE_NICKNAME, a
-	jr z, .no_nickname
-	ld a, [CurPartyMon]
-	ld hl, OTPartyMonNicknames
-	ld bc, PKMN_NAME_LENGTH
-	call AddNTimes
-	jr .got_nickname
-.no_nickname
+	ld [wNamedObjectIndexBuffer], a
 	call GetPokemonName
 	ld hl, StringBuffer1
-.got_nickname
 	ld de, EnemyMonNick
 	ld bc, PKMN_NAME_LENGTH
-	call CopyBytes
-
-; Saw this mon
-	ld a, [TempEnemyMonSpecies]
-	dec a
-	ld c, a
-	ld b, SET_FLAG
-	ld hl, PokedexSeen
-	predef FlagPredef
-
-	ld hl, EnemyMonStats
-	ld de, EnemyStats
-	ld bc, EnemyMonStatsEnd - EnemyMonStats
-	call CopyBytes
-
-	ret
-; 3eb38
+	jp CopyBytes
 
 
 CheckSleepingTreeMon: ; 3eb38
@@ -6928,7 +6895,7 @@ CheckSleepingTreeMon: ; 3eb38
 	ld b, a
 	ld a, [TempEnemyMonSpecies]
 	ld c, a
-	farcall GetAbility
+	call GetAbility
 	ld a, b
 	cp INSOMNIA
 	jr z, .NotSleeping
@@ -7058,13 +7025,13 @@ CheckUnownLetter: ; 3eb75
 FinalPkmnSlideInEnemyMonFrontpic:
 	call FinishBattleAnim
 	call GetMonFrontpic
-	hlcoord 18, 0
+	hlcoord 19, 0
 	ld c, 0
 
 .outer_loop
 	inc c
 	ld a, c
-	cp 8
+	cp 9
 	ret z
 	xor a
 	ld [hBGMapMode], a
@@ -7098,7 +7065,12 @@ FinalPkmnSlideInEnemyMonFrontpic:
 	ld e, 7
 
 .loop
-	ld [hl], d
+	ld a, d
+	cp 7 * 7
+	jr c, .ok
+	ld a, " "
+.ok
+	ld [hl], a
 	ld bc, SCREEN_WIDTH
 	add hl, bc
 	inc d
@@ -7174,19 +7146,12 @@ BattleWinSlideInEnemyTrainerFrontpic: ; 3ebd8
 ; 3ec2c
 
 
-ApplyStatLevelMultiplierOnAllStats:
-	farcall CalcPlayerStats
-	farcall CalcEnemyStats
-	ret
-
 _LoadBattleFontsHPBar: ; 3ed9f
-	farcall LoadBattleFontsHPBar
-	ret
+	farjp LoadBattleFontsHPBar
 ; 3eda6
 
 _LoadStatusIcons: ; 3eda6
-	farcall LoadStatusIcons
-	ret
+	farjp LoadStatusIcons
 ; 3edad
 
 
@@ -7338,6 +7303,13 @@ GiveExperiencePoints: ; 3ee3b
 
 	call GiveBattleEVs
 
+; No experience at level 100
+	ld hl, MON_LEVEL
+	add hl, bc
+	ld a, [hl]
+	cp MAX_LEVEL
+	jp z, .skip_stats
+
 	push bc
 	xor a
 	ld [hMultiplicand + 0], a
@@ -7351,8 +7323,9 @@ GiveExperiencePoints: ; 3ee3b
 	ld [hDivisor], a
 	ld b, 4
 	call Divide
-; Boost Experience for traded Pokemon
 	pop bc
+
+; Boost experience for traded Pokemon
 	ld hl, MON_ID
 	add hl, bc
 	ld a, [PlayerID]
@@ -7366,13 +7339,12 @@ GiveExperiencePoints: ; 3ee3b
 	ld a, [InitialOptions]
 	bit TRADED_AS_OT_OPT, a
 	jr nz, .no_boost
-
 .boosted
 	call BoostExp
 	ld a, $1
 
 .no_boost
-; Boost experience for a Trainer Battle
+; Boost experience for a trainer battle
 	ld [StringBuffer2 + 2], a
 	ld a, [wBattleMode]
 	dec a
@@ -7535,19 +7507,9 @@ GiveExperiencePoints: ; 3ee3b
 	add hl, bc
 	ld a, [hl]
 	ld [BattleMonLevel], a
-	ld a, [PlayerSubStatus2]
-	bit SUBSTATUS_TRANSFORMED, a
-	jr nz, .transformed
-	ld hl, MON_STATS
-	add hl, bc
-	ld de, PlayerStats
-	ld bc, BattleMonStatsEnd - BattleMonStats
-	call CopyBytes
 
-.transformed
 	xor a
 	ld [wd265], a
-	call ApplyStatLevelMultiplierOnAllStats
 	farcall UpdatePlayerHUD
 	call EmptyBattleTextBox
 	call LoadTileMapToTempTileMap
@@ -7673,8 +7635,7 @@ GiveBattleEVs:
 ; e: set to abcdef00, where a: HP EV boosted, etc, for
 ; power items
 	push de
-	ld d, 0
-	ld e, 0
+	lb de, 0, 0
 	; check pokérus
 	ld hl, MON_PKRUS
 	add hl, bc
@@ -7769,19 +7730,19 @@ GiveBattleEVs:
 	set 7, e
 	ret
 .item_atkup
-	set 6, e
+	set (6 - ATTACK), e ; 6
 	ret
 .item_defup
-	set 5, e
+	set (6 - DEFENSE), e ; 5
 	ret
 .item_spdup
-	set 4, e
+	set (6 - SPEED), e ; 4
 	ret
 .item_satup
-	set 3, e
+	set (6 - SP_ATTACK), e ; 3
 	ret
 .item_sdfup
-	set 2, e
+	set (6 - SP_DEFENSE), e ; 2
 	ret
 
 BoostExp: ; 3f106
@@ -8187,36 +8148,37 @@ TextJump_ComeBack: ; 3f35b
 ; 3f360
 
 
-;HandleSafariAngerEatingStatus: ; unreferenced
-;	ld hl, wSafariMonEating
-;	ld a, [hl]
-;	and a
-;	jr z, .angry
-;	dec [hl]
-;	ld hl, BattleText_WildPkmnIsEating
-;	jr .finish
-;
-;.angry
-;	dec hl ; wSafariMonAngerCount
-;	ld a, [hl]
-;	and a
-;	ret z
-;	dec [hl]
-;	ld hl, BattleText_WildPkmnIsAngry
-;	jr nz, .finish
-;	push hl
-;	ld a, [EnemyMonSpecies]
-;	ld [CurSpecies], a
-;	call GetBaseData
-;	ld a, [BaseCatchRate]
-;	ld [EnemyMonCatchRate], a
-;	pop hl
-;
-;.finish
-;	push hl
-;	call Call_LoadTempTileMapToTileMap
-;	pop hl
-;	jp StdBattleTextBox
+HandleSafariAngerEatingStatus:
+	ld hl, wSafariMonEating
+	ld a, [hl]
+	and a
+	jr z, .angry
+	dec [hl]
+	ld hl, BattleText_WildPkmnIsEating
+	jr .finish
+
+.angry
+	dec hl ; wSafariMonAngerCount
+	ld a, [hl]
+	and a
+	ret z
+	dec [hl]
+	ld hl, BattleText_WildPkmnIsAngry
+	jr nz, .finish
+	push hl
+	; reset the catch rate to normal if bait/rock effects have worn off
+	ld a, [EnemyMonSpecies]
+	ld [CurSpecies], a
+	call GetBaseData
+	ld a, [BaseCatchRate]
+	ld [EnemyMonCatchRate], a
+	pop hl
+
+.finish
+	push hl
+	call Call_LoadTempTileMapToTileMap
+	pop hl
+	jp StdBattleTextBox
 ;; 3f390
 
 
@@ -8335,28 +8297,26 @@ PlaceExpBar: ; 3f41c
 	sub $8
 	jr c, .next
 	ld b, a
-	ld a, $78 ; full thin bar
+	ld a, "<FULLXP>"
 	ld [hli], a
 	dec c
-	jr z, .finish
+	ret z
 	jr .loop1
 
 .next
 	add $8
 	jr z, .loop2
-	add $70 ; tile to the left of thin exp bar tile
+	add "<NOXP>" - 1
 	jr .skip
 
 .loop2
-	ld a, $70 ; empty thin bar
+	ld a, "<NOXP>"
 
 .skip
 	ld [hli], a
-	ld a, $70 ; empty thin bar
+	ld a, "<NOXP>"
 	dec c
 	jr nz, .loop2
-
-.finish
 	ret
 ; 3f43d
 
@@ -8390,7 +8350,7 @@ GetBackpic_DoAnim: ; 3f46f
 	xor a
 	ld [hBattleTurn], a
 	ld a, BANK(BattleAnimCommands)
-	rst FarCall
+	call FarCall_hl
 	pop af
 	ld [hBattleTurn], a
 	ret
@@ -8428,7 +8388,7 @@ GetFrontpic_DoAnim: ; 3f4b4
 	push af
 	call SetEnemyTurn
 	ld a, BANK(BattleAnimCommands)
-	rst FarCall
+	call FarCall_hl
 	pop af
 	ld [hBattleTurn], a
 	ret
@@ -8459,7 +8419,7 @@ BattleIntro: ; 3f4dd
 	call LoadTrainerOrWildMonPic
 	xor a
 	ld [TempBattleMonSpecies], a
-	ld [wd0d2], a
+	ld [wBattleMenuCursorBuffer], a
 	xor a
 	ld [hMapAnims], a
 	ld a, [OtherTrainerClass]
@@ -8521,7 +8481,7 @@ InitEnemy: ; 3f55e
 BackUpVBGMap2: ; 3f568
 	ld a, [rSVBK]
 	push af
-	ld a, $6 ; BANK(wDecompressScratch)
+	ld a, BANK(wDecompressScratch)
 	ld [rSVBK], a
 	ld hl, wDecompressScratch
 	ld bc, $40 tiles ; VBGMap3 - VBGMap2
@@ -8564,7 +8524,7 @@ InitEnemyTrainer: ; 3f594
 	ld [wBattleMode], a
 
 	call IsBossTrainer
-	jr nc, .done
+	ret nc
 	xor a
 	ld [CurPartyMon], a
 	ld a, [PartyCount]
@@ -8581,18 +8541,18 @@ InitEnemyTrainer: ; 3f594
 .skipfaintedmon
 	pop bc
 	dec b
-	jr z, .done
+	ret z
 	ld hl, CurPartyMon
 	inc [hl]
 	jr .partyloop
-.done
-	ret
 ; 3f607
 
 InitEnemyWildmon: ; 3f607
 	ld a, WILD_BATTLE
 	ld [wBattleMode], a
 	call LoadEnemyMon
+	ld a, [EnemyMonSpecies]
+	ld [wEnemyBackupSpecies], a
 	ld hl, EnemyMonMoves
 	ld de, wWildMonMoves
 	ld bc, NUM_MOVES
@@ -8600,6 +8560,10 @@ InitEnemyWildmon: ; 3f607
 	ld hl, EnemyMonPP
 	ld de, wWildMonPP
 	ld bc, NUM_MOVES
+	call CopyBytes
+	ld hl, EnemyMonDVs
+	ld de, wEnemyBackupDVs
+	ld bc, 5
 	call CopyBytes
 	ld hl, EnemyMonForm
 	predef GetVariant
@@ -8648,8 +8612,7 @@ ExitBattle: ; 3f69e
 	call ShowLinkBattleParticipantsAfterEnd
 	ld c, 150
 	call DelayFrames
-	call ShowLinkBattleResult
-	ret
+	jp ShowLinkBattleResult
 
 .not_linked
 	ld a, [wBattleResult]
@@ -8659,8 +8622,7 @@ ExitBattle: ; 3f69e
 	xor a
 	ld [wForceEvolution], a
 	predef EvolveAfterBattle
-	farcall GivePokerus
-	ret
+	farjp GivePokerus
 ; 3f6d0
 
 HandleNuzlockeFlags:
@@ -8669,17 +8631,13 @@ HandleNuzlockeFlags:
 	ret nz
 
 	; Dupes clause: don't count duplicate encounters
-	ld a, [EnemyMonSpecies]
+	ld a, [wEnemyBackupSpecies]
 	dec a
 	call CheckCaughtMon
 	ret nz
 
 	; Only flag landmarks for Nuzlocke runs after getting Poké Balls
-	ld de, EVENT_LEARNED_TO_CATCH_POKEMON
-	ld b, CHECK_FLAG
-	call EventFlagAction
-	ld a, c
-	and a
+	eventflagcheck EVENT_LEARNED_TO_CATCH_POKEMON
 	ret z
 
 	; Get current landmark
@@ -8710,16 +8668,15 @@ CleanUpBattleRAM: ; 3f6d0
 	ld [wPartyMenuCursor], a
 	ld [wKeyItemsPocketCursor], a
 	ld [wItemsPocketCursor], a
-	ld [wd0d2], a
+	ld [wBattleMenuCursorBuffer], a
 	ld [CurMoveNum], a
 	ld [wBallsPocketCursor], a
-	ld [wLastPocket], a
 	ld [wMenuScrollPosition], a
 	ld [wKeyItemsPocketScrollPosition], a
 	ld [wItemsPocketScrollPosition], a
 	ld [wBallsPocketScrollPosition], a
-	ld hl, PlayerSubStatus1
-	ld b, EnemyFuryCutterCount - PlayerSubStatus1
+	ld hl, BattleSubStatusWRAM
+	ld b, BattleSubStatusWRAMEnd - BattleSubStatusWRAM
 .loop
 	ld [hli], a
 	dec b
@@ -8759,8 +8716,7 @@ CheckPayDay: ; 3f71d
 	bit 0, a
 	ret z
 	call ClearTileMap
-	call ClearBGPalettes
-	ret
+	jp ClearBGPalettes
 ; 3f759
 
 ShowLinkBattleParticipantsAfterEnd: ; 3f759
@@ -8770,8 +8726,7 @@ ShowLinkBattleParticipantsAfterEnd: ; 3f759
 	ld a, [EnemyMonStatus]
 	ld [hl], a
 	call ClearTileMap
-	farcall _ShowLinkBattleParticipants
-	ret
+	farjp _ShowLinkBattleParticipants
 ; 3f77c
 
 ShowLinkBattleResult: ; 3f77c
@@ -8791,7 +8746,7 @@ ShowLinkBattleResult: ; 3f77c
 
 .loss
 	ld de, .Lose
-	jr .store_result
+	; fallthrough
 
 .store_result
 	hlcoord 6, 8
@@ -8808,8 +8763,7 @@ ShowLinkBattleResult: ; 3f77c
 	call CloseSRAM
 
 	call WaitPressAorB_BlinkCursor
-	call ClearTileMap
-	ret
+	jp ClearTileMap
 ; 3f7f7
 
 .Win:
@@ -8838,8 +8792,7 @@ DisplayLinkRecord: ; 3f836
 	call SetPalettes
 	ld c, 8
 	call DelayFrames
-	call WaitPressAorB_BlinkCursor
-	ret
+	jp WaitPressAorB_BlinkCursor
 ; 3f85f
 
 
@@ -8865,7 +8818,7 @@ ReadAndPrintLinkBattleRecord: ; 3f85f
 	ld h, d
 	ld l, e
 	ld de, wd002
-	ld bc, 10
+	ld bc, NAME_LENGTH - 1
 	call CopyBytes
 	ld a, "@"
 	ld [de], a
@@ -8879,20 +8832,20 @@ ReadAndPrintLinkBattleRecord: ; 3f85f
 	ld de, 26
 	add hl, de
 	push hl
-	ld de, wd00d
+	ld de, wd002 + 11 ; win
 	lb bc, 2, 4
 	call PrintNum
 	pop hl
 	ld de, 5
 	add hl, de
 	push hl
-	ld de, wd00f
+	ld de, wd002 + 13 ; lose
 	lb bc, 2, 4
 	call PrintNum
 	pop hl
 	ld de, 5
 	add hl, de
-	ld de, wd011
+	ld de, wd002 + 15 ; draw
 	lb bc, 2, 4
 	call PrintNum
 	jr .next
@@ -8930,7 +8883,7 @@ ReadAndPrintLinkBattleRecord: ; 3f85f
 	hlcoord 6, 4
 	ld de, sLinkBattleWins
 	call .PrintZerosIfNoSaveFileExists
-	jr c, .quit
+	ret c
 
 	lb bc, 2, 4
 	call PrintNum
@@ -8947,10 +8900,7 @@ ReadAndPrintLinkBattleRecord: ; 3f85f
 	call .PrintZerosIfNoSaveFileExists
 
 	lb bc, 2, 4
-	call PrintNum
-
-.quit
-	ret
+	jp PrintNum
 
 .PrintZerosIfNoSaveFileExists:
 	ld a, [wSavedAtLeastOnce]
@@ -9007,8 +8957,7 @@ BattleEnd_HandleRoamMons: ; 3f998
 	ret nz
 
 .update_roam_mons
-	farcall UpdateRoamMons
-	ret
+	farjp UpdateRoamMons
 ; 3f9d1
 
 GetRoamMonMapGroup: ; 3f9d1
@@ -9139,9 +9088,9 @@ AddLastBattleToLinkRecord: ; 3fa42
 
 .done
 	call .StoreResult
-	call .FindOpponentAndAppendRecord
-	ret
+	jp .FindOpponentAndAppendRecord
 ; 3faa0
+
 .StoreResult: ; 3faa0
 	ld a, [wBattleResult]
 	and $f
@@ -9341,12 +9290,12 @@ InitBattleDisplay: ; 3fb6c
 	ld a, $6
 	ld [rSVBK], a
 
-	ld hl, wDecompressScratch
-	ld bc, wScratchAttrMap - wDecompressScratch
+	ld hl, wScratchTileMap
+	ld bc, BG_MAP_WIDTH * BG_MAP_HEIGHT
 	ld a, " "
 	call ByteFill
 
-	ld de, wDecompressScratch
+	ld de, wScratchTileMap
 	hlbgcoord 0, 0
 	lb bc, BANK(.BlankBGMap), $40
 	call Request2bpp
@@ -9358,8 +9307,7 @@ InitBattleDisplay: ; 3fb6c
 
 .InitBackPic: ; 3fbf8
 	call GetTrainerBackpic
-	call CopyBackpic
-	ret
+	jp CopyBackpic
 ; 3fbff
 
 
@@ -9528,38 +9476,6 @@ BattleStartMessage: ; 3fc8b
 	jp StdBattleTextBox
 ; 3fd26
 
-ConsumeUsersItem:
-	ld a, BATTLE_VARS_SUBSTATUS3
-	call GetBattleVarAddr
-	ld a, (1 << SUBSTATUS_UNDERGROUND) | (1 << SUBSTATUS_FLYING)
-	and [hl]
-	jr nz, .skip_anim
-	farcall BattleCommand_SwitchTurn
-	call ItemRecoveryAnim
-	farcall BattleCommand_SwitchTurn
-.skip_anim
-	res SUBSTATUS_CHARGED, [hl]
-	res SUBSTATUS_UNDERGROUND, [hl]
-	res SUBSTATUS_FLYING, [hl]
-	ld a, [hBattleTurn]
-	and a
-	jr z, .PlayerItem
-	call GetOTPartymonItem
-	xor a
-	ld [bc], a
-	ld a, [wBattleMode]
-	dec a
-	ret z
-	xor a
-	ld [hl], a
-	ret
-.PlayerItem
-	call GetPartymonItem
-	xor a
-	ld [bc], a
-	ld [hl], a
-	ret
-
 CheckPluralTrainer:
 	ld a, [OtherTrainerClass]
 	cp TWINS
@@ -9581,4 +9497,66 @@ CheckPluralTrainer:
 	and a
 	ret
 
-INCLUDE "battle/unique_moves.asm"
+AutomaticRainWhenOvercast:
+	call GetOvercastIndex
+	and a
+	ret z
+	ld a, WEATHER_RAIN
+	ld [Weather], a
+	ld a, 255
+	ld [WeatherCount], a
+	ld de, RAIN_DANCE
+	call Call_PlayBattleAnim
+	ld hl, DownpourText
+	call StdBattleTextBox
+	jp EmptyBattleTextBox
+
+CheckUniqueWildMove:
+	ld a, [MapGroup]
+	ld b, a
+	ld a, [MapNumber]
+	ld c, a
+	call GetWorldMapLocation
+	ld c, a
+	ld hl, UniqueWildMoves
+.loop
+	ld a, [hli] ; landmark
+	cp -1
+	ret z
+	cp c
+	jr nz, .inc2andloop
+	ld a, [hli] ; species
+	ld b, a
+	ld a, [CurPartySpecies]
+	cp b
+	jr nz, .inc1andloop
+	ld a, [hli] ; move
+	ld b, a
+	cp FLY
+	jr nz, .ChanceToTeach
+	ld a, [PlayerState]
+	cp PLAYER_SURF
+	jr z, .SurfingPikachu
+	cp PLAYER_SURF_PIKA
+	jr nz, .ChanceToTeach
+.SurfingPikachu
+	ld a, SURF
+	ld b, a
+	jr .TeachMove
+.ChanceToTeach
+	call Random
+	cp 50 percent + 1
+	ret nc
+.TeachMove
+	ld hl, EnemyMonMoves + 1 ; second move
+	ld a, b
+	ld [hl], a
+	ret
+
+.inc2andloop
+	inc hl
+.inc1andloop
+	inc hl
+	jr .loop
+
+INCLUDE "data/unique_wild_moves.asm"

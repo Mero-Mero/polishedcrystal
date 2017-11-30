@@ -1,29 +1,39 @@
-const_value set 2
+VermilionPort_MapScriptHeader:
+
+.MapTriggers: db 2
+	dw VermilionPortTrigger0
+	dw VermilionPortTrigger1
+
+.MapCallbacks: db 0
+
+VermilionPort_MapEventHeader:
+
+.Warps: db 2
+	warp_def 5, 9, 5, VERMILION_PORT_PASSAGE
+	warp_def 17, 7, 1, FAST_SHIP_1F
+
+.XYTriggers: db 1
+	xy_trigger 0, 11, 7, UnknownScript_0x74e20
+
+.Signposts: db 1
+	signpost 13, 16, SIGNPOST_ITEM + IRON, EVENT_VERMILION_PORT_HIDDEN_IRON
+
+.PersonEvents: db 3
+	person_event SPRITE_SAILOR, 17, 7, SPRITEMOVEDATA_STANDING_UP, 0, 0, -1, -1, 0, PERSONTYPE_SCRIPT, 0, SailorScript_0x74dc4, EVENT_VERMILION_PORT_SAILOR_AT_GANGWAY
+	person_event SPRITE_SAILOR, 11, 6, SPRITEMOVEDATA_STANDING_RIGHT, 0, 0, -1, -1, 0, PERSONTYPE_SCRIPT, 0, SailorScript_0x74e97, -1
+	person_event SPRITE_SUPER_NERD, 11, 11, SPRITEMOVEDATA_WALK_LEFT_RIGHT, 0, 2, -1, -1, 0, PERSONTYPE_SCRIPT, 0, SuperNerdScript_0x74ee6, -1
+
+const_value set 1
 	const VERMILIONPORT_SAILOR1
 	const VERMILIONPORT_SAILOR2
-	const VERMILIONPORT_SUPER_NERD
 
-VermilionPort_MapScriptHeader:
-.MapTriggers:
-	db 2
-	dw .Trigger0
-	dw .Trigger1
-
-.MapCallbacks:
-	db 1
-	dbw MAPCALLBACK_NEWMAP, .FlyPoint
-
-.Trigger1:
+VermilionPortTrigger1:
 	priorityjump UnknownScript_0x74da6
-.Trigger0:
+VermilionPortTrigger0:
 	end
 
-.FlyPoint:
-	setflag ENGINE_FLYPOINT_VERMILION
-	return
-
 UnknownScript_0x74da6:
-	applymovement PLAYER, MovementData_0x74ef3
+	applyonemovement PLAYER, step_up
 	appear VERMILIONPORT_SAILOR1
 	dotrigger $0
 	setevent EVENT_FAST_SHIP_CABINS_SE_SSE_CAPTAINS_CABIN_TWIN_1
@@ -48,7 +58,7 @@ SailorScript_0x74dc4:
 	playsound SFX_EXIT_BUILDING
 	disappear VERMILIONPORT_SAILOR1
 	waitsfx
-	applymovement PLAYER, MovementData_0x74ef1
+	applyonemovement PLAYER, step_down
 	playsound SFX_EXIT_BUILDING
 	special FadeOutPalettes
 	waitsfx
@@ -67,14 +77,11 @@ SailorScript_0x74dc4:
 	setevent EVENT_FAST_SHIP_DESTINATION_OLIVINE
 	appear VERMILIONPORT_SAILOR1
 	domaptrigger FAST_SHIP_1F, $1
-	warp FAST_SHIP_1F, $19, $1
+	warp FAST_SHIP_1F, 25, 1
 	end
 
 UnknownScript_0x74e1a:
-	writetext UnknownText_0x74f31
-	waitbutton
-	closetext
-	end
+	jumpopenedtext UnknownText_0x74f31
 
 UnknownScript_0x74e20:
 	spriteface VERMILIONPORT_SAILOR2, RIGHT
@@ -129,10 +136,7 @@ UnknownScript_0x74e86:
 	end
 
 UnknownScript_0x74e87:
-	writetext UnknownText_0x74fa7
-	waitbutton
-	closetext
-	end
+	jumpopenedtext UnknownText_0x74fa7
 
 UnknownScript_0x74e8d:
 	writetext UnknownText_0x74fa7
@@ -167,42 +171,17 @@ SailorScript_0x74e97:
 	jump SailorScript_0x74dc4
 
 UnknownScript_0x74ed4:
-	writetext UnknownText_0x74ff2
-	waitbutton
-	closetext
-	end
+	jumpopenedtext UnknownText_0x74ff2
 
 UnknownScript_0x74eda:
-	writetext UnknownText_0x75059
-	waitbutton
-	closetext
-	end
+	jumpopenedtext UnknownText_0x75059
 
 UnknownScript_0x74ee0:
-	writetext UnknownText_0x75080
-	waitbutton
-	closetext
-	end
+	jumpopenedtext UnknownText_0x75080
 
 SuperNerdScript_0x74ee6:
 	faceplayer
-	opentext
-	writetext UnknownText_0x750a6
-	waitbutton
-	closetext
-	end
-
-VermilionPortHiddenIron:
-	dwb EVENT_VERMILION_PORT_HIDDEN_IRON, IRON
-
-
-MovementData_0x74ef1:
-	step_down
-	step_end
-
-MovementData_0x74ef3:
-	step_up
-	step_end
+	jumptext UnknownText_0x750a6
 
 MovementData_0x74ef5:
 	step_right
@@ -296,23 +275,3 @@ UnknownText_0x750a6:
 	line "#mon live over"
 	cont "there."
 	done
-
-VermilionPort_MapEventHeader:
-.Warps:
-	db 2
-	warp_def $5, $9, 5, VERMILION_PORT_PASSAGE
-	warp_def $11, $7, 1, FAST_SHIP_1F
-
-.XYTriggers:
-	db 1
-	xy_trigger 0, $b, $7, UnknownScript_0x74e20
-
-.Signposts:
-	db 1
-	signpost 13, 16, SIGNPOST_ITEM, VermilionPortHiddenIron
-
-.PersonEvents:
-	db 3
-	person_event SPRITE_SAILOR, 17, 7, SPRITEMOVEDATA_STANDING_UP, 0, 0, -1, -1, 0, PERSONTYPE_SCRIPT, 0, SailorScript_0x74dc4, EVENT_VERMILION_PORT_SAILOR_AT_GANGWAY
-	person_event SPRITE_SAILOR, 11, 6, SPRITEMOVEDATA_STANDING_RIGHT, 0, 0, -1, -1, 0, PERSONTYPE_SCRIPT, 0, SailorScript_0x74e97, -1
-	person_event SPRITE_SUPER_NERD, 11, 11, SPRITEMOVEDATA_WALK_LEFT_RIGHT, 0, 2, -1, -1, 0, PERSONTYPE_SCRIPT, 0, SuperNerdScript_0x74ee6, -1

@@ -1,7 +1,7 @@
 ; Each trainer class has its own group. See trainers.asm.
 
 TrainerGroups: ; 0x39999
-	dba KayGroup
+	dba CarrieGroup
 	dba CalGroup
 	dba FalknerGroup
 	dba BugsyGroup
@@ -45,6 +45,7 @@ TrainerGroups: ; 0x39999
 	dba PokefanFGroup
 	dba OfficerMGroup
 	dba OfficerFGroup
+	dba NurseGroup
 	dba PokemaniacGroup
 	dba CosplayerGroup
 	dba SuperNerdGroup
@@ -91,6 +92,7 @@ TrainerGroups: ; 0x39999
 	dba TamerGroup
 	dba ArtistGroup
 	dba AromaLadyGroup
+	dba WaitressGroup
 	dba SightseerMGroup
 	dba SightseerFGroup
 	dba SightseersGroup
@@ -131,6 +133,7 @@ TrainerGroups: ; 0x39999
 	dba MayleneGroup
 	dba SkylaGroup
 	dba ValerieGroup
+	dba KukuiGroup
 	dba VictorGroup
 	dba BillGroup
 	dba YellowGroup

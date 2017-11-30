@@ -68,7 +68,7 @@ UnknownText_0x1bc0a2::
 	text_from_ram StringBuffer1
 	text ""
 	line "recovered @"
-	deciram wd1f3, 2, 3
+	deciram wCurHPAnimDeltaHP, 2, 3
 	text "HP!"
 	done
 
@@ -1073,7 +1073,7 @@ UnknownText_0x1bd4aa::
 	text "Huh? That's not"
 	line "@"
 	text_from_ram StringBuffer1
-	text ". "
+	text "."
 	cont "What a letdown…"
 	done
 
@@ -1427,10 +1427,10 @@ UnknownText_0x1bdd96::
 	text ""
 	line "has grown a lot."
 
-	para "It's gained @"
+	para "Its level grew"
+	line "by @"
 	deciram StringBuffer2 + 1, 1, 3
-	text ""
-	line "levels."
+	text "."
 
 	para "If you want your"
 	line "#mon back, it"

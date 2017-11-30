@@ -1,6 +1,6 @@
 INCLUDE "includes.asm"
 
-SECTION "Events", ROMX, BANK[EVENTS]
+SECTION "Events", ROMX
 
 
 OverworldLoop:: ; 966b0
@@ -76,9 +76,6 @@ StartMap: ; 96724
 	farcall InitCallReceiveDelay
 	call ClearJoypad
 EnterMap: ; 9673e
-	xor a
-	ld [wXYComparePointer], a
-	ld [wXYComparePointer + 1], a
 	call SetUpFiveStepWildEncounterCooldown
 	farcall RunMapSetupScript
 	call DisableEvents
@@ -100,8 +97,7 @@ EnterMap: ; 9673e
 	ld [hMapEntryMethod], a
 	ld a, 2 ; HandleMap
 	ld [MapStatus], a
-	farcall DeleteSavedMusic
-	ret
+	jp DeleteSavedMusic
 ; 9676d
 
 HandleMap: ; 96773
@@ -118,8 +114,7 @@ HandleMap: ; 96773
 	call HandleMapObjects
 	call NextOverworldFrame
 	call HandleMapBackground
-	call CheckPlayerState
-	ret
+	jp CheckPlayerState
 ; 96795
 
 MapEvents: ; 96795
@@ -137,12 +132,9 @@ MapEvents: ; 96795
 	call PlayerEvents
 	call DisableEvents
 	farcall ScriptEvents
-	ret
-; 967ae
-
 .no_events ; 967ae
 	ret
-; 967af
+; 967ae
 
 MaxOverworldDelay: ; 967af
 	db 2
@@ -181,8 +173,7 @@ HandleMapObjects: ; 967d1
 HandleMapBackground: ; 967e1
 	farcall _UpdateSprites
 	farcall ScrollScreen
-	farcall PlaceMapNameSign
-	ret
+	farjp PlaceMapNameSign
 ; 967f4
 
 CheckPlayerState: ; 967f4
@@ -209,8 +200,7 @@ _CheckObjectEnteringVisibleRange: ; 96812
 	ld hl, wPlayerStepFlags
 	bit 6, [hl]
 	ret z
-	farcall CheckObjectEnteringVisibleRange
-	ret
+	farjp CheckObjectEnteringVisibleRange
 ; 9681f
 
 PlayerEvents: ; 9681f
@@ -319,7 +309,7 @@ CheckTileEvent: ; 96874
 
 .warp_tile
 	ld a, [PlayerStandingTile]
-	call CheckPitTile
+	cp COLL_HOLE
 	jr nz, .not_pit
 	ld a, PLAYEREVENT_FALL
 	scf
@@ -335,9 +325,8 @@ CheckTileEvent: ; 96874
 	ld a, [hli]
 	ld h, [hl]
 	ld l, a
-	call GetMapScriptHeaderBank
-	call CallScript
-	ret
+	ld a, [MapScriptHeaderBank]
+	jp CallScript
 ; 968c7
 
 CheckWildEncounterCooldown:: ; 968c7
@@ -367,19 +356,23 @@ DoMapTrigger: ; 968ec
 	cp c
 	jr nc, .nope
 
+	add a
 	ld e, a
 	ld d, 0
 	ld hl, wCurrMapTriggerHeaderPointer
 	ld a, [hli]
 	ld h, [hl]
 	ld l, a
-rept 2
 	add hl, de
-endr
 
-	call GetMapScriptHeaderBank
+	ld a, [MapScriptHeaderBank]
+	ld b, a
 	call GetFarHalfword
-	call GetMapScriptHeaderBank
+	ld a, b
+	call GetFarByte
+	cp end_command
+	ret z ; boost efficiency of maps with dummy triggers
+	ld a, b
 	call CallScript
 
 	ld hl, ScriptFlags
@@ -491,11 +484,8 @@ PlayTalkObject: ; 969ac
 
 TryObjectEvent: ; 969b5
 	farcall CheckFacingObject
-	jr c, .IsObject
-	xor a
-	ret
+	ret nc
 
-.IsObject:
 	call PlayTalkObject
 	ld a, [hObjectStructIndexBuffer]
 	call GetObjectStruct
@@ -511,90 +501,86 @@ TryObjectEvent: ; 969b5
 	ld a, [hl]
 	and %00001111
 
-	push bc
-	ld de, 3
+	cp NUM_PERSONTYPES
+	ret nc
+
 	ld hl, .pointers
-	call IsInArray
-	jr nc, .nope
-	pop bc
-
-	inc hl
-	ld a, [hli]
-	ld h, [hl]
-	ld l, a
-	jp hl
-
-.nope
-	pop bc
-	xor a
+	rst JumpTable
 	ret
 
-.pointers
-	dbw PERSONTYPE_SCRIPT, .script
-	dbw PERSONTYPE_ITEMBALL, .itemball
-	dbw PERSONTYPE_TRAINER, .trainer
-	dbw PERSONTYPE_TMHMBALL, .tmhmball
-	; the remaining three are dummy events
-	dbw PERSONTYPE_4, .four
-	dbw PERSONTYPE_5, .five
-	dbw PERSONTYPE_6, .six
-	db -1
-; 96a04
+.pointers:
+	dw .script   ; PERSONTYPE_SCRIPT
+	dw .pokeball ; PERSONTYPE_POKEBALL
+	dw .trainer  ; PERSONTYPE_TRAINER
+	dw .trainer  ; PERSONTYPE_GENERICTRAINER
+	dw .pokemon  ; PERSONTYPE_POKEMON
+	dw .command  ; PERSONTYPE_COMMAND
 
-.script ; 96a04
+.script:
 	ld hl, MAPOBJECT_SCRIPT_POINTER
 	add hl, bc
 	ld a, [hli]
 	ld h, [hl]
 	ld l, a
-	call GetMapScriptHeaderBank
-	call CallScript
-	ret
+	ld a, [MapScriptHeaderBank]
+	jp CallScript
 ; 96a12
 
-.itemball ; 96a12
-	ld hl, MAPOBJECT_SCRIPT_POINTER
+.pokeball:
+	ld hl, MAPOBJECT_RANGE
 	add hl, bc
 	ld a, [hli]
-	ld h, [hl]
-	ld l, a
-	call GetMapScriptHeaderBank
-	ld de, EngineBuffer1
-	ld bc, 2
-	call FarCopyBytes
-	ld a, PLAYEREVENT_ITEMBALL
+	push af
+	ld a, [hli]
+	ld [CurItemBallContents], a
+	ld a, [hl]
+	ld [CurItemBallQuantity], a
+	pop af
 	scf
 	ret
-; 96a29
 
-.trainer ; 96a29
+.trainer:
 	call TalkToTrainer
 	ld a, PLAYEREVENT_TALKTOTRAINER
 	scf
 	ret
-; 96a30
 
-.tmhmball ; 96a30
-	ld hl, MAPOBJECT_SCRIPT_POINTER
+.pokemon:
+	ld hl, MAPOBJECT_RANGE
 	add hl, bc
 	ld a, [hli]
-	ld h, [hl]
-	ld l, a
-	call GetMapScriptHeaderBank
-	ld de, EngineBuffer1
-	ld bc, 1
-	call FarCopyBytes
-	ld a, PLAYEREVENT_TMHMBALL
-	scf
-	ret
-; 96a32
-
-.four ; 96a32
-.five ; 96a34
-.six ; 96a36
+	ld [ScriptVar], a
+	ld de, wTemporaryScriptBuffer
+	ld a, showcrytext_command
+	ld [de], a
+	inc de
+rept 2
+	ld a, [hli]
+	ld [de], a
+	inc de
+endr
 	xor a
-	ret
-; 96a34
+	ld [de], a
+	inc de
+	ld a, end_command
+	ld [de], a
+	jr .callTemporaryScriptBuffer
+
+.command:
+	ld hl, MAPOBJECT_RANGE
+	add hl, bc
+	ld de, wTemporaryScriptBuffer
+rept 2
+	ld a, [hli]
+	ld [de], a
+	inc de
+endr
+	ld a, [hl]
+	ld [de], a
+.callTemporaryScriptBuffer:
+	ld hl, wTemporaryScriptBuffer
+	ld a, [MapScriptHeaderBank]
+	jp CallScript
 
 TryReadSign: ; 96a38
 	call CheckFacingSign
@@ -604,20 +590,23 @@ TryReadSign: ; 96a38
 
 .IsSign:
 	ld a, [EngineBuffer3]
+	cp SIGNPOST_ITEM
+	jp nc, .itemifset
 	ld hl, .signs
 	rst JumpTable
 	ret
 
 .signs
-	dw .read
-	dw .up
-	dw .down
-	dw .right
-	dw .left
-	dw .ifset
-	dw .ifnotset
-	dw .itemifset
-	dw .copy
+	dw .read     ; SIGNPOST_READ
+	dw .up       ; SIGNPOST_UP
+	dw .down     ; SIGNPOST_DOWN
+	dw .right    ; SIGNPOST_RIGHT
+	dw .left     ; SIGNPOST_LEFT
+	dw .ifset    ; SIGNPOST_IFSET
+	dw .ifnotset ; SIGNPOST_IFNOTSET
+	dw .jumptext ; SIGNPOST_JUMPTEXT
+	dw .jumpstd  ; SIGNPOST_JUMPSTD
+	dw .ifnotset ; SIGNPOST_GROTTOITEM
 ; 96a59
 
 .up
@@ -631,7 +620,7 @@ TryReadSign: ; 96a38
 	jr .checkdir
 .left
 	ld b, OW_LEFT
-	jr .checkdir
+	; fallthrough
 
 .checkdir
 	ld a, [PlayerDirection]
@@ -645,33 +634,35 @@ TryReadSign: ; 96a38
 	ld a, [hli]
 	ld h, [hl]
 	ld l, a
-	call GetMapScriptHeaderBank
+.callMapScriptAndReturnCarry
+	ld a, [MapScriptHeaderBank]
+.callScriptAndReturnCarry
 	call CallScript
 	scf
 	ret
 
 .itemifset
-	call CheckSignFlag
+	ld a, [wCurSignpostScriptAddr]
+	ld e, a
+	ld a, [wCurSignpostScriptAddr+1]
+	ld d, a
+	ld b, CHECK_FLAG
+	call EventFlagAction
+	ld a, c
+	and a
 	jp nz, .dontread
 	call PlayTalkObject
-	call GetMapScriptHeaderBank
-	ld de, EngineBuffer1
-	ld bc, 3
-	call FarCopyBytes
+	ld hl, EngineBuffer1
+	ld a, [wCurSignpostScriptAddr]
+	ld [hli], a
+	ld a, [wCurSignpostScriptAddr+1]
+	ld [hli], a
+	ld a, [wCurSignpostType]
+	sub SIGNPOST_ITEM
+	ld [hl], a
 	ld a, BANK(HiddenItemScript)
 	ld hl, HiddenItemScript
-	call CallScript
-	scf
-	ret
-
-.copy
-	call CheckSignFlag
-	jr nz, .dontread
-	call GetMapScriptHeaderBank
-	ld de, EngineBuffer1
-	ld bc, 3
-	call FarCopyBytes
-	jr .dontread
+	jr .callScriptAndReturnCarry
 
 .ifset
 	call CheckSignFlag
@@ -688,16 +679,33 @@ TryReadSign: ; 96a38
 	pop hl
 	inc hl
 	inc hl
-	call GetMapScriptHeaderBank
-	call GetFarHalfword
-	call GetMapScriptHeaderBank
-	call CallScript
-	scf
-	ret
+	jr .callMapScriptAndReturnCarry
 
 .dontread
 	xor a
 	ret
+
+.jumptext
+	call PlayClickSFX
+	ld hl, wTemporaryScriptBuffer + 2
+	ld a, [wCurSignpostScriptAddr + 1]
+	ld [hld], a
+	ld a, [wCurSignpostScriptAddr]
+	ld [hld], a
+	ld [hl], jumptext_command
+	jr .callMapScriptAndReturnCarry
+
+.jumpstd
+	call PlayClickSFX
+	ld hl, wTemporaryScriptBuffer + 3
+	ld a, [wCurSignpostScriptAddr]
+	ld [hld], a
+	ld a, jumpstd_command
+	ld [hld], a
+	ld a, [wCurSignpostScriptAddr + 1]
+	ld [hld], a
+	ld [hl], writebyte_command ; just to be safe (as opposed to directly writing to hScriptVar)
+	jr .callMapScriptAndReturnCarry
 ; 96ad8
 
 CheckSignFlag: ; 96ad8
@@ -706,7 +714,7 @@ CheckSignFlag: ; 96ad8
 	ld h, [hl]
 	ld l, a
 	push hl
-	call GetMapScriptHeaderBank
+	ld a, [MapScriptHeaderBank]
 	call GetFarHalfword
 	ld e, l
 	ld d, h
@@ -960,26 +968,23 @@ endr
 ; 96c0c
 
 PlayerEventScriptPointers: ; 96c0c
-	dba Invalid_0x96c2d          ; 0
-	dba SeenByTrainerScript      ; 1
-	dba TalkToTrainerScript      ; 2
-	dba FindItemInBallScript     ; 3
-	dba EdgeWarpScript           ; 4
-	dba WarpToNewMapScript       ; 5
-	dba FallIntoMapScript        ; 6
-	dba Script_OverworldWhiteout ; 7
-	dba HatchEggScript           ; 8
-	dba ChangeDirectionScript    ; 9
-	dba FindTMHMInBallScript     ; 10
-	dba Invalid_0x96c2d          ; 11
+	dba Invalid_0x96c2d          ; PLAYEREVENT_NONE
+	dba SeenByTrainerScript      ; PLAYEREVENT_SEENBYTRAINER
+	dba TalkToTrainerScript      ; PLAYEREVENT_TALKTOTRAINER
+	dba FindItemInBallScript     ; PLAYEREVENT_ITEMBALL
+	dba EdgeWarpScript           ; PLAYEREVENT_CONNECTION
+	dba WarpToNewMapScript       ; PLAYEREVENT_WARP
+	dba FallIntoMapScript        ; PLAYEREVENT_FALL
+	dba Script_OverworldWhiteout ; PLAYEREVENT_WHITEOUT
+	dba HatchEggScript           ; PLAYEREVENT_HATCH
+	dba ChangeDirectionScript    ; PLAYEREVENT_JOYCHANGEFACING
+	dba FindTMHMInBallScript     ; PLAYEREVENT_TMHMBALL
+	dba Invalid_0x96c2d          ; NUM_PLAYER_EVENTS
 ; 96c2d
-
-Invalid_0x96c2d: ; 96c2d
-	end
-; 96c2e
 
 HatchEggScript: ; 96c2f
 	callasm OverworldHatchEgg
+Invalid_0x96c2d: ; 96c2d
 	end
 ; 96c34
 

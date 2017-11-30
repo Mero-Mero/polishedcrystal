@@ -38,8 +38,7 @@ InitPartyMenuLayout: ; 5003f
 LoadPartyMenuGFX: ; 5004f
 	call LoadFontsBattleExtra
 	farcall InitPartyMenuPalettes ; engine/color.asm
-	farcall ClearSpriteAnims2
-	ret
+	farjp ClearSpriteAnims2
 ; 5005f
 
 
@@ -463,21 +462,25 @@ PlacePartyMonGender: ; 502b1
 	call PartyMenuCheckEgg
 	jr z, .next
 	ld [CurPartySpecies], a
-	push hl
+	ld a, [CurPartyMon]
+	push af
 	ld a, b
 	ld [CurPartyMon], a
+	push hl
 	xor a
 	ld [MonType], a
 	call GetGender
 	ld a, " "
 	jr c, .got_gender
-	ld a, $5f ; colored "♂"
+	ld a, "<MALE>"
 	jr nz, .got_gender
-	ld a, $60 ; colored "♀"
+	ld a, "<FEMALE>"
 
 .got_gender
 	pop hl
 	ld [hli], a
+	pop af
+	ld [CurPartyMon], a
 
 .next
 	pop hl
@@ -574,8 +577,7 @@ InitPartyMenuGFX: ; 503e0
 	pop bc
 	dec c
 	jr nz, .loop
-	farcall PlaySpriteAnimations
-	ret
+	farjp PlaySpriteAnimations
 ; 50405
 
 InitPartyMenuWithCancel: ; 50405

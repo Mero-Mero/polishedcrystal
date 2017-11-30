@@ -10,7 +10,7 @@ SoftReset:: ; 150
 	ld [rIE], a
 	ei
 
-	ld hl, wcfbe
+	ld hl, InputFlags
 	set 7, [hl]
 
 	ld c, 32
@@ -31,8 +31,6 @@ _Start:: ; 16e
 
 .load
 	ld [hCGB], a
-	ld [hFFEA], a
-; 17d
 
 
 Init:: ; 17d
@@ -54,7 +52,7 @@ Init:: ; 17d
 	ld [rOBP1], a
 	ld [rTMA], a
 	ld [rTAC], a
-	ld [$d000], a
+	ld [wRAM1Start], a
 
 	ld a, %100 ; Start timer at 4096Hz
 	ld [rTAC], a
@@ -68,8 +66,8 @@ Init:: ; 17d
 	ld [rLCDC], a
 
 ; Clear WRAM bank 0
-	ld hl, wc000
-	ld bc, wd000 - wc000
+	ld hl, wRAM0Start
+	ld bc, wRAM0End - wRAM0Start
 .ByteFill:
 	ld [hl], 0
 	inc hl
@@ -83,14 +81,10 @@ Init:: ; 17d
 ; Clear HRAM
 	ld a, [hCGB]
 	push af
-	ld a, [hFFEA]
-	push af
 	xor a
 	ld hl, HRAM_START
 	ld bc, HRAM_END - HRAM_START
 	call ByteFill
-	pop af
-	ld [hFFEA], a
 	pop af
 	ld [hCGB], a
 
@@ -135,8 +129,8 @@ Init:: ; 17d
 	; BG on
 	ld [rLCDC], a
 
-	ld a, -1
-	ld [hLinkPlayerNumber], a
+	ld a, CONNECTION_NOT_ESTABLISHED
+	ld [hSerialConnectionStatus], a
 
 	farcall InitCGBPals
 
@@ -192,7 +186,7 @@ ClearWRAM:: ; 25a
 	push af
 	ld [rSVBK], a
 	xor a
-	ld hl, $d000
+	ld hl, wRAM1Start
 	ld bc, $1000
 	call ByteFill
 	pop af
@@ -205,10 +199,9 @@ ClearWRAM:: ; 25a
 ClearsScratch:: ; 270
 	xor a
 	call GetSRAMBank
-	ld hl, $a000
-	ld bc, $0020
+	ld hl, sScratch
+	ld bc, $20
 	xor a
 	call ByteFill
-	call CloseSRAM
-	ret
+	jp CloseSRAM
 ; 283

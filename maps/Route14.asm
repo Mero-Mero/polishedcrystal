@@ -1,41 +1,37 @@
-const_value set 2
-	const ROUTE14_POKEFAN_M1
-	const ROUTE14_POKEFAN_M2
-	const ROUTE14_YOUNGSTER1
-	const ROUTE14_YOUNGSTER2
-	const ROUTE14_YOUNGSTER3
-	const ROUTE14_YOUNGSTER4
-	const ROUTE14_TEACHER
-	const ROUTE14_KIM
-	const ROUTE14_CUT_TREE1
-	const ROUTE14_CUT_TREE2
-	const ROUTE14_CUT_TREE3
-
 Route14_MapScriptHeader:
-.MapTriggers:
-	db 0
 
-.MapCallbacks:
-	db 0
+.MapTriggers: db 0
 
-Kim:
-	faceplayer
-	opentext
-	trade $5
-	waitbutton
-	closetext
-	end
+.MapCallbacks: db 0
+
+Route14_MapEventHeader:
+
+.Warps: db 0
+
+.XYTriggers: db 0
+
+.Signposts: db 0
+
+.PersonEvents: db 12
+	person_event SPRITE_POKEFAN_M, 8, 13, SPRITEMOVEDATA_SPINRANDOM_FAST, 0, 0, -1, -1, (1 << 3) | PAL_OW_RED, PERSONTYPE_TRAINER, 2, TrainerPokefanmTrevor, -1
+	person_event SPRITE_POKEFAN_M, 21, 11, SPRITEMOVEDATA_STANDING_RIGHT, 0, 0, -1, -1, (1 << 3) | PAL_OW_RED, PERSONTYPE_TRAINER, 3, TrainerPokefanmCarter, -1
+	person_event SPRITE_YOUNGSTER, 29, 11, SPRITEMOVEDATA_SPINRANDOM_FAST, 0, 0, -1, -1, (1 << 3) | PAL_OW_BLUE, PERSONTYPE_TRAINER, 3, TrainerBird_keeperRoy, -1
+	person_event SPRITE_YOUNGSTER, 14, 15, SPRITEMOVEDATA_STANDING_LEFT, 0, 0, -1, -1, (1 << 3) | PAL_OW_BLUE, PERSONTYPE_TRAINER, 4, TrainerBird_keeperJosh, -1
+	person_event SPRITE_YOUNGSTER, 17, 4, SPRITEMOVEDATA_STANDING_RIGHT, 0, 0, -1, -1, (1 << 3) | PAL_OW_BLUE, PERSONTYPE_TRAINER, 4, TrainerSchoolboyConnor, -1
+	person_event SPRITE_YOUNGSTER, 15, 4, SPRITEMOVEDATA_STANDING_RIGHT, 0, 0, -1, -1, (1 << 3) | PAL_OW_BLUE, PERSONTYPE_TRAINER, 4, TrainerSchoolboyTorin, -1
+	person_event SPRITE_YOUNGSTER, 13, 4, SPRITEMOVEDATA_STANDING_RIGHT, 0, 0, -1, -1, (1 << 3) | PAL_OW_BLUE, PERSONTYPE_TRAINER, 4, TrainerSchoolboyTravis, -1
+	person_event SPRITE_TEACHER, 15, 9, SPRITEMOVEDATA_STANDING_LEFT, 0, 0, -1, -1, (1 << 3) | PAL_OW_GREEN, PERSONTYPE_TRAINER, 4, TrainerTeacherClarice, -1
+	person_event SPRITE_TEACHER, 7, 7, SPRITEMOVEDATA_WALK_LEFT_RIGHT, 0, 1, -1, -1, (1 << 3) | PAL_OW_GREEN, PERSONTYPE_COMMAND, trade, TRADE_WITH_KIM_FOR_CHANSEY, -1
+	cuttree_event 10, 5, EVENT_ROUTE_14_CUT_TREE_1
+	cuttree_event 16, 11, EVENT_ROUTE_14_CUT_TREE_2
+	cuttree_event 26, 3, EVENT_ROUTE_14_CUT_TREE_3
 
 TrainerPokefanmTrevor:
 	trainer EVENT_BEAT_POKEFANM_TREVOR, POKEFANM, TREVOR, PokefanmTrevorSeenText, PokefanmTrevorBeatenText, 0, PokefanmTrevorScript
 
 PokefanmTrevorScript:
 	end_if_just_battled
-	opentext
-	writetext UnknownText_0x1ad660
-	waitbutton
-	closetext
-	end
+	jumptextfaceplayer UnknownText_0x1ad660
 
 PokefanmTrevorSeenText:
 	text "Hi. Did you know…?"
@@ -69,11 +65,7 @@ TrainerPokefanmCarter:
 
 PokefanmCarterScript:
 	end_if_just_battled
-	opentext
-	writetext UnknownText_0x1ad508
-	waitbutton
-	closetext
-	end
+	jumptextfaceplayer UnknownText_0x1ad508
 
 PokefanmCarterSeenText:
 	text "Let me tell you,"
@@ -100,11 +92,7 @@ TrainerBird_keeperRoy:
 
 Bird_keeperRoyScript:
 	end_if_just_battled
-	opentext
-	writetext UnknownText_0x1ad5a4
-	waitbutton
-	closetext
-	end
+	jumptextfaceplayer UnknownText_0x1ad5a4
 
 Bird_keeperRoySeenText:
 	text "My dream is to fly"
@@ -130,11 +118,7 @@ TrainerBird_keeperJosh:
 
 .Script:
 	end_if_just_battled
-	opentext
-	writetext .AfterText
-	waitbutton
-	closetext
-	end
+	jumptextfaceplayer .AfterText
 
 .SeenText:
 	text "My weight puts me"
@@ -163,11 +147,7 @@ TrainerSchoolboyConnor:
 
 .Script:
 	end_if_just_battled
-	opentext
-	writetext .AfterText
-	waitbutton
-	closetext
-	end
+	jumptextfaceplayer .AfterText
 
 .SeenText:
 	text "I can't wait to go"
@@ -193,11 +173,7 @@ TrainerSchoolboyTorin:
 
 .Script:
 	end_if_just_battled
-	opentext
-	writetext .AfterText
-	waitbutton
-	closetext
-	end
+	jumptextfaceplayer .AfterText
 
 .SeenText:
 	text "It's good to put"
@@ -220,11 +196,7 @@ TrainerSchoolboyTravis:
 
 .Script:
 	end_if_just_battled
-	opentext
-	writetext .AfterText
-	waitbutton
-	closetext
-	end
+	jumptextfaceplayer .AfterText
 
 .SeenText:
 	text "Do you have after-"
@@ -247,11 +219,7 @@ TrainerTeacherClarice:
 
 .Script:
 	end_if_just_battled
-	opentext
-	writetext .AfterText
-	waitbutton
-	closetext
-	end
+	jumptextfaceplayer .AfterText
 
 .SeenText:
 	text "All right, let's"
@@ -273,31 +241,3 @@ TrainerTeacherClarice:
 	line "you should do a"
 	cont "full review!"
 	done
-
-Route14CutTree:
-	jumpstd cuttree
-
-Route14_MapEventHeader:
-.Warps:
-	db 0
-
-.XYTriggers:
-	db 0
-
-.Signposts:
-	db 0
-
-.PersonEvents:
-	db 12
-	person_event SPRITE_POKEFAN_M, 6, 13, SPRITEMOVEDATA_SPINRANDOM_FAST, 0, 0, -1, -1, (1 << 3) | PAL_OW_RED, PERSONTYPE_TRAINER, 2, TrainerPokefanmTrevor, -1
-	person_event SPRITE_POKEFAN_M, 19, 11, SPRITEMOVEDATA_STANDING_RIGHT, 0, 0, -1, -1, (1 << 3) | PAL_OW_RED, PERSONTYPE_TRAINER, 3, TrainerPokefanmCarter, -1
-	person_event SPRITE_YOUNGSTER, 27, 11, SPRITEMOVEDATA_SPINRANDOM_FAST, 0, 0, -1, -1, (1 << 3) | PAL_OW_BLUE, PERSONTYPE_TRAINER, 3, TrainerBird_keeperRoy, -1
-	person_event SPRITE_YOUNGSTER, 12, 15, SPRITEMOVEDATA_STANDING_LEFT, 0, 0, -1, -1, (1 << 3) | PAL_OW_BLUE, PERSONTYPE_TRAINER, 4, TrainerBird_keeperJosh, -1
-	person_event SPRITE_YOUNGSTER, 15, 4, SPRITEMOVEDATA_STANDING_RIGHT, 0, 0, -1, -1, (1 << 3) | PAL_OW_BLUE, PERSONTYPE_TRAINER, 4, TrainerSchoolboyConnor, -1
-	person_event SPRITE_YOUNGSTER, 13, 4, SPRITEMOVEDATA_STANDING_RIGHT, 0, 0, -1, -1, (1 << 3) | PAL_OW_BLUE, PERSONTYPE_TRAINER, 4, TrainerSchoolboyTorin, -1
-	person_event SPRITE_YOUNGSTER, 11, 4, SPRITEMOVEDATA_STANDING_RIGHT, 0, 0, -1, -1, (1 << 3) | PAL_OW_BLUE, PERSONTYPE_TRAINER, 4, TrainerSchoolboyTravis, -1
-	person_event SPRITE_TEACHER, 13, 9, SPRITEMOVEDATA_STANDING_LEFT, 0, 0, -1, -1, (1 << 3) | PAL_OW_GREEN, PERSONTYPE_TRAINER, 4, TrainerTeacherClarice, -1
-	person_event SPRITE_TEACHER, 5, 7, SPRITEMOVEDATA_WALK_LEFT_RIGHT, 0, 1, -1, -1, (1 << 3) | PAL_OW_GREEN, PERSONTYPE_SCRIPT, 4, Kim, -1
-	person_event SPRITE_BALL_CUT_FRUIT, 8, 5, SPRITEMOVEDATA_CUTTABLE_TREE, 0, 0, -1, -1, 0, PERSONTYPE_SCRIPT, 0, Route14CutTree, EVENT_ROUTE_14_CUT_TREE_1
-	person_event SPRITE_BALL_CUT_FRUIT, 14, 11, SPRITEMOVEDATA_CUTTABLE_TREE, 0, 0, -1, -1, 0, PERSONTYPE_SCRIPT, 0, Route14CutTree, EVENT_ROUTE_14_CUT_TREE_2
-	person_event SPRITE_BALL_CUT_FRUIT, 24, 3, SPRITEMOVEDATA_CUTTABLE_TREE, 0, 0, -1, -1, 0, PERSONTYPE_SCRIPT, 0, Route14CutTree, EVENT_ROUTE_14_CUT_TREE_3

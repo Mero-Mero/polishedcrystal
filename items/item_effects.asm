@@ -126,22 +126,22 @@ ItemEffects: ; e73c
 	dw ShinyCharm
 	dw OvalCharm
 	dw SilphScope2
-	dw OranBerry
-	dw SitrusBerry
-	dw PechaBerry
-	dw RawstBerry
 	dw CheriBerry
 	dw ChestoBerry
+	dw PechaBerry
+	dw RawstBerry
 	dw AspearBerry
+	dw LeppaBerry
+	dw OranBerry
 	dw PersimBerry
 	dw LumBerry
-	dw LeppaBerry
-	dw PomegBerry
-	dw KelpsyBerry
-	dw QualotBerry
-	dw HondewBerry
-	dw GrepaBerry
-	dw TamatoBerry
+	dw SitrusBerry
+	dw FigyBerry
+	dw LiechiBerry
+	dw GanlonBerry
+	dw SalacBerry
+	dw PetayaBerry
+	dw ApicotBerry
 	dw RedApricorn
 	dw BluApricorn
 	dw YlwApricorn
@@ -309,8 +309,18 @@ CherishBall: ; e8a2
 
 	ld a, [PartyCount]
 	cp PARTY_LENGTH
-	jr nz, .room_in_party
+	jr z, .check_room
 
+	; Copy wildmon's item to item backup struct in case we catch
+	ld hl, PartyBackupItems
+	ld c, a
+	ld b, 0
+	add hl, bc
+	ld a, [EnemyMonItem]
+	ld [hl], a
+	jr .room_in_party
+
+.check_room
 	ld a, BANK(sBoxCount)
 	call GetSRAMBank
 	ld a, [sBoxCount]
@@ -323,8 +333,12 @@ CherishBall: ; e8a2
 	ld [wWildMon], a
 	ld a, [CurItem]
 	cp PARK_BALL
-	call nz, ReturnToBattle_UseBall
+	jr z, .skipReturnToBattle
+	cp SAFARI_BALL
+	jr z, .skipReturnToBattle
+	call ReturnToBattle_UseBall
 
+.skipReturnToBattle
 	ld hl, Options1
 	res NO_TEXT_SCROLL, [hl]
 	ld hl, UsedItemText
@@ -339,29 +353,9 @@ CherishBall: ; e8a2
 	cp MASTER_BALL
 	jp z, .catch_without_fail
 	ld a, [CurItem]
-	ld c, a
 	ld hl, BallMultiplierFunctionTable
+	call BattleJumptable
 
-.get_multiplier_loop
-	ld a, [hli]
-	cp $ff
-	jr z, .skip_or_return_from_ball_fn
-	cp c
-	jr z, .call_ball_function
-rept 2
-	inc hl
-endr
-	jr .get_multiplier_loop
-
-.call_ball_function
-	ld a, [hli]
-	ld h, [hl]
-	ld l, a
-	ld de, .skip_or_return_from_ball_fn
-	push de
-	jp hl
-
-.skip_or_return_from_ball_fn
 	ld a, [CurItem]
 	cp LEVEL_BALL
 	ld a, b
@@ -511,73 +505,16 @@ endr
 	cp $4
 	ld hl, Text_ThreeShakes
 	jp z, .shake_and_break_free
+
 .caught
+	ld a, [wEnemyBackupSpecies]
+	ld [EnemyMonSpecies], a
 
-	ld hl, EnemyMonStatus
-	ld a, [hli]
-	push af
-	inc hl
-	ld a, [hli]
-	push af
-	ld a, [hl]
-	push af
-	push hl
-	ld hl, EnemyMonItem
-	ld a, [hl]
-	push af
-	push hl
-	ld hl, EnemySubStatus2
-	ld a, [hl]
-	push af
-	set SUBSTATUS_TRANSFORMED, [hl]
-	bit SUBSTATUS_TRANSFORMED, a
-	jr z, .not_ditto
-
-	; not only useless but introduces the Ditto transform glitch
-	; ld a, DITTO
-	; ld [TempEnemyMonSpecies], a
-	jr .load_data
-
-.not_ditto
-	set SUBSTATUS_TRANSFORMED, [hl]
 	ld hl, wEnemyBackupDVs
-	ld a, [EnemyMonDVs]
-	ld [hli], a
-	ld a, [EnemyMonDVs + 1]
-	ld [hli], a
-	ld a, [EnemyMonDVs + 2]
-	ld [hl], a
-	ld hl, wEnemyBackupPersonality
-	ld a, [EnemyMonPersonality]
-	ld [hli], a
-	ld a, [EnemyMonPersonality + 1]
-	ld [hl], a
+	ld de, EnemyMonDVs
+	ld bc, 5
+	call CopyBytes
 
-.load_data
-	ld a, [TempEnemyMonSpecies]
-	ld [CurPartySpecies], a
-	ld a, [EnemyMonLevel]
-	ld [CurPartyLevel], a
-	farcall LoadEnemyMon
-
-	pop af
-	ld [EnemySubStatus2], a
-
-	pop hl
-	pop af
-	ld [hl], a
-	pop hl
-	pop af
-	ld [hld], a
-	pop af
-	ld [hld], a
-	dec hl
-	pop af
-	ld [hl], a
-
-	ld hl, EnemySubStatus2
-	bit SUBSTATUS_TRANSFORMED, [hl]
-	jr nz, .Transformed
 	ld hl, wWildMonMoves
 	ld de, EnemyMonMoves
 	ld bc, NUM_MOVES
@@ -587,7 +524,6 @@ endr
 	ld de, EnemyMonPP
 	ld bc, NUM_MOVES
 	call CopyBytes
-.Transformed:
 
 	ld a, [EnemyMonSpecies]
 	push af
@@ -619,6 +555,17 @@ endr
 
 	ld a, [EnemyMonLevel]
 	ld [CurPartyLevel], a
+
+	ld a, [EnemyMonSpecies]
+	ld [CurSpecies], a
+	ld [CurPartySpecies], a
+	call GetBaseData
+
+	ld de, EnemyMonMaxHP
+	ld b, FALSE
+	ld hl, EnemyMonDVs - (MON_DVS - (MON_EVS -1))
+	predef CalcPkmnStats
+
 	pop af
 	ld [wWildMon], a
 	ld [CurPartySpecies], a
@@ -832,6 +779,8 @@ endr
 	ret z
 	cp BATTLETYPE_CONTEST
 	jr z, .used_park_ball
+	cp BATTLETYPE_SAFARI
+	jr z, .used_safari_ball
 
 	ld a, [wWildMon]
 	and a
@@ -848,6 +797,11 @@ endr
 
 .used_park_ball
 	ld hl, wParkBallsRemaining
+	dec [hl]
+	ret
+
+.used_safari_ball
+	ld hl, wSafariBallsRemaining
 	dec [hl]
 	ret
 ; ec0a
@@ -876,6 +830,7 @@ BallMultiplierFunctionTable:
 	db $ff
 
 UltraBallMultiplier:
+SafariBallMultiplier:
 ; multiply catch rate by 2
 	sla b
 	ret nc
@@ -883,7 +838,6 @@ UltraBallMultiplier:
 	ret
 
 GreatBallMultiplier:
-SafariBallMultiplier:
 ParkBallMultiplier:
 ; multiply catch rate by 1.5
 	ld a, b
@@ -1082,10 +1036,9 @@ endr
 	sla b
 	jr c, .max
 	sla b
-	jr nc, .done
+	ret nc
 .max
 	ld b, $ff
-.done
 	ret
 
 LoveBallMultiplier:
@@ -1481,13 +1434,11 @@ Text_AskNicknameNewlyCaughtMon: ; 0xedf5
 ; 0xedfa
 
 ReturnToBattle_UseBall: ; edfa (3:6dfa)
-	farcall _ReturnToBattle_UseBall
-	ret
+	farjp _ReturnToBattle_UseBall
 
 
 Bicycle: ; ee08
-	farcall BikeFunction
-	ret
+	farjp BikeFunction
 ; ee0f
 
 
@@ -1866,18 +1817,12 @@ HealStatus: ; f030 (3:7030)
 	ret nc
 	xor a
 	ld [BattleMonStatus], a
-	ld hl, PlayerSubStatus2
-	res SUBSTATUS_TOXIC, [hl]
 	call GetItemHealingAction
 	ld a, c
 	cp %11111111
-	jr nz, .not_full_heal
+	ret nz
 	ld hl, PlayerSubStatus3
 	res SUBSTATUS_CONFUSED, [hl]
-.not_full_heal
-	push bc
-	farcall CalcPlayerStats
-	pop bc
 	ret
 
 GetItemHealingAction: ; f058 (3:7058)
@@ -2027,17 +1972,8 @@ FullRestore: ; f128
 	jp z, StatusHealer_NoEffect
 
 	call IsMonAtFullHealth
-	jr c, .NotAtFullHealth
+	jp nc, FullyHealStatus
 
-	jp FullyHealStatus
-
-.NotAtFullHealth:
-	call .FullRestore
-	jp StatusHealer_Jumptable
-; f144
-
-
-.FullRestore: ; f144
 	xor a
 	ld [Danger], a
 	call ReviveFullHP
@@ -2054,8 +1990,8 @@ FullRestore: ; f128
 	call ItemActionTextWaitButton
 	call UseDisposableItem
 	xor a
-	ret
-; f16a
+	jp StatusHealer_Jumptable
+; f144
 
 
 PersimBerry: ; f16a
@@ -2089,7 +2025,8 @@ Lemonade:
 MoomooMilk:
 RageCandyBar:
 OranBerry:
-SitrusBerry: ; f186
+SitrusBerry:
+FigyBerry: ; f186
 	call ItemRestoreHP
 	jp StatusHealer_Jumptable
 ; f18c
@@ -2120,7 +2057,7 @@ EnergyPowderEnergyRootCommon: ; f192
 ; f1a9
 
 
-ItemRestoreHP: ; f1a9 (3:71a9)
+ItemRestoreHP:
 	ld b, PARTYMENUACTION_HEALING_ITEM
 	call UseItem_SelectMon
 	ld a, 2
@@ -2160,8 +2097,36 @@ HealHP_SFX_GFX: ; f1db (3:71db)
 	ld [wWhichHPBar], a
 	predef_jump AnimateHPBar
 
+UseItem_SelectMon2:
+; Used on something already: don't reload the graphics
+	ld a, b
+	ld [PartyMenuActionText], a
+	push hl
+	push de
+	push bc
+	farcall InitPartyMenuWithCancel
+	farcall WritePartyMenuTilemap
+	farcall PrintPartyMenuText
+	farcall PartyMenuSelect
+	pop bc
+	pop de
+	pop hl
+	jr UseItem_DoSelectMon
+
 UseItem_SelectMon: ; f1f9 (3:71f9)
-	call .SelectMon
+	ld a, b
+	ld [PartyMenuActionText], a
+	push hl
+	push de
+	push bc
+	call ClearBGPalettes
+	call ChoosePkmnToUseItemOn
+	pop bc
+	pop de
+	pop hl
+	; fallthrough
+
+UseItem_DoSelectMon:
 	ret c
 
 	ld a, [CurPartySpecies]
@@ -2176,19 +2141,6 @@ UseItem_SelectMon: ; f1f9 (3:71f9)
 	and a
 	ret
 
-.SelectMon: ; f20b (3:720b)
-	ld a, b
-	ld [PartyMenuActionText], a
-	push hl
-	push de
-	push bc
-	call ClearBGPalettes
-	call ChoosePkmnToUseItemOn
-	pop bc
-	pop de
-	pop hl
-	ret
-
 ChoosePkmnToUseItemOn: ; f21c (3:721c)
 	farcall LoadPartyMenuGFX
 	farcall InitPartyMenuWithCancel
@@ -2198,8 +2150,7 @@ ChoosePkmnToUseItemOn: ; f21c (3:721c)
 	call WaitBGMap
 	call SetPalettes
 	call DelayFrame
-	farcall PartyMenuSelect
-	ret
+	farjp PartyMenuSelect
 
 ItemActionText: ; f24a (3:724a)
 	ld [PartyMenuActionText], a
@@ -2305,11 +2256,9 @@ RestoreHealth: ; f2d1 (3:72d1)
 	dec hl
 	ld a, [de]
 	sbc [hl]
-	jr c, .finish
+	ret c
 .full_hp
-	call ReviveFullHP
-.finish
-	ret
+	jp ReviveFullHP
 
 RemoveHP: ; f2f9 (3:72f9)
 	ld a, MON_HP + 1
@@ -2415,6 +2364,8 @@ GetHealingItemAmount: ; f395 (3:7395)
 	ld a, [CurItem]
 	cp SITRUS_BERRY
 	jr z, .sitrus_berry
+	cp FIGY_BERRY
+	jr z, .figy_berry
 	push hl
 	ld hl, .Healing
 	ld d, a
@@ -2439,21 +2390,28 @@ endr
 	ret
 ; f3af (3:73af)
 
+.figy_berry
+	call .set_de_to_hp
+	jr .half_hp
 .sitrus_berry
+	call .set_de_to_hp
+	srl d
+	rr e
+.half_hp
+	srl d
+	rr e
+	ld a, d
+	or e
+	ret nz
+	ld e, 1
+	ret
+
+.set_de_to_hp
 	ld a, MON_MAXHP
 	call GetPartyParamLocation
 	ld a, [hli]
 	ld d, a
 	ld e, [hl]
-	srl d
-	rr e
-	srl d
-	rr e
-	ld a, d
-	or e
-	jr nz, .okay
-	ld e, 1
-.okay
 	ret
 
 .Healing: ; f3af
@@ -2665,8 +2623,7 @@ endr
 	ld a, [CurBattleMon]
 	ld [CurPartyMon], a
 	ld c, HAPPINESS_USEDXITEM
-	farcall ChangeHappiness
-	ret
+	farjp ChangeHappiness
 ; f504
 
 .x_item_table ; f504
@@ -2711,18 +2668,15 @@ GoodRod: ; f5a9
 
 SuperRod: ; f5ad
 	ld e, $2
-	jr UseRod
-; f5b1
+	; fallthrough
 
 UseRod: ; f5b1
-	farcall FishFunction
-	ret
+	farjp FishFunction
 ; f5b8
 
 
 Itemfinder: ; f5b8
-	farcall ItemFinder
-	ret
+	farjp ItemFinder
 ; f5bf
 
 
@@ -2737,7 +2691,7 @@ LeppaBerry: ; f5bf
 	ld [wd002], a
 
 .loop
-    ; Party Screen opens to choose on which Pkmn to use the Item
+	; Party Screen opens to choose on which Pkmn to use the Item
 	ld b, PARTYMENUACTION_HEALING_ITEM
 	call UseItem_SelectMon
 	jp c, PPRestoreItem_Cancel
@@ -2866,7 +2820,7 @@ BattleRestorePP: ; f652
 .loop
 	ld a, [de]
 	and a
-	jr z, .done
+	ret z
 	cp [hl]
 	jr nz, .next
 	push hl
@@ -2888,8 +2842,6 @@ endr
 	inc de
 	dec b
 	jr nz, .loop
-
-.done
 	ret
 ; f6a7
 
@@ -3022,20 +2974,17 @@ UnknownText_0xf739: ; 0xf739
 
 
 SquirtBottle: ; f73e
-	farcall _Squirtbottle
-	ret
+	farjp _Squirtbottle
 ; f745
 
 
 CardKey: ; f745
-	farcall _CardKey
-	ret
+	farjp _CardKey
 ; f74c
 
 
 BasementKey: ; f74c
-	farcall _BasementKey
-	ret
+	farjp _BasementKey
 ; f753
 
 
@@ -3199,7 +3148,7 @@ Play_SFX_FULL_HEAL: ; f780
 	ret
 ; f789
 
-UseItemText ; f789
+UseItemText: ; f789
 	ld hl, UsedItemText
 	call PrintText
 	call Play_SFX_FULL_HEAL
@@ -3270,6 +3219,8 @@ Ball_NuzlockeFailureMessage:
 
 	ld a, [CurItem]
 	cp PARK_BALL
+	ret z
+	cp SAFARI_BALL
 	ret z
 
 	; Item wasn't used.
@@ -3581,14 +3532,99 @@ GetMthMoveOfCurrentMon: ; f969
 	ret
 ; f971
 
-; TODO
 AbilityCap:
-PomegBerry:
-KelpsyBerry:
-QualotBerry:
-HondewBerry:
-GrepaBerry:
-TamatoBerry:
+; If a pokémon doesn't have its hidden ability, switch between its
+; 1st and 2nd ability
+	ld b, PARTYMENUACTION_HEALING_ITEM
+	call UseItem_SelectMon
+.loop
+	jr c, .abort
+
+	push hl
+	ld a, MON_ABILITY
+	call GetPartyParamLocation
+	ld a, [hl]
+	and ABILITY_MASK
+	cp HIDDEN_ABILITY
+	jr z, .no_effect
+
+	; Check if the ability would change
+	ld d, h
+	ld e, l
+	pop hl
+	push hl
+	ld a, MON_SPECIES
+	call GetPartyParamLocation
+	ld a, [hl]
+	ld [CurSpecies], a
+	call GetBaseData
+	ld a, [BaseAbility1]
+	ld b, a
+	ld a, [BaseAbility2]
+	cp b
+	jr z, .no_effect
+
+	; Ability would change: ask for a confirmation
+	ld a, [de]
+	and ABILITY_MASK
+	cp ABILITY_1
+	ld a, [BaseAbility2]
+	ld c, ABILITY_2
+	jr z, .got_new_ability
+	ld a, [BaseAbility1]
+	ld c, ABILITY_1
+.got_new_ability
+	ld b, a
+	push bc
+	push de
+	farcall BufferAbility
+	ld hl, ChangeAbilityToText
+	call PrintText
+	call YesNoBox
+	pop de
+	pop bc
+	pop hl
+	jr c, .loopnext
+
+	; Change ability
+	ld a, ABILITY_MASK
+	cpl
+	ld h, d
+	ld l, e
+	and [hl]
+	or c
+	ld [hl], a
+	call UseDisposableItem
+	ld hl, AbilityChangedText
+	call PrintText
+.abort
+	jp ClearPalettes
+
+.no_effect
+	call WontHaveAnyEffectMessage
+	pop hl
+.loopnext
+	ld b, PARTYMENUACTION_HEALING_ITEM
+	call UseItem_SelectMon2
+	jr .loop
+
+ChangeAbilityToText:
+	text "Change ability to"
+	line "@"
+	text_from_ram StringBuffer1
+	text "?"
+	done
+
+AbilityChangedText:
+	text "The ability was"
+	line "changed!"
+	prompt
+
+LiechiBerry:
+GanlonBerry:
+SalacBerry:
+PetayaBerry:
+ApicotBerry:
 	jp IsntTheTimeMessage
 
 INCLUDE "items/pokeball_wobble.asm"

@@ -1,13 +1,33 @@
 RuinsofAlphOmanyteChamber_MapScriptHeader:
-.MapTriggers:
-	db 1
-	dw .Trigger0
 
-.MapCallbacks:
-	db 1
+.MapTriggers: db 1
+	dw RuinsofAlphOmanyteChamberTrigger0
+
+.MapCallbacks: db 1
 	dbw MAPCALLBACK_TILES, UnknownScript_0x58bf8
 
-.Trigger0:
+RuinsofAlphOmanyteChamber_MapEventHeader:
+
+.Warps: db 5
+	warp_def 9, 3, 3, RUINS_OF_ALPH_OUTSIDE
+	warp_def 9, 4, 3, RUINS_OF_ALPH_OUTSIDE
+	warp_def 3, 3, 6, RUINS_OF_ALPH_INNER_CHAMBER
+	warp_def 3, 4, 7, RUINS_OF_ALPH_INNER_CHAMBER
+	warp_def 0, 4, 1, RUINS_OF_ALPH_OMANYTE_ITEM_ROOM
+
+.XYTriggers: db 0
+
+.Signposts: db 6
+	signpost 3, 2, SIGNPOST_JUMPTEXT, UnknownText_0x58d01
+	signpost 3, 5, SIGNPOST_JUMPTEXT, UnknownText_0x58d01
+	signpost 2, 3, SIGNPOST_UP, MapRuinsofAlphOmanyteChamberSignpost2Script
+	signpost 2, 4, SIGNPOST_UP, MapRuinsofAlphOmanyteChamberSignpost3Script
+	signpost 0, 3, SIGNPOST_UP, MapRuinsofAlphOmanyteChamberSignpost4Script
+	signpost 0, 4, SIGNPOST_UP, MapRuinsofAlphOmanyteChamberSignpost5Script
+
+.PersonEvents: db 0
+
+RuinsofAlphOmanyteChamberTrigger0:
 	special SpecialOmanyteChamber
 	checkevent EVENT_WALL_OPENED_IN_OMANYTE_CHAMBER
 	iffalse .End
@@ -18,15 +38,15 @@ RuinsofAlphOmanyteChamber_MapScriptHeader:
 UnknownScript_0x58bf8:
 	checkevent EVENT_WALL_OPENED_IN_OMANYTE_CHAMBER
 	iftrue UnknownScript_0x58c02
-	changeblock $4, $0, $24
+	changeblock 4, 0, $24
 UnknownScript_0x58c02:
 	checkevent EVENT_SOLVED_OMANYTE_PUZZLE
 	iffalse UnknownScript_0x58c09
 	return
 
 UnknownScript_0x58c09:
-	changeblock $2, $2, $1
-	changeblock $4, $2, $2
+	changeblock 2, 2, $1
+	changeblock 4, 2, $2
 	return
 
 UnknownScript_0x58c12:
@@ -35,15 +55,14 @@ UnknownScript_0x58c12:
 	showemote EMOTE_SHOCK, PLAYER, 20
 	pause 30
 	playsound SFX_STRENGTH
-	changeblock $4, $0, $25
+	changeblock 4, 0, $25
 	reloadmappart
 	earthquake 50
 	dotrigger $1
-	closetext
-	end
+	endtext
 
 MapRuinsofAlphOmanyteChamberSignpost2Script:
-	refreshscreen $0
+	refreshscreen
 	writebyte $1
 	special Special_UnownPuzzle
 	closetext
@@ -57,58 +76,33 @@ UnknownScript_0x58c36:
 	domaptrigger RUINS_OF_ALPH_INNER_CHAMBER, $1
 	earthquake 30
 	showemote EMOTE_SHOCK, PLAYER, 15
-	changeblock $2, $2, $14
-	changeblock $4, $2, $15
+	changeblock 2, 2, $14
+	changeblock 4, 2, $15
 	reloadmappart
 	playsound SFX_STRENGTH
 	earthquake 80
-	applymovement PLAYER, MovementData_0x58c8c
+	applyonemovement PLAYER, skyfall_top
 	playsound SFX_KINESIS
 	waitsfx
 	pause 20
 	warpcheck
 	end
 
-MapRuinsofAlphOmanyteChamberSignpost1Script:
-	jumptext UnknownText_0x58d01
-
 MapRuinsofAlphOmanyteChamberSignpost3Script:
 	unowntypeface
-	opentext
-	writetext UnknownText_0x58d26
-	waitbutton
-	closetext
+	showtext UnknownText_0x58d26
 	restoretypeface
 	end
 
+MapRuinsofAlphOmanyteChamberSignpost5Script:
+	checkevent EVENT_WALL_OPENED_IN_OMANYTE_CHAMBER
+	iftrue_jumptext UnknownText_0x58ce1
 MapRuinsofAlphOmanyteChamberSignpost4Script:
 	opentext
 	writetext UnknownText_0x58c8e
 	writebyte $2
 	special Special_DisplayUnownWords
-	closetext
-	end
-
-MapRuinsofAlphOmanyteChamberSignpost5Script:
-	checkevent EVENT_WALL_OPENED_IN_OMANYTE_CHAMBER
-	iftrue UnknownScript_0x58c85
-	opentext
-	writetext UnknownText_0x58c8e
-	writebyte $2
-	special Special_DisplayUnownWords
-	closetext
-	end
-
-UnknownScript_0x58c85:
-	opentext
-	writetext UnknownText_0x58ce1
-	waitbutton
-	closetext
-	end
-
-MovementData_0x58c8c:
-	db $59 ; movement
-	step_end
+	endtext
 
 UnknownText_0x58c8e:
 	text "Patterns appeared"
@@ -133,27 +127,3 @@ UnknownText_0x58d26:
 	para "sea by twisting"
 	line "its ten tentacles."
 	done
-
-RuinsofAlphOmanyteChamber_MapEventHeader:
-.Warps:
-	db 5
-	warp_def $9, $3, 3, RUINS_OF_ALPH_OUTSIDE
-	warp_def $9, $4, 3, RUINS_OF_ALPH_OUTSIDE
-	warp_def $3, $3, 6, RUINS_OF_ALPH_INNER_CHAMBER
-	warp_def $3, $4, 7, RUINS_OF_ALPH_INNER_CHAMBER
-	warp_def $0, $4, 1, RUINS_OF_ALPH_OMANYTE_ITEM_ROOM
-
-.XYTriggers:
-	db 0
-
-.Signposts:
-	db 6
-	signpost 3, 2, SIGNPOST_READ, MapRuinsofAlphOmanyteChamberSignpost1Script
-	signpost 3, 5, SIGNPOST_READ, MapRuinsofAlphOmanyteChamberSignpost1Script
-	signpost 2, 3, SIGNPOST_UP, MapRuinsofAlphOmanyteChamberSignpost2Script
-	signpost 2, 4, SIGNPOST_UP, MapRuinsofAlphOmanyteChamberSignpost3Script
-	signpost 0, 3, SIGNPOST_UP, MapRuinsofAlphOmanyteChamberSignpost4Script
-	signpost 0, 4, SIGNPOST_UP, MapRuinsofAlphOmanyteChamberSignpost5Script
-
-.PersonEvents:
-	db 0

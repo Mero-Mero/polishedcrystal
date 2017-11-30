@@ -22,15 +22,14 @@ GetSpriteVTile:: ; 180e
 	ld c, SPRITE_GFX_LIST_CAPACITY - 1
 	ld b, a
 	ld a, [hMapObjectIndexBuffer]
-	cp 0
+	and a
 	jr z, .nope
 	ld a, b
 .loop
 	cp [hl]
 	jr z, .found
-rept 2
 	inc hl
-endr
+	inc hl
 	dec c
 	jr nz, .loop
 	ld a, [UsedSprites + 1]
@@ -85,7 +84,7 @@ GetPlayerStandingTile:: ; 184a
 CheckOnWater:: ; 1852
 	ld a, [PlayerStandingTile]
 	call GetTileCollision
-	sub 1
+	sub WATERTILE
 	ret z
 	and a
 	ret
@@ -118,117 +117,29 @@ GetTileCollision:: ; 185d
 	ret
 ; 1875
 
-CheckGrassTile:: ; 1875
-	ld d, a
-	and $f0
-	cp $10
-	jr z, .ok_10
-	cp $20
-	jr z, .ok_20
-	scf
-	ret
-
-.ok_10
-	ld a, d
-	and 7
-	ret z
-	scf
-	ret
-; For some reason, the above code is duplicated down here.
-.ok_20
-	ld a, d
-	and 7
-	ret z
-	scf
-	ret
-; 188e
-
-CheckSuperTallGrassTile:: ; 188e
-	cp $14
-	ret z
-	cp $1c
-	ret
-; 1894
-
-CheckPuddleTile::
-	cp $85
-	ret
-
-CheckHeadbuttTreeTile:: ; 189a
-	cp $15
-	ret z
-	cp $1d
-	ret
-; 18a0
-
-CheckCounterTile:: ; 18a0
-	cp $90
-	ret z
-	cp $98
-	ret
-; 18a6
-
-CheckPitTile:: ; 18a6
-	cp $60
-	ret z
-	cp $68
-	ret
-; 18ac
-
-CheckIceTile:: ; 18ac
-	cp $23
-	ret z
-	cp $2b
-	ret z
-	scf
-	ret
-; 18b4
-
-CheckWhirlpoolTile:: ; 18b4
-	cp $24
-	ret z
-	cp $2c
-	ret z
-	scf
-	ret
-; 18bd
-
-CheckWaterfallTile:: ; 18bd
-	cp $33
-;	ret z
-;	cp $3b
-	ret
-; 18c3
-
 CheckSpinTile::
-	cp $81
+	cp COLL_SPIN_UP
 	ld c, UP
 	ret z
-	cp $82
+	cp COLL_SPIN_DOWN
 	ld c, DOWN
 	ret z
-	cp $83
+	cp COLL_SPIN_LEFT
 	ld c, LEFT
 	ret z
-	cp $84
+	cp COLL_SPIN_RIGHT
 	ld c, RIGHT
 	ret z
 	ld c, STANDING
 	ret
 
-CheckStopSpinTile::
-	cp $80
-	ret
-
 CheckStandingOnEntrance:: ; 18c3
 	ld a, [PlayerStandingTile]
-	cp $71 ; door
+	cp COLL_DOOR
 	ret z
-	cp $79
+	cp COLL_STAIRCASE
 	ret z
-	cp $7a ; stairs
-	ret z
-	cp $7b ; cave
+	cp COLL_CAVE
 	ret
 ; 18d2
 
@@ -340,8 +251,7 @@ _CopyObjectStruct:: ; 1956
 	call UnmaskObject
 	ld a, [hMapObjectIndexBuffer]
 	call GetMapObject
-	farcall CopyObjectStruct
-	ret
+	farjp CopyObjectStruct
 ; 1967
 
 ApplyDeletionToMapObject:: ; 1967
@@ -357,8 +267,7 @@ ApplyDeletionToMapObject:: ; 1967
 	call .CheckStopFollow
 	pop af
 	call GetObjectStruct
-	farcall DeleteMapObject
-	ret
+	farjp DeleteMapObject
 
 .CheckStopFollow:
 	ld hl, wObjectFollow_Leader
@@ -377,8 +286,7 @@ ApplyDeletionToMapObject:: ; 1967
 
 DeleteObjectStruct:: ; 199f
 	call ApplyDeletionToMapObject
-	call MaskObject
-	ret
+	jp MaskObject
 ; 19a6
 
 CopyPlayerObjectTemplate:: ; 19a6
@@ -403,6 +311,7 @@ LoadMovementDataPointer:: ; 19e9
 	ld [wMovementDataPointer + 1], a
 	ld a, h
 	ld [wMovementDataPointer + 2], a
+
 	ld a, [wMovementPerson]
 	call CheckObjectVisibility
 	ret c
@@ -464,7 +373,7 @@ GetSpriteMovementFunction:: ; 1a2f
 	ld e, a
 	ld d, 0
 rept SPRITEMOVEDATA_FIELDS
-	add hl,de
+	add hl, de
 endr
 	ld a, [hl]
 	ret
@@ -477,7 +386,7 @@ GetInitialFacing:: ; 1a47
 	ld d, 0
 	ld hl, SpriteMovementData + 1 ; init facing
 rept SPRITEMOVEDATA_FIELDS
-	add hl,de
+	add hl, de
 endr
 	ld a, BANK(SpriteMovementData)
 	call GetFarByte
@@ -590,9 +499,8 @@ UpdateSprites:: ; 1ad2
 	bit 0, a
 	ret z
 
-	farcall Function55e0
-	farcall _UpdateSprites
-	ret
+	farcall UpdateMapObjectDataAndSprites
+	farjp _UpdateSprites
 ; 1ae5
 
 GetObjectStruct:: ; 1ae5

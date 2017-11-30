@@ -4,7 +4,7 @@ Script_BattleWhiteout:: ; 0x124c1
 ; 0x124c8
 
 Script_OverworldWhiteout:: ; 0x124c8
-	refreshscreen $0
+	refreshscreen
 	callasm OverworldBGMap
 
 Script_Whiteout: ; 0x124ce
@@ -61,8 +61,7 @@ OverworldBGMap: ; 124fa
 BattleBGMap: ; 1250a
 	ld b, SCGB_BATTLE_GRAYSCALE
 	call GetSGBLayout
-	call SetPalettes
-	ret
+	jp SetPalettes
 ; 12513
 
 ; Gen VI money loss code by TPP Anniversary Crystal 251
@@ -175,6 +174,6 @@ GetWhiteoutSpawn: ; 12527
 	xor a ; SPAWN_HOME
 
 .yes
-	ld [wd001], a
+	ld [DefaultSpawnpoint], a
 	ret
 ; 1253d

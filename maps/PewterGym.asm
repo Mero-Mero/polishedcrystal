@@ -1,15 +1,26 @@
-const_value set 2
-	const PEWTERGYM_BROCK
-	const PEWTERGYM_YOUNGSTER
-	const PEWTERGYM_POKEFAN_M
-	const PEWTERGYM_GYM_GUY
-
 PewterGym_MapScriptHeader:
-.MapTriggers:
-	db 0
 
-.MapCallbacks:
-	db 0
+.MapTriggers: db 0
+
+.MapCallbacks: db 0
+
+PewterGym_MapEventHeader:
+
+.Warps: db 2
+	warp_def 13, 4, 2, PEWTER_CITY
+	warp_def 13, 5, 2, PEWTER_CITY
+
+.XYTriggers: db 0
+
+.Signposts: db 2
+	signpost 11, 2, SIGNPOST_READ, PewterGymStatue
+	signpost 11, 7, SIGNPOST_READ, PewterGymStatue
+
+.PersonEvents: db 4
+	person_event SPRITE_BROCK, 1, 5, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, -1, (1 << 3) | PAL_OW_BROWN, PERSONTYPE_SCRIPT, 0, BrockScript_0x1a2864, -1
+	person_event SPRITE_YOUNGSTER, 7, 2, SPRITEMOVEDATA_STANDING_RIGHT, 0, 0, -1, -1, (1 << 3) | PAL_OW_GREEN, PERSONTYPE_TRAINER, 3, TrainerCamperJerry, -1
+	person_event SPRITE_POKEFAN_M, 5, 7, SPRITEMOVEDATA_STANDING_LEFT, 0, 0, -1, -1, (1 << 3) | PAL_OW_BROWN, PERSONTYPE_TRAINER, 3, TrainerHikerEdwin, -1
+	person_event SPRITE_GYM_GUY, 11, 6, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, -1, (1 << 3) | PAL_OW_BLUE, PERSONTYPE_SCRIPT, 1, PewterGymGuyScript, -1
 
 BrockScript_0x1a2864:
 	faceplayer
@@ -53,54 +64,29 @@ BrockScript_0x1a2864:
 	buttonsound
 	verbosegivetmhm TM_ROCK_SLIDE
 	setevent EVENT_GOT_TM48_ROCK_SLIDE
-	writetext BrockOutroText
-	waitbutton
-	closetext
-	end
+	jumpopenedtext BrockOutroText
 
 BrockAfterTMScript:
-	writetext UnknownText_0x1a2ada
-	waitbutton
-	closetext
-	end
+	jumpopenedtext UnknownText_0x1a2ada
 
 TrainerCamperJerry:
 	trainer EVENT_BEAT_CAMPER_JERRY, CAMPER, JERRY, CamperJerrySeenText, CamperJerryBeatenText, 0, CamperJerryScript
 
 CamperJerryScript:
 	end_if_just_battled
-	opentext
-	writetext UnknownText_0x1a2c0f
-	waitbutton
-	closetext
-	end
+	jumptextfaceplayer UnknownText_0x1a2c0f
 
 TrainerHikerEdwin:
 	trainer EVENT_BEAT_HIKER_EDWIN, HIKER, EDWIN, HikerEdwinSeenText, HikerEdwinBeatenText, 0, HikerEdwinScript
 
 HikerEdwinScript:
 	end_if_just_battled
-	opentext
-	writetext HikerEdwinAfterText
-	waitbutton
-	closetext
-	end
+	jumptextfaceplayer HikerEdwinAfterText
 
 PewterGymGuyScript:
-	faceplayer
-	opentext
 	checkevent EVENT_BEAT_BROCK
-	iftrue .PewterGymGuyWinScript
-	writetext PewterGymGuyText
-	waitbutton
-	closetext
-	end
-
-.PewterGymGuyWinScript:
-	writetext PewterGymGuyWinText
-	waitbutton
-	closetext
-	end
+	iftrue_jumptextfaceplayer PewterGymGuyWinText
+	jumptextfaceplayer PewterGymGuyText
 
 PewterGymStatue:
 	trainertotext BROCK, 1, $1
@@ -259,24 +245,3 @@ PewterGymGuyWinText:
 	para "inspiring. I mean"
 	line "that seriously."
 	done
-
-PewterGym_MapEventHeader:
-.Warps:
-	db 2
-	warp_def $d, $4, 2, PEWTER_CITY
-	warp_def $d, $5, 2, PEWTER_CITY
-
-.XYTriggers:
-	db 0
-
-.Signposts:
-	db 2
-	signpost 11, 2, SIGNPOST_READ, PewterGymStatue
-	signpost 11, 7, SIGNPOST_READ, PewterGymStatue
-
-.PersonEvents:
-	db 4
-	person_event SPRITE_BROCK, 1, 5, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, -1, (1 << 3) | PAL_OW_BROWN, PERSONTYPE_SCRIPT, 0, BrockScript_0x1a2864, -1
-	person_event SPRITE_YOUNGSTER, 7, 2, SPRITEMOVEDATA_STANDING_RIGHT, 0, 0, -1, -1, (1 << 3) | PAL_OW_GREEN, PERSONTYPE_TRAINER, 3, TrainerCamperJerry, -1
-	person_event SPRITE_POKEFAN_M, 5, 7, SPRITEMOVEDATA_STANDING_LEFT, 0, 0, -1, -1, (1 << 3) | PAL_OW_BROWN, PERSONTYPE_TRAINER, 3, TrainerHikerEdwin, -1
-	person_event SPRITE_GYM_GUY, 11, 6, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, -1, (1 << 3) | PAL_OW_BLUE, PERSONTYPE_SCRIPT, 1, PewterGymGuyScript, -1

@@ -156,13 +156,12 @@ endr
 
 StaticMenuJoypad:: ; 1bc9
 	farcall _StaticMenuJoypad
-	jp GetMenuJoypad
+	jr GetMenuJoypad
 ; 1bd3
 
 ScrollingMenuJoypad:: ; 1bd3
 	farcall _ScrollingMenuJoypad
-	jp GetMenuJoypad
-; 1bdd
+	; fallthrough
 
 GetMenuJoypad:: ; 1bdd
 	push bc

@@ -1,21 +1,40 @@
-const_value set 2
-	const ROUTE33_POKEFAN_M
-	const ROUTE33_TWIN
-	const ROUTE33_FRUIT_TREE
-
 Route33_MapScriptHeader:
-.MapTriggers:
-	db 0
 
-.MapCallbacks:
-	db 0
+.MapTriggers: db 0
+
+.MapCallbacks: db 1
+	dbw MAPCALLBACK_TILES, Route33RainScript
+
+Route33_MapEventHeader:
+
+.Warps: db 1
+	warp_def 9, 11, 3, UNION_CAVE_1F
+
+.XYTriggers: db 0
+
+.Signposts: db 1
+	signpost 11, 11, SIGNPOST_JUMPTEXT, Route33SignText
+
+.PersonEvents: db 3
+	person_event SPRITE_POKEFAN_M, 13, 6, SPRITEMOVEDATA_SPINRANDOM_FAST, 0, 0, -1, -1, (1 << 3) | PAL_OW_BROWN, PERSONTYPE_TRAINER, 2, TrainerHikerAnthony, -1
+	person_event SPRITE_TWIN, 17, 12, SPRITEMOVEDATA_STANDING_UP, 0, 0, -1, -1, (1 << 3) | PAL_OW_RED, PERSONTYPE_TRAINER, 3, TrainerSchoolgirlImogen, -1
+	fruittree_event 16, 14, FRUITTREE_ROUTE_33, PECHA_BERRY
+
+Route33RainScript:
+	special Special_GetOvercastIndex
+	if_equal AZALEA_OVERCAST, .rain
+	changemap Route33_BlockData
+	return
+
+.rain
+	changemap Route33Raining_BlockData
+	return
 
 TrainerHikerAnthony:
 	trainer EVENT_BEAT_HIKER_ANTHONY, HIKER, ANTHONY1, HikerAnthony1SeenText, HikerAnthony1BeatenText, 0, .Script
 
 .Script:
 	writecode VAR_CALLERID, PHONE_HIKER_ANTHONY
-	end_if_just_battled
 	opentext
 	checkflag ENGINE_ANTHONY
 	iftrue .Rematch
@@ -102,10 +121,7 @@ TrainerHikerAnthony:
 	end
 
 .Swarm:
-	writetext HikerAnthonyDunsparceText
-	waitbutton
-	closetext
-	end
+	jumpopenedtext HikerAnthonyDunsparceText
 
 .AskNumber1:
 	jumpstd asknumber1m
@@ -140,17 +156,7 @@ TrainerSchoolgirlImogen:
 
 SchoolgirlImogenScript:
 	end_if_just_battled
-	opentext
-	writetext SchoolgirlImogenAfterText
-	waitbutton
-	closetext
-	end
-
-Route33Sign:
-	jumptext Route33SignText
-
-Route33FruitTreeScript:
-	fruittree FRUITTREE_ROUTE_33
+	jumptextfaceplayer SchoolgirlImogenAfterText
 
 HikerAnthony1SeenText:
 	text "I came through the"
@@ -201,21 +207,3 @@ SchoolgirlImogenAfterText:
 Route33SignText:
 	text "Route 33"
 	done
-
-Route33_MapEventHeader:
-.Warps:
-	db 1
-	warp_def $9, $b, 3, UNION_CAVE_1F
-
-.XYTriggers:
-	db 0
-
-.Signposts:
-	db 1
-	signpost 11, 11, SIGNPOST_READ, Route33Sign
-
-.PersonEvents:
-	db 3
-	person_event SPRITE_POKEFAN_M, 13, 6, SPRITEMOVEDATA_SPINRANDOM_FAST, 0, 0, -1, -1, (1 << 3) | PAL_OW_BROWN, PERSONTYPE_TRAINER, 2, TrainerHikerAnthony, -1
-	person_event SPRITE_TWIN, 17, 12, SPRITEMOVEDATA_STANDING_UP, 0, 0, -1, -1, (1 << 3) | PAL_OW_RED, PERSONTYPE_TRAINER, 3, TrainerSchoolgirlImogen, -1
-	person_event SPRITE_BALL_CUT_FRUIT, 16, 14, SPRITEMOVEDATA_STANDING_LEFT, 0, 0, -1, -1, 0, PERSONTYPE_SCRIPT, 0, Route33FruitTreeScript, -1

@@ -1,18 +1,22 @@
 INCLUDE "includes.asm"
 
-SECTION "NULL", ROM0[0]
+
+SECTION "NULL", ROM0
+
 NULL::
 
 INCLUDE "rst.asm"
 INCLUDE "interrupts.asm"
 
-SECTION "Header", ROM0[$100]
+
+SECTION "Header", ROM0
 
 Start::
 	nop
 	jp _Start
 
-SECTION "Home", ROM0[$150]
+
+SECTION "Home", ROM0
 
 INCLUDE "home/init.asm"
 INCLUDE "home/vblank.asm"
@@ -40,6 +44,7 @@ INCLUDE "home/farcall.asm"
 INCLUDE "home/predef.asm"
 INCLUDE "home/window.asm"
 INCLUDE "home/flag.asm"
+INCLUDE "home/restore_music.asm"
 
 xor_a:: ; 2ec6
 	xor a
@@ -137,6 +142,19 @@ HideSprites:: ; 3016
 ; 3026
 
 INCLUDE "home/copy2.asm"
+
+_Jumptable:
+	push de
+	ld e, a
+	ld d, 0
+rept 2
+	add hl, de
+endr
+	ld a, [hli]
+	ld h, [hl]
+	ld l, a
+	pop de
+	jp hl
 
 LoadTileMapToTempTileMap:: ; 309d
 ; Load TileMap into TempTileMap
@@ -333,29 +351,13 @@ CopyDataUntil:: ; 318c
 ; 0x3198
 
 PrintNum:: ; 3198
-	ld a, [hROMBank]
-	push af
-	ld a, BANK(_PrintNum)
-	rst Bankswitch
-
-	call _PrintNum
-
-	pop af
-	rst Bankswitch
+	homecall _PrintNum
 	ret
 ; 31a4
 
 FarPrintText:: ; 31b0
 	ld [hBuffer], a
-	ld a, [hROMBank]
-	push af
-	ld a, [hBuffer]
-	rst Bankswitch
-
-	call PrintText
-
-	pop af
-	rst Bankswitch
+	homecall PrintText, [hBuffer]
 	ret
 ; 31be
 
@@ -485,11 +487,11 @@ LoadEDTile:: ; 323d
 	jr c, .wait
 
 	di
-	ld a, 1 ; BANK(VTiles3)
+	ld a, BANK(VTiles3)
 	ld [rVBK], a
 	hlcoord 0, 0, AttrMap
 	call .StackPointerMagic
-	xor a ; BANK(VTiles0)
+	xor a ; ld a, BANK(VTiles0)
 	ld [rVBK], a
 	hlcoord 0, 0
 	call .StackPointerMagic
@@ -570,9 +572,20 @@ ClearPalettes:: ; 3317
 
 ; Fill BGPals and OBPals with $ffff (white)
 	ld hl, BGPals
+if !DEF(MONOCHROME)
 	ld bc, 16 palettes
 	ld a, $ff
 	call ByteFill
+else
+	ld b, (16 palettes) / 2
+.mono_loop
+	ld a, PAL_MONOCHROME_WHITE % $100
+	ld [hli], a
+	ld a, PAL_MONOCHROME_WHITE / $100
+	ld [hli], a
+	dec b
+	jr nz, .mono_loop
+endc
 
 	pop af
 	ld [rSVBK], a
@@ -602,10 +615,10 @@ GetHPPal:: ; 3353
 
 	ld d, HP_GREEN
 	ld a, e
-	cp 24
+	cp (50 * 48 / 100)
 	ret nc
 	inc d ; yellow
-	cp 10
+	cp (21 * 48 / 100)
 	ret nc
 	inc d ; red
 	ret
@@ -721,10 +734,9 @@ GetNthString:: ; 3411
 
 	push bc
 	ld b, a
-	ld c, "@"
 .readChar
 	ld a, [hli]
-	cp c
+	cp "@"
 	jr nz, .readChar
 	dec b
 	jr nz, .readChar
@@ -1078,7 +1090,13 @@ HandleStoneQueue:: ; 3567
 	ld a, [hld]
 	cp d
 	jr nz, .not_on_warp
-	jr .found_warp
+	pop af
+	ld d, a
+	ld a, [wCurrMapWarpCount]
+	sub d
+	inc a
+	scf
+	ret
 
 .not_on_warp
 	ld a, 5
@@ -1095,19 +1113,9 @@ HandleStoneQueue:: ; 3567
 .nope2
 	and a
 	ret
-
-.found_warp
-	pop af
-	ld d, a
-	ld a, [wCurrMapWarpCount]
-	sub d
-	inc a
-	scf
-	ret
 ; 35de
 
 .IsObjectInStoneTable: ; 35de
-	inc e
 	ld hl, CMDQUEUE_ADDR
 	add hl, bc
 	ld a, [hli]
@@ -1185,7 +1193,10 @@ CheckTrainerBattle:: ; 360d
 	ld a, [hl]
 	and $f
 	cp PERSONTYPE_TRAINER
+	jr z, .is_trainer
+	cp PERSONTYPE_GENERICTRAINER
 	jr nz, .next
+.is_trainer
 
 ; Is visible on the map
 	ld hl, MAPOBJECT_OBJECT_STRUCT_ID
@@ -1257,28 +1268,63 @@ TalkToTrainer:: ; 3674
 	ld [EngineBuffer3], a
 
 LoadTrainer_continue:: ; 367e
-	call GetMapScriptHeaderBank
+	ld a, [MapScriptHeaderBank]
 	ld [EngineBuffer1], a
 
 	ld a, [hLastTalked]
 	call GetMapObject
 
+	ld hl, MAPOBJECT_COLOR
+	add hl, bc
+	ld a, [hl]
+	and $f
+	cp PERSONTYPE_GENERICTRAINER
+	push af
 	ld hl, MAPOBJECT_SCRIPT_POINTER
 	add hl, bc
 	ld a, [EngineBuffer1]
 	call GetFarHalfword
 	ld de, wTempTrainerHeader
+	pop af
+	push af
+	ld bc, wGenericTempTrainerHeaderEnd - wTempTrainerHeader
+	jr z, .skipCopyingLossPtrAndScriptPtr
 	ld bc, wTempTrainerHeaderEnd - wTempTrainerHeader
+.skipCopyingLossPtrAndScriptPtr
 	ld a, [EngineBuffer1]
 	call FarCopyBytes
+	pop af
+	jr nz, .notGenericTrainer
+	push de
+	ld d, h
+	ld e, l
+	pop hl
+	; store 0 loss pointer
+	xor a
+	ld [hli], a
+	ld [hli], a
+	; store generic trainer script in script pointer
+	ld a, .generic_trainer_script % $100
+	ld [hli], a
+	ld [hl], .generic_trainer_script / $100
+	; store after-battle text in wStashedTextPointer
+	ld hl, wStashedTextPointer
+	ld a, e
+	ld [hli], a
+	ld a, d
+	ld [hl], a
+.notGenericTrainer
 	xor a
 	ld [wRunningTrainerBattleScript], a
 	scf
 	ret
 ; 36a5
 
-FacingPlayerDistance_bc:: ; 36a5
+.generic_trainer_script
+	end_if_just_battled
+	jumpstashedtext
 
+FacingPlayerDistance_bc:: ; 36a5
 	push de
 	call FacingPlayerDistance
 	ld b, d
@@ -1368,28 +1414,18 @@ PrintWinLossText:: ; 3718
 	ld a, [hli]
 	ld h, [hl]
 	ld l, a
-	call GetMapScriptHeaderBank
+	ld a, [MapScriptHeaderBank]
 	call FarPrintText
 	call WaitBGMap
-	call WaitPressAorB_BlinkCursor
-	ret
+	jp WaitPressAorB_BlinkCursor
 ; 3741
 
 IsAPokemon:: ; 3741
 ; Return carry if species a is not a Pokemon.
-	and a
-	jr z, .NotAPokemon
-	cp EGG
-	jr z, .Pokemon
-	cp NUM_POKEMON + 1
-	jr c, .Pokemon
-
-.NotAPokemon:
-	scf
-	ret
-
-.Pokemon:
-	and a
+; Since every ID other than $0 and $ff is valid, we can simplify this function.
+	inc a
+	cp $2 ; sets carry for $0 (inc'ed to $1) and $ff (inc'ed to $0)
+	dec a
 	ret
 ; 3750
 
@@ -1402,14 +1438,14 @@ DrawBattleHPBar:: ; 3750
 	push bc
 
 ; Place 'HP:'
-	ld a, $63
+	ld a, "<HP1>"
 	ld [hli], a
-	ld a, $64
+	inc a ; ld a, "<HP2>"
 	ld [hli], a
 
 ; Draw a template
 	push hl
-	ld a, $65 ; empty bar
+	inc a ; ld a, "<NOHP>" ; empty bar
 .template
 	ld [hli], a
 	dec d
@@ -1434,7 +1470,7 @@ DrawBattleHPBar:: ; 3750
 	jr c, .lastbar
 
 	ld e, a
-	ld a, $6d ; full bar
+	ld a, "<FULLHP>"
 	ld [hli], a
 	ld a, e
 	and a
@@ -1442,8 +1478,8 @@ DrawBattleHPBar:: ; 3750
 	jr .fill
 
 .lastbar
-	ld a, $65  ; empty bar
-	add e      ; + e
+	ld a, "<NOHP>"
+	add e
 	ld [hl], a
 
 .done
@@ -1499,8 +1535,7 @@ PrintLevel:: ; 382d
 ; 3-digit numbers overwrite the :L.
 	dec hl
 	inc c
-	jr Print8BitNumRightAlign
-; 383d
+	; fallthrough
 
 Print8BitNumRightAlign:: ; 3842
 	ld [wd265], a
@@ -1539,10 +1574,6 @@ GetBaseData:: ; 3856
 	ld [BasePicSize], a
 
 .end
-; Replace Pokedex # with species
-	ld a, [CurSpecies]
-	ld [BaseDexNo], a
-
 	pop af
 	rst Bankswitch
 	pop hl
@@ -1566,6 +1597,27 @@ GetNature::
 
 .no_nature:
 	ld b, NO_NATURE
+	ret
+
+GetLeadAbility::
+; Returns ability of lead mon unless it's an Egg. Used for field
+; abilities
+	ld a, [PartyMon1Species]
+	xor EGG
+	ret z
+	xor EGG ; revert to original species
+	ret z ; in case species was 0
+	push bc
+	push de
+	push hl
+	ld c, a
+	ld a, [PartyMon1Ability]
+	ld b, a
+	call GetAbility
+	ld a, b
+	pop hl
+	pop de
+	pop bc
 	ret
 
 GetAbility::
@@ -1666,7 +1718,7 @@ PrintBCDNumber:: ; 38bb
 	dec c
 	jr nz, .loop
 	bit 7, b ; were any non-zero digits printed?
-	jr z, .done ; if so, we are done
+	ret z ; if so, we are done
 .numberEqualsZero ; if every digit of the BCD number is zero
 	bit 6, b ; left or right alignment?
 	jr nz, .skipRightAlignmentAdjustment
@@ -1680,7 +1732,6 @@ PrintBCDNumber:: ; 38bb
 	ld [hl], "0"
 	call PrintLetterDelay
 	inc hl
-.done
 	ret
 ; 0x38f2
 
@@ -1727,11 +1778,13 @@ GetPartyParamLocation:: ; 3917
 	ret
 ; 3927
 
-GetPartyLocation:: ; 3927
+GetPartyLocation::
 ; Add the length of a PartyMon struct to hl a times.
+	push bc
 	ld bc, PARTYMON_STRUCT_LENGTH
-	jp AddNTimes
-; 392d
+	call AddNTimes
+	pop bc
+	ret
 
 INCLUDE "home/battle.asm"
 

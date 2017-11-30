@@ -1,24 +1,36 @@
-const_value set 2
-	const ROUTE26_DRAGON_TAMER1
-	const ROUTE26_COOLTRAINER_M
-	const ROUTE26_COOLTRAINER_F1
-	const ROUTE26_COOLTRAINER_F2
-	const ROUTE26_YOUNGSTER
-	const ROUTE26_FISHER
-	const ROUTE26_DRAGON_TAMER2
-	const ROUTE26_FRUIT_TREE
-	const ROUTE26_POKE_BALL1
-	const ROUTE26_POKE_BALL2
-
 Route26_MapScriptHeader:
-.MapTriggers:
-	db 0
 
-.MapCallbacks:
-	db 1
-	dbw MAPCALLBACK_SPRITES, .DragonTamerSprite
+.MapTriggers: db 0
 
-.DragonTamerSprite:
+.MapCallbacks: db 1
+	dbw MAPCALLBACK_SPRITES, Route26DragonTamerSprite
+
+Route26_MapEventHeader:
+
+.Warps: db 3
+	warp_def 5, 7, 3, POKEMON_LEAGUE_GATE
+	warp_def 57, 15, 1, ROUTE_26_HEAL_SPEECH_HOUSE
+	warp_def 71, 5, 1, ROUTE_26_DAY_OF_WEEK_SIBLINGS_HOUSE
+
+.XYTriggers: db 0
+
+.Signposts: db 1
+	signpost 6, 8, SIGNPOST_JUMPTEXT, Route26SignText
+
+.PersonEvents: db 11
+	person_event SPRITE_GUIDE_GENT, 38, 9, SPRITEMOVEDATA_STANDING_LEFT, 0, 0, -1, -1, (1 << 3) | PAL_OW_PURPLE, PERSONTYPE_TRAINER, 3, TrainerDragonTamerKazu, -1
+	person_event SPRITE_COOLTRAINER_M, 24, 14, SPRITEMOVEDATA_STANDING_LEFT, 0, 0, -1, -1, (1 << 3) | PAL_OW_RED, PERSONTYPE_TRAINER, 2, TrainerCooltrainermGaven1, -1
+	person_event SPRITE_COOLTRAINER_F, 56, 10, SPRITEMOVEDATA_SPINRANDOM_FAST, 0, 0, -1, -1, (1 << 3) | PAL_OW_RED, PERSONTYPE_TRAINER, 3, TrainerCooltrainerfJoyce, -1
+	person_event SPRITE_COOLTRAINER_F, 8, 5, SPRITEMOVEDATA_STANDING_RIGHT, 0, 0, -1, -1, (1 << 3) | PAL_OW_RED, PERSONTYPE_TRAINER, 4, TrainerCooltrainerfBeth1, -1
+	person_event SPRITE_YOUNGSTER, 79, 13, SPRITEMOVEDATA_STANDING_RIGHT, 0, 0, -1, -1, (1 << 3) | PAL_OW_PURPLE, PERSONTYPE_TRAINER, 2, TrainerPsychicRichard, -1
+	person_event SPRITE_COOLTRAINER_F, 82, 2, SPRITEMOVEDATA_STANDING_RIGHT, 0, 0, -1, -1, (1 << 3) | PAL_OW_BLUE, PERSONTYPE_TRAINER, 4, TrainerBattleGirlRonda, -1
+	person_event SPRITE_FISHER, 100, 6, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, -1, (1 << 3) | PAL_OW_GREEN, PERSONTYPE_TRAINER, 1, TrainerFisherScott, -1
+	person_event SPRITE_GUIDE_GENT, 92, 10, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, -1, (1 << 3) | PAL_OW_PURPLE, PERSONTYPE_TRAINER, 3, TrainerDragonTamerErick, -1
+	fruittree_event 54, 14, FRUITTREE_ROUTE_26, SITRUS_BERRY
+	itemball_event 15, 9, MAX_ELIXER, 1, EVENT_ROUTE_26_MAX_ELIXER
+	tmhmball_event 34, 13, TM_DRAGON_CLAW, EVENT_ROUTE_26_TM_DRAGON_CLAW
+
+Route26DragonTamerSprite:
 	variablesprite SPRITE_GUIDE_GENT, SPRITE_DRAGON_TAMER
 	return
 
@@ -27,18 +39,13 @@ TrainerDragonTamerKazu:
 
 DragonTamerKazuScript:
 	end_if_just_battled
-	opentext
-	writetext UnknownText_0x1a4f08
-	waitbutton
-	closetext
-	end
+	jumptextfaceplayer UnknownText_0x1a4f08
 
 TrainerCooltrainermGaven1:
 	trainer EVENT_BEAT_COOLTRAINERM_GAVEN, COOLTRAINERM, GAVEN1, CooltrainermGaven1SeenText, CooltrainermGaven1BeatenText, 0, CooltrainermGaven1Script
 
 CooltrainermGaven1Script:
 	writecode VAR_CALLERID, PHONE_COOLTRAINERM_GAVEN
-	end_if_just_battled
 	opentext
 	checkflag ENGINE_GAVEN
 	iftrue UnknownScript_0x1a4d79
@@ -131,18 +138,13 @@ TrainerCooltrainerfJoyce:
 
 CooltrainerfJoyceScript:
 	end_if_just_battled
-	opentext
-	writetext UnknownText_0x1a50d7
-	waitbutton
-	closetext
-	end
+	jumptextfaceplayer UnknownText_0x1a50d7
 
 TrainerCooltrainerfBeth1:
 	trainer EVENT_BEAT_COOLTRAINERF_BETH, COOLTRAINERF, BETH1, CooltrainerfBeth1SeenText, CooltrainerfBeth1BeatenText, 0, CooltrainerfBeth1Script
 
 CooltrainerfBeth1Script:
 	writecode VAR_CALLERID, PHONE_COOLTRAINERF_BETH
-	end_if_just_battled
 	opentext
 	checkflag ENGINE_BETH
 	iftrue UnknownScript_0x1a4e35
@@ -235,45 +237,28 @@ TrainerPsychicRichard:
 
 PsychicRichardScript:
 	end_if_just_battled
-	opentext
-	writetext UnknownText_0x1a5278
-	waitbutton
-	closetext
-	end
+	jumptextfaceplayer UnknownText_0x1a5278
+
+TrainerBattleGirlRonda:
+	trainer EVENT_BEAT_BATTLE_GIRL_RONDA, BATTLE_GIRL, RONDA, BattleGirlRondaSeenText, BattleGirlRondaBeatenText, 0, BattleGirlRondaScript
+
+BattleGirlRondaScript:
+	end_if_just_battled
+	jumptextfaceplayer BattleGirlRondaAfterText
 
 TrainerFisherScott:
 	trainer EVENT_BEAT_FISHER_SCOTT, FISHER, SCOTT, FisherScottSeenText, FisherScottBeatenText, 0, FisherScottScript
 
 FisherScottScript:
 	end_if_just_battled
-	opentext
-	writetext UnknownText_0x1a5326
-	waitbutton
-	closetext
-	end
+	jumptextfaceplayer UnknownText_0x1a5326
 
 TrainerDragonTamerErick:
 	trainer EVENT_BEAT_DRAGON_TAMER_ERICK, DRAGON_TAMER, ERICK, DragonTamerErickSeenText, DragonTamerErickBeatenText, 0, DragonTamerErickScript
 
 DragonTamerErickScript:
 	end_if_just_battled
-	opentext
-	writetext DragonTamerErickAfterText
-	waitbutton
-	closetext
-	end
-
-Route26Sign:
-	jumptext Route26SignText
-
-FruitTreeScript_0x1a4ec2:
-	fruittree FRUITTREE_ROUTE_26
-
-Route26MaxElixer:
-	itemball MAX_ELIXER
-
-Route26TMDragonPulse:
-	tmhmball TM_DRAGON_PULSE
+	jumptextfaceplayer DragonTamerErickAfterText
 
 DragonTamerKazuSeenText:
 	text "I'm making my"
@@ -405,6 +390,26 @@ UnknownText_0x1a5278:
 	line "complacent."
 	done
 
+BattleGirlRondaSeenText:
+	text "Stop! I challenge"
+	line "you to a duel!"
+	done
+
+BattleGirlRondaBeatenText:
+	text "Victory is yours!"
+	done
+
+BattleGirlRondaAfterText:
+	text "You see some of"
+	line "the world's str-"
+
+	para "ongest trainers"
+	line "come through here."
+
+	para "And I get to fight"
+	line "them all!"
+	done
+
 FisherScottSeenText:
 	text "I'm feeling great"
 	line "today!"
@@ -451,30 +456,3 @@ Route26SignText:
 	para "#mon League"
 	line "Reception Gate"
 	done
-
-Route26_MapEventHeader:
-.Warps:
-	db 3
-	warp_def $5, $7, 3, POKEMON_LEAGUE_GATE
-	warp_def $39, $f, 1, ROUTE_26_HEAL_SPEECH_HOUSE
-	warp_def $47, $5, 1, ROUTE_26_DAY_OF_WEEK_SIBLINGS_HOUSE
-
-.XYTriggers:
-	db 0
-
-.Signposts:
-	db 1
-	signpost 6, 8, SIGNPOST_READ, Route26Sign
-
-.PersonEvents:
-	db 10
-	person_event SPRITE_GUIDE_GENT, 38, 9, SPRITEMOVEDATA_STANDING_LEFT, 0, 0, -1, -1, (1 << 3) | PAL_OW_PURPLE, PERSONTYPE_TRAINER, 3, TrainerDragonTamerKazu, -1
-	person_event SPRITE_COOLTRAINER_M, 24, 14, SPRITEMOVEDATA_STANDING_LEFT, 0, 0, -1, -1, (1 << 3) | PAL_OW_RED, PERSONTYPE_TRAINER, 2, TrainerCooltrainermGaven1, -1
-	person_event SPRITE_COOLTRAINER_F, 56, 10, SPRITEMOVEDATA_SPINRANDOM_FAST, 0, 0, -1, -1, (1 << 3) | PAL_OW_RED, PERSONTYPE_TRAINER, 3, TrainerCooltrainerfJoyce, -1
-	person_event SPRITE_COOLTRAINER_F, 8, 5, SPRITEMOVEDATA_STANDING_RIGHT, 0, 0, -1, -1, (1 << 3) | PAL_OW_RED, PERSONTYPE_TRAINER, 4, TrainerCooltrainerfBeth1, -1
-	person_event SPRITE_YOUNGSTER, 79, 13, SPRITEMOVEDATA_STANDING_RIGHT, 0, 0, -1, -1, (1 << 3) | PAL_OW_PURPLE, PERSONTYPE_TRAINER, 2, TrainerPsychicRichard, -1
-	person_event SPRITE_FISHER, 100, 6, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, -1, (1 << 3) | PAL_OW_GREEN, PERSONTYPE_TRAINER, 1, TrainerFisherScott, -1
-	person_event SPRITE_GUIDE_GENT, 92, 10, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, -1, (1 << 3) | PAL_OW_PURPLE, PERSONTYPE_TRAINER, 3, TrainerDragonTamerErick, -1
-	person_event SPRITE_BALL_CUT_FRUIT, 54, 14, SPRITEMOVEDATA_STANDING_LEFT, 0, 0, -1, -1, 0, PERSONTYPE_SCRIPT, 0, FruitTreeScript_0x1a4ec2, -1
-	person_event SPRITE_BALL_CUT_FRUIT, 15, 9, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, -1, (1 << 3) | PAL_OW_RED, PERSONTYPE_ITEMBALL, 0, Route26MaxElixer, EVENT_ROUTE_26_MAX_ELIXER
-	person_event SPRITE_BALL_CUT_FRUIT, 34, 13, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, -1, (1 << 3) | PAL_OW_BLUE, PERSONTYPE_TMHMBALL, 0, Route26TMDragonPulse, EVENT_ROUTE_26_TM_DRAGON_PULSE

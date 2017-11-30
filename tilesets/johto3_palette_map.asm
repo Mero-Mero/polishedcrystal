@@ -12,10 +12,5 @@
 	tilepal 0, ROOF, ROOF, ROOF, RED, WATER, WATER, WATER, RED
 	tilepal 0, RED, RED, RED, RED, RED, RED, RED, YELLOW
 	tilepal 0, YELLOW, RED, RED, RED, RED, RED, RED, RED
-
-rept 8
-	db $ff
-endr
-
-	tilepal 1, RED, RED, RED, RED, RED, RED, RED, YELLOW
-	tilepal 1, YELLOW, ROOF, ROOF, ROOF, ROOF, ROOF, ROOF, ROOF
+	tilepal 0, RED, RED, RED, RED, RED, RED, RED, YELLOW
+	tilepal 0, YELLOW

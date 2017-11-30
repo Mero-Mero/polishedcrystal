@@ -151,8 +151,7 @@ PC_PlayBootSound: ; 156b3
 PC_PlayShutdownSound: ; 156b8
 	ld de, SFX_SHUT_DOWN_PC
 	call PC_WaitPlaySFX
-	call WaitSFX
-	ret
+	jp WaitSFX
 
 PC_PlayChoosePCSound: ; 156c2
 	ld de, SFX_CHOOSE_PC_OPTION
@@ -333,7 +332,7 @@ KrisWithdrawItemMenu: ; 0x157d1
 	farcall SelectQuantityToToss
 	call ExitMenu
 	call ExitMenu
-	jr c, .done
+	ret c
 
 .withdraw
 	ld a, [wItemQuantityChangeBuffer]
@@ -359,9 +358,6 @@ KrisWithdrawItemMenu: ; 0x157d1
 .PackFull:
 	ld hl, .NoRoomText
 	jp MenuTextBoxBackup
-
-.done
-	ret
 
 .HowManyText: ; 0x15850
 	text_jump _KrissPCHowManyWithdrawText
@@ -640,8 +636,7 @@ PCItemsJoypad: ; 0x15985
 
 PC_DisplayText: ; 15a20
 	call MenuTextBox
-	call ExitMenu
-	ret
+	jp ExitMenu
 ; 15a27
 
 PokeCenterPCText_BootedUpPC: ; 0x15a27

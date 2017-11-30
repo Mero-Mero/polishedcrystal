@@ -69,8 +69,7 @@ _DepositPKMN: ; e2391 (38:6391)
 	call BillsPC_ApplyPalettes
 	call WaitBGMap
 	call BillsPC_UpdateSelectionCursor
-	call BillsPC_IncrementJumptableIndex
-	ret
+	jp BillsPC_IncrementJumptableIndex
 
 .HandleJoypad: ; e241a (38:641a)
 	ld hl, hJoyPressed ; $ffa7
@@ -92,8 +91,7 @@ _DepositPKMN: ; e2391 (38:6391)
 	ld a, $1
 	ld [hBGMapMode], a
 	call DelayFrame
-	call DelayFrame
-	ret
+	jp DelayFrame
 
 .a_button
 	call BillsPC_GetSelectedPokemonSpecies
@@ -319,8 +317,7 @@ _WithdrawPKMN: ; e2583 (38:6583)
 	call BillsPC_ApplyPalettes
 	call WaitBGMap
 	call BillsPC_UpdateSelectionCursor
-	call BillsPC_IncrementJumptableIndex
-	ret
+	jp BillsPC_IncrementJumptableIndex
 
 .Joypad: ; e2612 (38:6612)
 	ld hl, hJoyPressed ; $ffa7
@@ -342,8 +339,8 @@ _WithdrawPKMN: ; e2583 (38:6583)
 	ld a, $1
 	ld [hBGMapMode], a
 	call DelayFrame
-	call DelayFrame
-	ret
+	jp DelayFrame
+
 .a_button
 	call BillsPC_GetSelectedPokemonSpecies
 	and a
@@ -563,8 +560,7 @@ _MovePKMNWithoutMail: ; e2759
 	call BillsPC_ApplyPalettes
 	call WaitBGMap
 	call BillsPC_UpdateSelectionCursor
-	call BillsPC_IncrementJumptableIndex
-	ret
+	jp BillsPC_IncrementJumptableIndex
 ; e27eb
 
 .Joypad: ; e27eb
@@ -588,8 +584,7 @@ _MovePKMNWithoutMail: ; e2759
 	ld a, $1
 	ld [hBGMapMode], a
 	call DelayFrame
-	call DelayFrame
-	ret
+	jp DelayFrame
 
 .d_pad
 	xor a
@@ -717,8 +712,7 @@ endr
 	call ClearSprites
 	call BillsPC_UpdateInsertCursor
 	call WaitBGMap
-	call BillsPC_IncrementJumptableIndex
-	ret
+	jp BillsPC_IncrementJumptableIndex
 ; e2903
 
 .Joypad2: ; e2903
@@ -740,8 +734,7 @@ endr
 	ld a, $1
 	ld [hBGMapMode], a
 	call DelayFrame
-	call DelayFrame
-	ret
+	jp DelayFrame
 
 .dpad_2
 	xor a
@@ -1496,30 +1489,30 @@ endr
 ; e2e2b (38:6e2b)
 
 .OAM: ; e2e2b
-	dsprite 4, 6, 10, 0, $00, $00
-	dsprite 4, 6, 11, 0, $00, $00
-	dsprite 4, 6, 12, 0, $00, $00
-	dsprite 4, 6, 13, 0, $00, $00
-	dsprite 4, 6, 14, 0, $00, $00
-	dsprite 4, 6, 15, 0, $00, $00
-	dsprite 4, 6, 16, 0, $00, $00
-	dsprite 4, 6, 17, 0, $00, $00
-	dsprite 4, 6, 18, 0, $00, $00
-	dsprite 4, 6, 18, 7, $00, $00
-	dsprite 7, 1, 10, 0, $00, $40
-	dsprite 7, 1, 11, 0, $00, $40
-	dsprite 7, 1, 12, 0, $00, $40
-	dsprite 7, 1, 13, 0, $00, $40
-	dsprite 7, 1, 14, 0, $00, $40
-	dsprite 7, 1, 15, 0, $00, $40
-	dsprite 7, 1, 16, 0, $00, $40
-	dsprite 7, 1, 17, 0, $00, $40
-	dsprite 7, 1, 18, 0, $00, $40
-	dsprite 7, 1, 18, 7, $00, $40
-	dsprite 5, 6,  9, 6, $01, $00
-	dsprite 6, 1,  9, 6, $01, $40
-	dsprite 5, 6, 19, 1, $01, $20
-	dsprite 6, 1, 19, 1, $01, $60
+	dsprite 4, 6, 10, 0, $00, $0
+	dsprite 4, 6, 11, 0, $00, $0
+	dsprite 4, 6, 12, 0, $00, $0
+	dsprite 4, 6, 13, 0, $00, $0
+	dsprite 4, 6, 14, 0, $00, $0
+	dsprite 4, 6, 15, 0, $00, $0
+	dsprite 4, 6, 16, 0, $00, $0
+	dsprite 4, 6, 17, 0, $00, $0
+	dsprite 4, 6, 18, 0, $00, $0
+	dsprite 4, 6, 18, 7, $00, $0
+	dsprite 7, 1, 10, 0, $00, $0 | Y_FLIP
+	dsprite 7, 1, 11, 0, $00, $0 | Y_FLIP
+	dsprite 7, 1, 12, 0, $00, $0 | Y_FLIP
+	dsprite 7, 1, 13, 0, $00, $0 | Y_FLIP
+	dsprite 7, 1, 14, 0, $00, $0 | Y_FLIP
+	dsprite 7, 1, 15, 0, $00, $0 | Y_FLIP
+	dsprite 7, 1, 16, 0, $00, $0 | Y_FLIP
+	dsprite 7, 1, 17, 0, $00, $0 | Y_FLIP
+	dsprite 7, 1, 18, 0, $00, $0 | Y_FLIP
+	dsprite 7, 1, 18, 7, $00, $0 | Y_FLIP
+	dsprite 5, 6,  9, 6, $01, $0
+	dsprite 6, 1,  9, 6, $01, $0 | Y_FLIP
+	dsprite 5, 6, 19, 1, $01, $0 | X_FLIP
+	dsprite 6, 1, 19, 1, $01, $0 | X_FLIP | Y_FLIP
 	db -1
 ; e2e8c
 
@@ -1546,16 +1539,16 @@ endr
 ; e2eac
 
 .OAM: ; e2eac
-	dsprite 4, 7, 10, 0, $06, $00
-	dsprite 5, 3, 11, 0, $00, $40
-	dsprite 5, 3, 12, 0, $00, $40
-	dsprite 5, 3, 13, 0, $00, $40
-	dsprite 5, 3, 14, 0, $00, $40
-	dsprite 5, 3, 15, 0, $00, $40
-	dsprite 5, 3, 16, 0, $00, $40
-	dsprite 5, 3, 17, 0, $00, $40
-	dsprite 5, 3, 18, 0, $00, $40
-	dsprite 4, 7, 19, 0, $07, $00
+	dsprite 4, 7, 10, 0, $06, $0
+	dsprite 5, 3, 11, 0, $00, $0 | Y_FLIP
+	dsprite 5, 3, 12, 0, $00, $0 | Y_FLIP
+	dsprite 5, 3, 13, 0, $00, $0 | Y_FLIP
+	dsprite 5, 3, 14, 0, $00, $0 | Y_FLIP
+	dsprite 5, 3, 15, 0, $00, $0 | Y_FLIP
+	dsprite 5, 3, 16, 0, $00, $0 | Y_FLIP
+	dsprite 5, 3, 17, 0, $00, $0 | Y_FLIP
+	dsprite 5, 3, 18, 0, $00, $0 | Y_FLIP
+	dsprite 4, 7, 19, 0, $07, $0
 	db -1
 ; e2ed5
 
@@ -1660,22 +1653,20 @@ BillsPC_StatsScreen: ; e2f7e (38:6f7e)
 	ld [MonType], a
 	predef StatsScreenInit
 	call BillsPC_InitGFX
-	call MaxVolume
-	ret
+	jp MaxVolume
 
 StatsScreenDPad: ; e2f95 (38:6f95)
 	ld hl, hJoyPressed ; $ffa7
 	ld a, [hl]
 	and A_BUTTON | B_BUTTON | D_RIGHT | D_LEFT
 	ld [wMenuJoypad], a
-	jr nz, .pressed_a_b_right_left
+	ret nz
+
 	ld a, [hl]
 	and D_DOWN | D_UP
 	ld [wMenuJoypad], a
-	jr nz, .pressed_down_up
-	jr .pressed_a_b_right_left
+	ret z
 
-.pressed_down_up
 	call _StatsScreenDPad
 	and a
 	jr z, .did_nothing
@@ -1688,9 +1679,7 @@ StatsScreenDPad: ; e2f95 (38:6f95)
 	ld hl, TempMonForm
 	predef GetVariant
 	call GetBaseData
-	call BillsPC_CopyMon
-.pressed_a_b_right_left
-	ret
+	jp BillsPC_CopyMon
 
 .did_nothing
 	xor a
@@ -1723,8 +1712,7 @@ BillsPC_CopyMon: ; e2fd6 (38:6fd6)
 	ld bc, PARTYMON_STRUCT_LENGTH
 	call CopyBytes
 	call CloseSRAM
-	farcall CalcwBufferMonStats
-	ret
+	farjp CalcwBufferMonStats
 
 .party
 	ld hl, PartySpecies
@@ -1733,7 +1721,7 @@ BillsPC_CopyMon: ; e2fd6 (38:6fd6)
 	call CopyNicknameToTemp
 	ld hl, PartyMonOT
 	call CopyOTNameToTemp
-	ld hl, PartyMons ; wdcdf (aliases: PartyMon1, PartyMon1Species)
+	ld hl, PartyMons
 	ld bc, PARTYMON_STRUCT_LENGTH
 	ld a, [CurPartyMon]
 	call AddNTimes
@@ -1765,8 +1753,7 @@ BillsPC_CopyMon: ; e2fd6 (38:6fd6)
 	ld bc, BOXMON_STRUCT_LENGTH
 	call CopyMonToTemp
 	call CloseSRAM
-	farcall CalcwBufferMonStats
-	ret
+	farjp CalcwBufferMonStats
 
 DepositPokemon: ; e307c (38:707c)
 	ld a, [wBillsPC_CursorPosition]
@@ -1969,8 +1956,7 @@ endr
 .dw_return ; e322a
 	pop af
 	ld e, a
-	farcall MovePkmnWOMail_InsertMon_SaveGame
-	ret
+	farjp MovePkmnWOMail_InsertMon_SaveGame
 ; e3233
 
 .Saving_LeaveOn:
@@ -1991,8 +1977,7 @@ endr
 	cp [hl]
 	jr z, .same_box
 	call .CopyFromBox
-	call .CopyToBox
-	ret
+	jp .CopyToBox
 
 .same_box
 	call .CopyFromBox
@@ -2012,8 +1997,7 @@ endr
 
 .BoxToParty: ; e327d
 	call .CopyFromBox
-	call .CopyToParty
-	ret
+	jp .CopyToParty
 ; e3284
 
 .PartyToParty: ; e3284
@@ -2072,8 +2056,7 @@ endr
 	farcall CalcwBufferMonStats
 	ld a, PC_DEPOSIT
 	ld [wPokemonWithdrawDepositParameter], a
-	farcall RemoveMonFromPartyOrBox
-	ret
+	farjp RemoveMonFromPartyOrBox
 ; e32fa
 
 .CopyToBox: ; e32fa
@@ -2085,8 +2068,7 @@ endr
 	ld hl, wBillsPC_ScrollPosition
 	add [hl]
 	ld [CurPartyMon], a
-	farcall InsertPokemonIntoBox
-	ret
+	farjp InsertPokemonIntoBox
 ; e3316
 
 .CopyFromParty: ; e3316
@@ -2105,8 +2087,7 @@ endr
 	call CopyMonToTemp
 	xor a
 	ld [wPokemonWithdrawDepositParameter], a
-	farcall RemoveMonFromPartyOrBox
-	ret
+	farjp RemoveMonFromPartyOrBox
 ; e3346
 
 .CopyToParty: ; e3346
@@ -2114,8 +2095,7 @@ endr
 	ld hl, wBillsPC_ScrollPosition
 	add [hl]
 	ld [CurPartyMon], a
-	farcall InsertPokemonIntoParty
-	ret
+	farjp InsertPokemonIntoParty
 ; e3357
 
 CopySpeciesToTemp: ; e3357 (38:7357)
@@ -2219,8 +2199,7 @@ BillsPC_InitGFX: ; e33e8 (38:73e8)
 	call Decompress
 	ld a, 6
 	call SkipMusic
-	call EnableLCD
-	ret
+	jp EnableLCD
 ; e3419 (38:7419)
 
 PCSelectLZ: INCBIN "gfx/pc/pc.2bpp.lz"
@@ -2387,13 +2366,22 @@ BillsPC_PrintBoxCountAndCapacityInsideBox:
 .out_of_20
 	; db "/20@"
 	db "/"
+if MONS_PER_BOX < 10
+	db " "
+else
 	db "0" + MONS_PER_BOX / 10 ; "2"
+endc
 	db "0" + MONS_PER_BOX % 10 ; "0"
 	db "@"
 
 .out_of_6
 	; db "/ 6@"
-	db "/ "
+	db "/"
+if PARTY_LENGTH < 10
+	db " "
+else
+	db "0" + PARTY_LENGTH / 10 ; "0"
+endc
 	db "0" + PARTY_LENGTH % 10 ; "6"
 	db "@"
 
@@ -2502,11 +2490,10 @@ BillsPC_ChangeBoxSubmenu: ; e36f9 (38:76f9)
 	ld a, [wCurBox]
 	cp e
 	ret z
-	farcall ChangeBoxSaveGame
-	ret
+	farjp ChangeBoxSaveGame
 
 .Name:
-	ld b, $3 ; box
+	ld b, $4 ; box
 	ld de, wd002
 	farcall NamingScreen
 	call ClearTileMap

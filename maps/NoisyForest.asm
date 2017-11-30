@@ -1,26 +1,47 @@
-const_value set 2
-	const NOISYFOREST_ANABEL
-	const NOISYFOREST_SUPER_NERD1
-	const NOISYFOREST_SUPER_NERD2
-	const NOISYFOREST_COOLTRAINER_F
-	const NOISYFOREST_ROCKER
-	const NOISYFOREST_POKEFAN_M
-	const NOISYFOREST_YOUNGSTER
-	const NOISYFOREST_TEACHER
-	const NOISYFOREST_CHILD
-	const NOISYFOREST_MARILL
-	const NOISYFOREST_POKE_BALL1
-	const NOISYFOREST_POKE_BALL2
-	const NOISYFOREST_POKE_BALL3
-	const NOISYFOREST_CUT_TREE1
-	const NOISYFOREST_CUT_TREE2
-
 NoisyForest_MapScriptHeader:
-.MapTriggers:
-	db 0
 
-.MapCallbacks:
-	db 0
+.MapTriggers: db 0
+
+.MapCallbacks: db 0
+
+NoisyForest_MapEventHeader:
+
+.Warps: db 4
+	warp_def 4, 6, 2, ROCKY_BEACH
+	warp_def 5, 6, 3, ROCKY_BEACH
+	warp_def 28, 35, 1, SHAMOUTI_SHRINE_RUINS
+	warp_def 29, 35, 2, SHAMOUTI_SHRINE_RUINS
+
+.XYTriggers: db 0
+
+.Signposts: db 5
+	signpost 9, 15, SIGNPOST_JUMPTEXT, NoisyForestSignpostText
+	signpost 31, 25, SIGNPOST_JUMPTEXT, NoisyForestSignpostText
+	signpost 2, 32, SIGNPOST_ITEM + ULTRA_BALL, EVENT_NOISY_FOREST_HIDDEN_ULTRA_BALL
+	signpost 18, 34, SIGNPOST_ITEM + TINYMUSHROOM, EVENT_NOISY_FOREST_HIDDEN_TINYMUSHROOM
+	signpost 29, 7, SIGNPOST_ITEM + FULL_RESTORE, EVENT_NOISY_FOREST_HIDDEN_FULL_RESTORE
+
+.PersonEvents: db 15
+	person_event SPRITE_ANABEL, 19, 20, SPRITEMOVEDATA_WALK_UP_DOWN, 1, 0, -1, -1, 0, PERSONTYPE_SCRIPT, 0, NoisyForestAnabelScript, EVENT_NOISY_FOREST_ANABEL
+	person_event SPRITE_YOUNGSTER, 15, 10, SPRITEMOVEDATA_STANDING_RIGHT, 0, 0, -1, -1, (1 << 3) | PAL_OW_BLUE, PERSONTYPE_TRAINER, 4, TrainerBird_keeperTrent, -1
+	person_event SPRITE_MARILL, 31, 24, SPRITEMOVEDATA_POKEMON, 0, 0, -1, -1, (1 << 3) | PAL_OW_BLUE, PERSONTYPE_SCRIPT, 0, NoisyForestPikabluScript, EVENT_NOISY_FOREST_PIKABLU
+	person_event SPRITE_SUPER_NERD, 4, 20, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, -1, (1 << 3) | PAL_OW_BLUE, PERSONTYPE_TRAINER, 3, TrainerBug_maniacPierre, -1
+	person_event SPRITE_SUPER_NERD, 27, 4, SPRITEMOVEDATA_STANDING_RIGHT, 0, 0, -1, -1, (1 << 3) | PAL_OW_BLUE, PERSONTYPE_TRAINER, 1, TrainerBug_maniacDylan, -1
+	person_event SPRITE_COOLTRAINER_F, 17, 31, SPRITEMOVEDATA_SPINRANDOM_FAST, 0, 0, -1, -1, (1 << 3) | PAL_OW_RED, PERSONTYPE_TRAINER, 1, TrainerGuitaristfJaclyn, -1
+	person_event SPRITE_ROCKER, 30, 12, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, -1, (1 << 3) | PAL_OW_RED, PERSONTYPE_TRAINER, 2, TrainerGuitaristmEzekiel, -1
+	person_event SPRITE_POKEFAN_M, 34, 20, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, -1, (1 << 3) | PAL_OW_BROWN, PERSONTYPE_TRAINER, 2, TrainerHikerLester, -1
+	person_event SPRITE_TEACHER, 6, 13, SPRITEMOVEDATA_WALK_UP_DOWN, 2, 0, -1, (1 << MORN) | (1 << DAY), (1 << 3) | PAL_OW_RED, PERSONTYPE_COMMAND, jumptextfaceplayer, NoisyForestTeacherText, -1
+	person_event SPRITE_CHILD, 15, 40, SPRITEMOVEDATA_WALK_LEFT_RIGHT, 0, 1, -1, -1, (1 << 3) | PAL_OW_BLUE, PERSONTYPE_COMMAND, jumptextfaceplayer, NoisyForestChildText, -1
+	itemball_event 2, 41, BALMMUSHROOM, 1, EVENT_NOISY_FOREST_BALMMUSHROOM
+	itemball_event 28, 16, MULCH, 1, EVENT_NOISY_FOREST_MULCH
+	tmhmball_event 23, 17, TM_DRAIN_PUNCH, EVENT_NOISY_FOREST_TM_DRAIN_PUNCH
+	cuttree_event 12, 40, EVENT_NOISY_FOREST_CUT_TREE_1
+	cuttree_event 21, 12, EVENT_NOISY_FOREST_CUT_TREE_2
+
+const_value set 1
+	const NOISYFOREST_ANABEL
+	const NOISYFOREST_YOUNGSTER
+	const NOISYFOREST_MARILL
 
 NoisyForestAnabelScript:
 	faceplayer
@@ -29,7 +50,7 @@ NoisyForestAnabelScript:
 	opentext
 	writetext .ChallengeText
 	yesorno
-	iffalse .No
+	iffalse_jumpopenedtext .NoText
 	writetext .YesText
 	waitbutton
 	closetext
@@ -44,7 +65,7 @@ NoisyForestAnabelScript:
 	writetext .ItemText
 	buttonsound
 	verbosegiveitem POWER_BAND
-	iffalse .Done
+	iffalse_endtext
 	writetext .GoodbyeText
 	waitbutton
 	closetext
@@ -54,16 +75,6 @@ NoisyForestAnabelScript:
 	pause 15
 	special Special_FadeInQuickly
 	clearevent EVENT_BATTLE_TOWER_ANABEL
-	end
-
-.Done:
-	closetext
-	end
-
-.No:
-	writetext .NoText
-	waitbutton
-	closetext
 	end
 
 .ChallengeText:
@@ -119,11 +130,7 @@ TrainerBug_maniacPierre:
 
 .Script:
 	end_if_just_battled
-	opentext
-	writetext .AfterText
-	waitbutton
-	closetext
-	end
+	jumptextfaceplayer .AfterText
 
 .SeenText:
 	text "My #mon love"
@@ -149,11 +156,7 @@ TrainerBug_maniacDylan:
 
 .Script:
 	end_if_just_battled
-	opentext
-	writetext .AfterText
-	waitbutton
-	closetext
-	end
+	jumptextfaceplayer .AfterText
 
 .SeenText:
 	text "I've never seen my"
@@ -178,11 +181,7 @@ TrainerGuitaristfJaclyn:
 
 .Script:
 	end_if_just_battled
-	opentext
-	writetext .AfterText
-	waitbutton
-	closetext
-	end
+	jumptextfaceplayer .AfterText
 
 .SeenText:
 	text "Let my guitar"
@@ -205,11 +204,7 @@ TrainerGuitaristmEzekiel:
 
 .Script:
 	end_if_just_battled
-	opentext
-	writetext .AfterText
-	waitbutton
-	closetext
-	end
+	jumptextfaceplayer .AfterText
 
 .SeenText:
 	text "Battle? Yeah, I'm"
@@ -233,11 +228,7 @@ TrainerHikerLester:
 
 .Script:
 	end_if_just_battled
-	opentext
-	writetext .AfterText
-	waitbutton
-	closetext
-	end
+	jumptextfaceplayer .AfterText
 
 .SeenText:
 	text "Yahoo!"
@@ -263,11 +254,7 @@ TrainerBird_keeperTrent:
 
 .Script:
 	end_if_just_battled
-	opentext
-	writetext .AfterText
-	waitbutton
-	closetext
-	end
+	jumptextfaceplayer .AfterText
 
 .SeenText:
 	text "The early bird"
@@ -288,10 +275,7 @@ TrainerBird_keeperTrent:
 	line "our training."
 	done
 
-NoisyForestTeacherScript:
-	jumptextfaceplayer .Text
-
-.Text:
+NoisyForestTeacherText:
 	text "I come here for my"
 	line "morning stroll."
 
@@ -300,29 +284,19 @@ NoisyForestTeacherScript:
 	cont "my steps!"
 	done
 
-NoisyForestChildScript:
-	jumptextfaceplayer .Text
-
-.Text:
+NoisyForestChildText:
 	text "Gah! This place"
 	line "is deafening!"
 	done
 
 NoisyForestPikabluScript:
-	opentext
-	writetext .PikabluText
-	cry MARILL
-	waitbutton
-	closetext
+	showcrytext .PikabluText, MARILL
 	disappear NOISYFOREST_YOUNGSTER
 	moveperson NOISYFOREST_YOUNGSTER, 19, 36
 	appear NOISYFOREST_YOUNGSTER
 	applymovement NOISYFOREST_YOUNGSTER, .WalkToYou
 	spriteface PLAYER, DOWN
-	opentext
-	writetext .OwnerText1
-	waitbutton
-	closetext
+	showtext .OwnerText1
 	disappear NOISYFOREST_MARILL
 	opentext
 	writetext .OwnerText2
@@ -403,67 +377,6 @@ NoisyForestPikabluScript:
 	step_left
 	step_end
 
-NoisyForestBalmMushroom:
-	itemball BALMMUSHROOM
-
-NoisyForestMulch:
-	itemball MULCH
-
-NoisyForestTMUTurn:
-	tmhmball TM_U_TURN
-
-NoisyForestCutTree:
-	jumpstd cuttree
-
-NoisyForestSignpostScript:
-	jumptext .Text
-
-.Text:
+NoisyForestSignpostText:
 	text "Noisy Forest"
 	done
-
-NoisyForestHiddenUltraBall:
-	dwb EVENT_NOISY_FOREST_HIDDEN_ULTRA_BALL, ULTRA_BALL
-
-NoisyForestHiddenTinyMushroom:
-	dwb EVENT_NOISY_FOREST_HIDDEN_TINYMUSHROOM, TINYMUSHROOM
-
-NoisyForestHiddenFullRestore:
-	dwb EVENT_NOISY_FOREST_HIDDEN_FULL_RESTORE, FULL_RESTORE
-
-NoisyForest_MapEventHeader:
-.Warps:
-	db 4
-	warp_def $4, $6, 2, ROCKY_BEACH
-	warp_def $5, $6, 3, ROCKY_BEACH
-	warp_def $1c, $23, 1, SHAMOUTI_SHRINE_RUINS
-	warp_def $1d, $23, 2, SHAMOUTI_SHRINE_RUINS
-
-.XYTriggers:
-	db 0
-
-.Signposts:
-	db 5
-	signpost 9, 15, SIGNPOST_READ, NoisyForestSignpostScript
-	signpost 31, 25, SIGNPOST_READ, NoisyForestSignpostScript
-	signpost 2, 32, SIGNPOST_ITEM, NoisyForestHiddenUltraBall
-	signpost 18, 34, SIGNPOST_ITEM, NoisyForestHiddenTinyMushroom
-	signpost 29, 7, SIGNPOST_ITEM, NoisyForestHiddenFullRestore
-
-.PersonEvents:
-	db 15
-	person_event SPRITE_ANABEL, 19, 20, SPRITEMOVEDATA_WALK_UP_DOWN, 1, 0, -1, -1, 0, PERSONTYPE_SCRIPT, 0, NoisyForestAnabelScript, EVENT_NOISY_FOREST_ANABEL
-	person_event SPRITE_SUPER_NERD, 4, 20, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, -1, (1 << 3) | PAL_OW_BLUE, PERSONTYPE_TRAINER, 3, TrainerBug_maniacPierre, -1
-	person_event SPRITE_SUPER_NERD, 27, 4, SPRITEMOVEDATA_STANDING_RIGHT, 0, 0, -1, -1, (1 << 3) | PAL_OW_BLUE, PERSONTYPE_TRAINER, 1, TrainerBug_maniacDylan, -1
-	person_event SPRITE_COOLTRAINER_F, 17, 31, SPRITEMOVEDATA_SPINRANDOM_FAST, 0, 0, -1, -1, (1 << 3) | PAL_OW_RED, PERSONTYPE_TRAINER, 1, TrainerGuitaristfJaclyn, -1
-	person_event SPRITE_ROCKER, 30, 12, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, -1, (1 << 3) | PAL_OW_RED, PERSONTYPE_TRAINER, 2, TrainerGuitaristmEzekiel, -1
-	person_event SPRITE_POKEFAN_M, 34, 20, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, -1, (1 << 3) | PAL_OW_BROWN, PERSONTYPE_TRAINER, 2, TrainerHikerLester, -1
-	person_event SPRITE_YOUNGSTER, 15, 10, SPRITEMOVEDATA_STANDING_RIGHT, 0, 0, -1, -1, (1 << 3) | PAL_OW_BLUE, PERSONTYPE_TRAINER, 4, TrainerBird_keeperTrent, -1
-	person_event SPRITE_TEACHER, 6, 13, SPRITEMOVEDATA_WALK_UP_DOWN, 2, 0, -1, (1 << MORN) | (1 << DAY), (1 << 3) | PAL_OW_RED, PERSONTYPE_SCRIPT, 0, NoisyForestTeacherScript, -1
-	person_event SPRITE_CHILD, 15, 40, SPRITEMOVEDATA_WALK_LEFT_RIGHT, 0, 1, -1, -1, (1 << 3) | PAL_OW_BLUE, PERSONTYPE_SCRIPT, 0, NoisyForestChildScript, -1
-	person_event SPRITE_MARILL, 31, 24, SPRITEMOVEDATA_POKEMON, 0, 0, -1, -1, (1 << 3) | PAL_OW_BLUE, PERSONTYPE_SCRIPT, 0, NoisyForestPikabluScript, EVENT_NOISY_FOREST_PIKABLU
-	person_event SPRITE_BALL_CUT_FRUIT, 2, 41, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, -1, (1 << 3) | PAL_OW_RED, PERSONTYPE_ITEMBALL, 0, NoisyForestBalmMushroom, EVENT_NOISY_FOREST_BALMMUSHROOM
-	person_event SPRITE_BALL_CUT_FRUIT, 28, 16, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, -1, (1 << 3) | PAL_OW_RED, PERSONTYPE_ITEMBALL, 0, NoisyForestMulch, EVENT_NOISY_FOREST_MULCH
-	person_event SPRITE_BALL_CUT_FRUIT, 23, 17, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, -1, (1 << 3) | PAL_OW_BLUE, PERSONTYPE_TMHMBALL, 0, NoisyForestTMUTurn, EVENT_NOISY_FOREST_TM_U_TURN
-	person_event SPRITE_BALL_CUT_FRUIT, 12, 40, SPRITEMOVEDATA_CUTTABLE_TREE, 0, 0, -1, -1, 0, PERSONTYPE_SCRIPT, 0, NoisyForestCutTree, EVENT_NOISY_FOREST_CUT_TREE_1
-	person_event SPRITE_BALL_CUT_FRUIT, 21, 12, SPRITEMOVEDATA_CUTTABLE_TREE, 0, 0, -1, -1, 0, PERSONTYPE_SCRIPT, 0, NoisyForestCutTree, EVENT_NOISY_FOREST_CUT_TREE_2

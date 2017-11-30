@@ -1,31 +1,58 @@
-const_value set 2
-	const SHAMOUTIPOKECENTER1F_NURSE
-	const SHAMOUTIPOKECENTER1F_IVY
-
 ShamoutiPokeCenter1F_MapScriptHeader:
-.MapTriggers:
-	db 0
 
-.MapCallbacks:
-	db 1
+.MapTriggers: db 0
+
+.MapCallbacks: db 1
 	dbw MAPCALLBACK_TILES, ShamoutiPokeCenter1FFixStairScript
 
+ShamoutiPokeCenter1F_MapEventHeader:
+
+.Warps: db 3
+	warp_def 7, 5, 1, SHAMOUTI_ISLAND
+	warp_def 7, 6, 1, SHAMOUTI_ISLAND
+	warp_def 7, 0, 1, POKECENTER_2F
+
+.XYTriggers: db 0
+
+.Signposts: db 1
+	signpost 1, 10, SIGNPOST_READ, PokemonJournalLoreleiScript
+
+.PersonEvents: db 2
+	person_event SPRITE_IVY, 3, 6, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, -1, 0, PERSONTYPE_SCRIPT, 0, ShamoutiPokeCenter1FIvyScript, EVENT_SHAMOUTI_POKE_CENTER_IVY
+	pc_nurse_event 1, 5
+
+const_value set 1
+	const SHAMOUTIPOKECENTER1F_IVY
+
 ShamoutiPokeCenter1FFixStairScript:
-	changeblock $0, $6, $39
+	changeblock 0, 6, $39
 	return
 
-ShamoutiPokeCenter1FNurseScript:
-	jumpstd pokecenternurse
+PokemonJournalLoreleiScript:
+	setflag ENGINE_READ_LORELEI_JOURNAL
+	thistext
+
+	text "#mon Journal"
+
+	para "Special Feature:"
+	line "Ex-Elite Lorelei!"
+
+	para "Lorelei is said to"
+	line "have a complete"
+
+	para "collection of"
+	line "#mon dolls."
+	done
 
 ShamoutiPokeCenter1FIvyScript:
 	faceplayer
 	opentext
 	checkevent EVENT_LISTENED_TO_IVY_INTRO
-	iftrue .heardintro
+	iftrue .HeardIntro
 	writetext .GreetingText
 	waitbutton
 	setevent EVENT_LISTENED_TO_IVY_INTRO
-.heardintro
+.HeardIntro
 	writetext .OfferText
 	loadmenudata .KantoStarterMenuData
 	verticalmenu
@@ -33,10 +60,14 @@ ShamoutiPokeCenter1FIvyScript:
 	if_equal $1, .Bulbasaur
 	if_equal $2, .Charmander
 	if_equal $3, .Squirtle
-	writetext .RefusedText
-	waitbutton
-	closetext
-	end
+	thisopenedtext
+
+	text "Ivy: Hm, I thought"
+	line "you'd be happy to"
+
+	para "raise a rare"
+	line "#mon…"
+	done
 
 .Bulbasaur:
 	setevent EVENT_GOT_BULBASAUR_FROM_IVY
@@ -88,7 +119,7 @@ ShamoutiPokeCenter1FIvyScript:
 	checkcode VAR_FACING
 	spriteface PLAYER, DOWN
 	if_not_equal UP, .noleftstep
-	applymovement SHAMOUTIPOKECENTER1F_IVY, .LeftMovement
+	applyonemovement SHAMOUTIPOKECENTER1F_IVY, step_left
 .noleftstep
 	applymovement SHAMOUTIPOKECENTER1F_IVY, .DownMovement
 	playsound SFX_EXIT_BUILDING
@@ -102,10 +133,12 @@ ShamoutiPokeCenter1FIvyScript:
 	end
 
 .NoRoom:
-	writetext .NoRoomText
-	waitbutton
-	closetext
-	end
+	thisopenedtext
+
+	text "Ivy: Oh, there's no"
+	line "more room in your"
+	cont "party…"
+	done
 
 .GreetingText:
 	text "Ivy: Oh! You're"
@@ -155,20 +188,6 @@ ShamoutiPokeCenter1FIvyScript:
 	line "want?"
 	done
 
-.RefusedText:
-	text "Ivy: Hm, I thought"
-	line "you'd be happy to"
-
-	para "raise a rare"
-	line "#mon…"
-	done
-
-.NoRoomText:
-	text "Ivy: Oh, there's no"
-	line "more room in your"
-	cont "party…"
-	done
-
 .ChoseKantoStarterText:
 	text "Ivy: I think"
 	line "that's a great"
@@ -206,6 +225,13 @@ ShamoutiPokeCenter1FIvyScript:
 	line "for me!"
 	done
 
+.DownMovement:
+	step_down
+	step_down
+	step_down
+	step_down
+	step_end
+
 .KantoStarterMenuData:
 	db $40 ; flags
 	db 02, 00 ; start coords
@@ -220,50 +246,3 @@ ShamoutiPokeCenter1FIvyScript:
 	db "Charmander@"
 	db "Squirtle@"
 	db "Cancel@"
-
-.LeftMovement:
-	step_left
-	step_end
-
-.DownMovement:
-	step_down
-	step_down
-	step_down
-	step_down
-	step_end
-
-PokemonJournalLoreleiScript:
-	setflag ENGINE_READ_LORELEI_JOURNAL
-	jumptext PokemonJournalLoreleiText
-
-PokemonJournalLoreleiText:
-	text "#mon Journal"
-
-	para "Special Feature:"
-	line "Ex-Elite Lorelei!"
-
-	para "Lorelei is said to"
-	line "have a complete"
-
-	para "collection of"
-	line "#mon dolls."
-	done
-
-ShamoutiPokeCenter1F_MapEventHeader:
-.Warps:
-	db 3
-	warp_def $7, $5, 1, SHAMOUTI_ISLAND
-	warp_def $7, $6, 1, SHAMOUTI_ISLAND
-	warp_def $7, $0, 1, POKECENTER_2F
-
-.XYTriggers:
-	db 0
-
-.Signposts:
-	db 1
-	signpost 1, 10, SIGNPOST_READ, PokemonJournalLoreleiScript
-
-.PersonEvents:
-	db 2
-	person_event SPRITE_NURSE, 1, 5, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, -1, 0, PERSONTYPE_SCRIPT, 0, ShamoutiPokeCenter1FNurseScript, -1
-	person_event SPRITE_IVY, 3, 6, SPRITEMOVEDATA_STANDING_DOWN, 0, 0, -1, -1, 0, PERSONTYPE_SCRIPT, 0, ShamoutiPokeCenter1FIvyScript, EVENT_SHAMOUTI_POKE_CENTER_IVY
